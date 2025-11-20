@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { Col, Container, Row, Table } from 'react-bootstrap';
+import { Col, Container, Row } from 'react-bootstrap';
 import { prisma } from '@/lib/prisma';
 import { vendorProtectedPage } from '@/lib/page-protection';
 import authOptions from '@/lib/authOptions';
