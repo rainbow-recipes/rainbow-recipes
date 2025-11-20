@@ -17,6 +17,7 @@ async function main() {
         email: account.email,
         password,
         role,
+        storeName: account.storeName,
       },
     });
     // console.log(`  Created user: ${user.email} with role: ${user.role}`);
