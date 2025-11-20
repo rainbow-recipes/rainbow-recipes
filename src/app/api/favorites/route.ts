@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
+// eslint-disable-next-line import/extensions
 import { authOptions } from '@/lib/auth';
 
 const prisma = new PrismaClient();

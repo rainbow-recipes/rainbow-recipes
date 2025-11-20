@@ -16,6 +16,7 @@ const NavBar: React.FC = () => {
   const pathName = usePathname();
 
   const currentUserEmail = session?.user?.email ?? '';
+  const currentUserName = (session?.user as any)?.username ?? '';
 
   // includes role from auth.ts
   const userWithRole = session?.user as { email?: string; role?: string } | undefined;
@@ -75,7 +76,7 @@ const NavBar: React.FC = () => {
           {/* Right side Auth */}
           <Nav>
             {isLoggedIn ? (
-              <NavDropdown id="login-dropdown" title={currentUserEmail}>
+              <NavDropdown id="login-dropdown" title={currentUserName}>
                 <NavDropdown.Item
                   id="login-dropdown-sign-out"
                   onClick={() => signOut({ callbackUrl: '/signin' })}

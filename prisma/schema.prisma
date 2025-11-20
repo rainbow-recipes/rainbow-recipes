@@ -6,8 +6,9 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("storage_POSTGRES_PRISMA_URL")
-  directUrl = env("storage_POSTGRES_URL_NON_POOLING")
+  url      = env("DATABASE_URL")
+  // url       = env("storage_POSTGRES_PRISMA_URL")
+  // directUrl = env("storage_POSTGRES_URL_NON_POOLING")
 }
 
 //
@@ -32,6 +33,7 @@ enum Condition {
 
 model User {
   id               String     @id @default(cuid())
+  username         String     @unique
   firstName        String?
   lastName         String?
   name             String?

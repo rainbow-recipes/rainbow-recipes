@@ -20,7 +20,7 @@ interface SignInFormProps {
 export default function SignInForm({ callbackUrl, errorParam }: SignInFormProps) {
   const router = useRouter();
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
@@ -35,7 +35,7 @@ export default function SignInForm({ callbackUrl, errorParam }: SignInFormProps)
 
     const result = await signIn('credentials', {
       redirect: false,
-      email,
+      username,
       password,
       callbackUrl,
     });
@@ -65,14 +65,13 @@ export default function SignInForm({ callbackUrl, errorParam }: SignInFormProps)
               )}
 
               <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3" controlId="email">
-                  <Form.Label>Email address</Form.Label>
+                <Form.Group className="mb-3" controlId="username">
+                  <Form.Label>Username</Form.Label>
                   <Form.Control
-                    type="email"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    placeholder="yourusername"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
                   />
                 </Form.Group>
