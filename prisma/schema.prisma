@@ -45,3 +45,47 @@ model Stuff {
   condition Condition @default(good)
   owner     String
 }
+
+enum Unit {
+  lb
+  oz
+  g
+  kg
+  floz
+  gal
+  qt
+}
+
+model Item {
+  id            Int       @id @default(autoincrement())
+  name          String
+  price         Int
+  unit          Unit
+  availability  Boolean
+}
+
+model Location {
+  address  String
+  city     String
+  state    String
+  zipcode  Int
+}
+
+model Hours {
+  Monday     String
+  Tuesday    String
+  Wednesday  String
+  Thursday   String
+  Friday     String
+  Saturday   String
+  Sunday     String
+}
+
+model Store {
+  name      String
+  website   String?
+  location  Location
+  hours     Hours
+  items     Item[]
+  owner     String
+}

@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { vendorProtectedPage } from '@/lib/page-protection';
 import authOptions from '@/lib/authOptions';
 
-const MyStore = async () => {
+const MyStorePage = async () => {
   const session = await getServerSession(authOptions);
   vendorProtectedPage(
     session as {
@@ -30,4 +30,4 @@ const MyStore = async () => {
   );
 };
 
-export default MyStore;
+export default MyStorePage;
