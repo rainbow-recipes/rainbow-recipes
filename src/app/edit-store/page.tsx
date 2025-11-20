@@ -1,8 +1,8 @@
 import { getServerSession } from 'next-auth';
 import authOptions from '@/lib/authOptions';
 import { vendorProtectedPage } from '@/lib/page-protection';
-import { prisma } from '@/lib/prisma';
-import EditStorePageForm from '@/components/EditStorePageForm';
+// import { prisma } from '@/lib/prisma';
+// import EditStorePageForm from '@/components/EditStorePageForm';
 
 export default async function EditStorePage() {
   // Protect the page, only logged in users can access it.
@@ -14,8 +14,6 @@ export default async function EditStorePage() {
   );
 
   return (
-    <main>
-      <EditStorePageForm stuff={stuff} />
-    </main>
+    <main />
   );
 }
