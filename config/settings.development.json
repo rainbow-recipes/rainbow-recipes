@@ -1,7 +1,7 @@
 {
   "defaultAccounts": [
     { "email": "admin@foo.com", "password": "changeme", "role": "ADMIN" },
-    { "email": "vendor@foo.com", "password": "changeme", "role": "VENDOR", "storeName": "Vendor's Store" },
+    { "email": "vendor@foo.com", "password": "changeme", "isMerchant": true, "storeName": "Vendor's Store" },
     { "email": "john@foo.com", "password": "changeme" }
   ],
 

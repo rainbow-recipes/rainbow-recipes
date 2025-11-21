@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import authOptions from '@/lib/authOptions';
+import { authOptions } from '@/lib/auth';
 import { vendorProtectedPage } from '@/lib/page-protection';
 // import { prisma } from '@/lib/prisma';
 // import EditStorePageForm from '@/components/EditStorePageForm';

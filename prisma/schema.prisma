@@ -16,7 +16,6 @@ datasource db {
 
 enum Role {
   USER
-  VENDOR
   ADMIN
 }
 
@@ -43,6 +42,7 @@ model User {
   role             Role       @default(USER)
   isMerchant       Boolean    @default(false)
   merchantApproved Boolean    @default(false)
+  storeName        String?
 
   // NextAuth relations
   accounts Account[]
@@ -129,7 +129,6 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
-
 
 enum Unit {
   lb

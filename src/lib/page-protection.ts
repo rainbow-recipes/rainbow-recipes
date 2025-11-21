@@ -25,9 +25,12 @@ export const adminProtectedPage = (session: { user: { email: string; id: string;
  * Redirects to the login page if the user is not logged in.
  * Redirects to the not-authorized page if the user is not a vendor.
  */
-export const vendorProtectedPage = (session: { user: { email: string; id: string; randomKey: string } } | null) => {
+export const vendorProtectedPage = (
+  session: { user: { email: string; id: string; randomKey: string; isMerchant?: boolean } } | null,
+) => {
   loggedInProtectedPage(session);
-  if (session && session.user.randomKey !== Role.VENDOR) {
+  // If the current user is not marked as a merchant, redirect them.
+  if (session && session.user.isMerchant !== true) {
     redirect('/not-authorized');
   }
 };

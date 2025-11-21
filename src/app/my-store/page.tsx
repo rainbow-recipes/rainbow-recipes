@@ -2,15 +2,11 @@ import { getServerSession } from 'next-auth';
 import { Col, Container, Row } from 'react-bootstrap';
 import { prisma } from '@/lib/prisma';
 import { vendorProtectedPage } from '@/lib/page-protection';
-import authOptions from '@/lib/authOptions';
+import { authOptions } from '@/lib/auth';
 
 const MyStorePage = async () => {
   const session = await getServerSession(authOptions);
-  vendorProtectedPage(
-    session as {
-      user: { email: string; id: string; randomKey: string };
-    } | null,
-  );
+  vendorProtectedPage(session as any);
   const userEmail = (session && session.user && session.user.email) || '';
   const user = await prisma.user.findUnique({
     where: { email: userEmail },
