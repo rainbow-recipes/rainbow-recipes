@@ -131,7 +131,7 @@ model VerificationToken {
 }
 
 model Store {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(cuid())
   name      String
   website   String?
   location  String

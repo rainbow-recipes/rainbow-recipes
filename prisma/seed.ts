@@ -20,8 +20,7 @@ async function main() {
       create: {
         email: account.email,
         password,
-        role,
-        storeName: account.storeName,
+        role
       },
     });
   }

@@ -4,76 +4,104 @@ import { Button, Card, Col, Container, Form, Row } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import swal from 'sweetalert';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Stuff } from '@prisma/client';
-import { EditStuffSchema } from '@/lib/validationSchemas';
-import { editStuff } from '@/lib/dbActions';
+import { Store } from '@prisma/client';
+import { EditStoreSchema } from '@/lib/validationSchemas';
+import { editStore } from '@/lib/dbActions';
 
-const onSubmit = async (data: Stuff) => {
-  // console.log(`onSubmit data: ${JSON.stringify(data, null, 2)}`);
-  await editStuff(data);
-  swal('Success', 'Your item has been updated', 'success', {
-    timer: 2000,
-  });
+// form type matching the validation schema (website string|null, hours string[])
+type EditStoreForm = {
+  id: string;
+  name: string;
+  website: string | null;
+  location: string;
+  hours: string[];
+  owner: string;
 };
 
-const EditStorePageForm = ({ stuff }: { stuff: Stuff }) => {
+const EditStorePageForm = ({ store }: { store: Store }) => {
+  const defaultHours = Array.from({ length: 7 }, (_, i) => (store.hours && store.hours[i]) || '');
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<Stuff>({
-    resolver: yupResolver(EditStuffSchema),
+  } = useForm<EditStoreForm>({
+    resolver: yupResolver(EditStoreSchema),
+    defaultValues: {
+      id: store.id,
+      name: store.name,
+      website: store.website ?? null,
+      location: store.location,
+      hours: defaultHours,
+      owner: store.owner,
+    },
   });
-  // console.log(stuff);
+
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  const onSubmit = async (data: EditStoreForm) => {
+    // transform to Store shape (website null handled already by resolver/transform)
+    const payload: Store = {
+      id: data.id,
+      name: data.name,
+      website: data.website as string | null,
+      location: data.location,
+      hours: data.hours,
+      owner: data.owner,
+    };
+
+    await editStore(payload);
+    swal('Success', 'Your store has been updated', 'success', { timer: 2000 });
+  };
 
   return (
     <Container className="py-3">
       <Row className="justify-content-center">
         <Col xs={5}>
           <Col className="text-center">
-            <h2>Edit Stuff</h2>
+            <h2>Edit My Store</h2>
           </Col>
           <Card>
             <Card.Body>
               <Form onSubmit={handleSubmit(onSubmit)}>
-                <input type="hidden" {...register('id')} value={stuff.id} />
+                <input type="hidden" {...register('id')} />
                 <Form.Group>
-                  <Form.Label>Name</Form.Label>
+                  <Form.Label>Store Name</Form.Label>
                   <input
                     type="text"
                     {...register('name')}
-                    defaultValue={stuff.name}
-                    required
                     className={`form-control ${errors.name ? 'is-invalid' : ''}`}
                   />
                   <div className="invalid-feedback">{errors.name?.message}</div>
                 </Form.Group>
                 <Form.Group>
-                  <Form.Label>Quantity</Form.Label>
-                  <input
-                    type="number"
-                    {...register('quantity')}
-                    defaultValue={stuff.quantity}
-                    className={`form-control ${errors.quantity ? 'is-invalid' : ''}`}
-                  />
-                  <div className="invalid-feedback">{errors.quantity?.message}</div>
+                  <Form.Label>Store Website</Form.Label>
+                  <input type="text" {...register('website')} className={`form-control ${errors.website ? 'is-invalid' : ''}`} />
+                  <div className="invalid-feedback">{(errors as any).website?.message}</div>
                 </Form.Group>
                 <Form.Group>
-                  <Form.Label>Condition</Form.Label>
-                  <select
-                    {...register('condition')}
-                    className={`form-control ${errors.condition ? 'is-invalid' : ''}`}
-                    defaultValue={stuff.condition}
-                  >
-                    <option value="excellent">Excellent</option>
-                    <option value="good">Good</option>
-                    <option value="fair">Fair</option>
-                    <option value="poor">Poor</option>
-                  </select>
-                  <div className="invalid-feedback">{errors.condition?.message}</div>
+                  <Form.Label>Location</Form.Label>
+                  <input type="text" {...register('location')} className={`form-control ${errors.location ? 'is-invalid' : ''}`} />
+                  <div className="invalid-feedback">{errors.location?.message}</div>
                 </Form.Group>
-                <input type="hidden" {...register('owner')} value={stuff.owner} />
+                <Form.Group>
+                  <Form.Label>Hours (one input per day)</Form.Label>
+                  <Row>
+                    {days.map((day, idx) => (
+                      <Col key={day} xs={12} sm={6} className="mb-2">
+                        <Form.Label className="small">{day}</Form.Label>
+                        <input
+                          type="text"
+                          {...register(`hours.${idx}` as const)}
+                          className={`form-control ${errors.hours ? 'is-invalid' : ''}`}
+                        />
+                      </Col>
+                    ))}
+                  </Row>
+                  <div className="invalid-feedback">{(errors as any).hours?.message}</div>
+                </Form.Group>
+                <input type="hidden" {...register('owner')} />
                 <Form.Group className="form-group">
                   <Row className="pt-3">
                     <Col>

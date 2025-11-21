@@ -1,9 +1,39 @@
 'use server';
 
-import { Stuff, Condition } from '@prisma/client';
+import { Stuff, Condition, Store } from '@prisma/client';
 import { hash } from 'bcrypt';
 import { redirect } from 'next/navigation';
 import { prisma } from './prisma';
+
+export async function createStore(credentials: { id: string; owner: string }) {
+  // console.log(`createUser data: ${JSON.stringify(credentials, null, 2)}`);
+  await prisma.store.create({
+    data: {
+      id: credentials.id,
+      name: 'My Store',
+      website: null,
+      location: '',
+      hours: ['', '', '', '', '', '', ''],
+      owner: credentials.owner,
+    },
+  });
+}
+
+export async function editStore(store: Store) {
+  // console.log(`editStore data: ${JSON.stringify(store, null, 2)}`);
+  await prisma.store.update({
+    where: { id: store.id },
+    data: {
+      name: store.name,
+      website: store.website,
+      location: store.location,
+      hours: store.hours,
+      owner: store.owner,
+    },
+  });
+  // After updating, redirect to the list page
+  redirect('/my-store');
+}
 
 /**
  * Adds a new stuff to the database.
