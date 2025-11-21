@@ -60,6 +60,13 @@ export default function Navbar() {
             </Nav.Link>
             <Nav.Link
               as={Link}
+              href="/favorites-page"
+              className={`nav-link-custom ${isActive(pathname, '/favorites-page') ? 'active' : ''}`}
+            >
+              Favorites
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
               href="/list"
               className={`nav-link-custom ${isActive(pathname, '/list') ? 'active' : ''}`}
             >
