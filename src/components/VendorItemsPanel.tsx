@@ -1,4 +1,4 @@
-"use client";
+ 'use client';
 
 import { useMemo, useState } from 'react';
 import { Table } from 'react-bootstrap';
@@ -14,15 +14,15 @@ export default function VendorItemsPanel({ items }: { items: ItemClient[] }) {
   const filtered = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return items;
-    return items.filter((it) =>
-      (
-        it.name.toLowerCase().includes(term)
-        || it.unit.toLowerCase().includes(term)
-        || String(it.price).toLowerCase().includes(term)
-      ),
-    );
-  }, [items, searchTerm]
-  );
+
+    return items.filter((it) => {
+      return (
+        it.name.toLowerCase().includes(term) ||
+        it.unit.toLowerCase().includes(term) ||
+        String(it.price).toLowerCase().includes(term)
+      );
+    });
+  }, [items, searchTerm]);
 
   return (
     <>
@@ -55,7 +55,7 @@ export default function VendorItemsPanel({ items }: { items: ItemClient[] }) {
         </thead>
         <tbody>
           {filtered.map((item) => (
-            <VendorItem key={item.id} {...item as any} />
+            <VendorItem key={item.id} {...(item as any)} />
           ))}
         </tbody>
       </Table>
