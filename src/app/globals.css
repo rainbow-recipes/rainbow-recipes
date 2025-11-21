@@ -12,3 +12,8 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Add top padding to account for the fixed navbar so content is not covered */
+.wrapper {
+  padding-top: 70px; /* adjust if your navbar height changes */
+}

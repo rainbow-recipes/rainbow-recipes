@@ -23,9 +23,7 @@ export default function RootLayout({
       <body className={classString}>
         <Providers>
           <Navbar />
-          <div className="pt-5 pt-lg-4">
-            {children}
-          </div>
+          {children}
         </Providers>
       </body>
     </html>
