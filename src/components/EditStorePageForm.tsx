@@ -77,12 +77,20 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
                 </Form.Group>
                 <Form.Group>
                   <Form.Label>Store Website</Form.Label>
-                  <input type="text" {...register('website')} className={`form-control ${errors.website ? 'is-invalid' : ''}`} />
+                  <input 
+                    type="text"
+                    {...register('website')}
+                    className={`form-control ${errors.website ? 'is-invalid' : ''}`}
+                  />
                   <div className="invalid-feedback">{(errors as any).website?.message}</div>
                 </Form.Group>
                 <Form.Group>
                   <Form.Label>Location</Form.Label>
-                  <input type="text" {...register('location')} className={`form-control ${errors.location ? 'is-invalid' : ''}`} />
+                  <input
+                    type="text"
+                    {...register('location')}
+                    className={`form-control ${errors.location ? 'is-invalid' : ''}`}
+                  />
                   <div className="invalid-feedback">{errors.location?.message}</div>
                 </Form.Group>
                 <Form.Group>
