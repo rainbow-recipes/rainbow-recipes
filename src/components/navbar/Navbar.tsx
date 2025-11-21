@@ -60,6 +60,13 @@ export default function Navbar() {
             </Nav.Link>
             <Nav.Link
               as={Link}
+              href="/saved"
+              className={`nav-link-custom ${isActive(pathname, '/saved') ? 'active' : ''}`}
+            >
+              Favorites
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
               href="/list"
               className={`nav-link-custom ${isActive(pathname, '/list') ? 'active' : ''}`}
             >
@@ -102,6 +109,9 @@ export default function Navbar() {
                 </NavDropdown.Item>
                 <NavDropdown.Item as={Link} href="/signup" className="text-decoration-none">
                   Register
+                </NavDropdown.Item>
+                <NavDropdown.Item as={Link} href="/merchant-signup">
+                  Vendor Sign Up
                 </NavDropdown.Item>
               </NavDropdown>
             ) : (
