@@ -1,0 +1,132 @@
+'use client';
+
+import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
+import {
+  Navbar as BootstrapNavbar,
+  Nav,
+  NavDropdown,
+  Container,
+} from 'react-bootstrap';
+import './Navbar.css';
+
+export default function Navbar() {
+  const { data: session } = useSession();
+  const pathname = usePathname();
+
+  const userName = session?.user?.name ?? session?.user?.email ?? '';
+  const isLoggedIn = !!session?.user;
+  const isAdmin = (session?.user as any)?.role === 'ADMIN';
+
+  function isActive(p: string, target: string) {
+    return p === target;
+  }
+
+  return (
+    <BootstrapNavbar
+      expand="lg"
+      fixed="top"
+      style={{ backgroundColor: '#00664F' }}
+      variant="dark"
+      className="shadow-sm"
+    >
+      <Container>
+        <BootstrapNavbar.Brand as={Link} href="/" className="nav-link-custom">
+          <span className="d-inline-flex align-items-center">
+            <span
+              className="me-2 d-inline-flex align-items-center justify-content-center rounded-circle"
+              style={{
+                width: '36px',
+                height: '36px',
+                backgroundColor: 'rgba(255,255,255,0.15)',
+              }}
+            >
+              🍲
+            </span>
+            <span className="fw-semibold">Rainbow Recipes</span>
+          </span>
+        </BootstrapNavbar.Brand>
+
+        <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
+        <BootstrapNavbar.Collapse id="basic-navbar-nav">
+          <Nav className="me-auto">
+            <Nav.Link
+              as={Link}
+              href="/recipes"
+              className={`nav-link-custom ${isActive(pathname, '/recipes') ? 'active' : ''}`}
+            >
+              Recipes
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              href="/list"
+              className={`nav-link-custom ${isActive(pathname, '/list') ? 'active' : ''}`}
+            >
+              Vendors
+            </Nav.Link>
+            <NavDropdown 
+              title="Categories" 
+              id="categories-dropdown"
+            >
+              <NavDropdown.Item disabled>
+                Coming Soon...
+              </NavDropdown.Item>
+            </NavDropdown>
+            <Nav.Link
+              as={Link}
+              href="/about"
+              className={`nav-link-custom ${isActive(pathname, '/about') ? 'active' : ''}`}
+            >
+              About
+            </Nav.Link>
+            {isAdmin && (
+              <Nav.Link
+                as={Link}
+                href="/admin"
+                className={`nav-link-custom ${isActive(pathname, '/admin') ? 'active' : ''}`}
+              >
+                Admin
+              </Nav.Link>
+            )}
+          </Nav>
+
+          <Nav className="ms-auto">
+            {!isLoggedIn ? (
+              <NavDropdown 
+                title="Login" 
+                id="login-dropdown"
+              >
+                <NavDropdown.Item as={Link} href="/signin" className="text-decoration-none">
+                  Log In
+                </NavDropdown.Item>
+                <NavDropdown.Item as={Link} href="/signup" className="text-decoration-none">
+                  Register
+                </NavDropdown.Item>
+              </NavDropdown>
+            ) : (
+              <NavDropdown 
+                title={`Hello, ${userName}`} 
+                id="user-dropdown"
+              >
+                <NavDropdown.Item as={Link} href="/my-recipes" className="text-decoration-none">
+                  My Recipes
+                </NavDropdown.Item>
+                <NavDropdown.Item as={Link} href="/add-recipe" className="text-decoration-none">
+                  Add Recipe
+                </NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item 
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  style={{ cursor: 'pointer' }}
+                >
+                  Logout
+                </NavDropdown.Item>
+              </NavDropdown>
+            )}
+          </Nav>
+        </BootstrapNavbar.Collapse>
+      </Container>
+    </BootstrapNavbar>
+  );
+}
