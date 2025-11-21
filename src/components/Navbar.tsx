@@ -58,6 +58,13 @@ const NavBar: React.FC = () => {
                 >
                   My Recipes
                 </Nav.Link>
+                <Nav.Link
+                  id="favorites-nav"
+                  href="/favorites-page"
+                  active={pathName === '/favorites-page'}
+                >
+                  Favorites
+                </Nav.Link>
               </>
             )}
 
