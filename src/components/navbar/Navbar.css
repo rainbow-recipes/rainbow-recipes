@@ -1,0 +1,37 @@
+/* NAVBAR LINK FIXES */
+.navbar .nav-link-custom,
+.navbar .nav-link-custom:link,
+.navbar .nav-link-custom:visited {
+  color: rgba(255, 255, 255, 0.75) !important;
+  text-decoration: none !important;
+}
+
+.navbar .nav-link-custom:hover,
+.navbar .nav-link-custom:focus {
+  color: #ffffff !important;
+}
+
+.navbar .nav-link-custom.active,
+.navbar .nav-link-custom.active:link,
+.navbar .nav-link-custom.active:visited {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* Dropdown toggle text */
+.navbar .dropdown-toggle {
+  color: rgba(255,255,255,0.75) !important;
+}
+
+.navbar .dropdown-toggle:hover {
+  color: #ffffff !important;
+}
+
+/* Brand always white */
+.navbar .navbar-brand.nav-link-custom,
+.navbar .navbar-brand.nav-link-custom:link,
+.navbar .navbar-brand.nav-link-custom:visited,
+.navbar .navbar-brand.nav-link-custom:hover,
+.navbar .navbar-brand.nav-link-custom:focus {
+  color: #ffffff !important;
+}
