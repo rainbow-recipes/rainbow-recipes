@@ -7,11 +7,12 @@ import { authOptions } from '@/lib/auth';
 const MyStorePage = async () => {
   const session = await getServerSession(authOptions);
   vendorProtectedPage(session as any);
-  const userEmail = (session && session.user && session.user.email) || '';
-  const user = await prisma.user.findUnique({
-    where: { email: userEmail },
-  });
-  const storeName = user?.storeName || 'My Store';
+  // prefer using the session user id (more reliable than email)
+  const userId = (session && session.user && (session.user as any).id) || '';
+  const user = userId
+    ? await prisma.user.findUnique({ where: { id: userId } })
+    : null;
+  const storeName = user?.storeName ?? 'My Store';
 
   return (
     <main>
