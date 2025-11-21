@@ -168,10 +168,10 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
           </Link>
 
           <Link
-            href="/saved"
+            href="/favorites"
             className="btn btn-outline-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
           >
-            Saved Recipes
+            Favorite Recipes
           </Link>
         </div>
       </Container>

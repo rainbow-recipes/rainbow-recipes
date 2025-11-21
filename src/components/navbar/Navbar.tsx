@@ -15,9 +15,9 @@ export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
 
-  const userName = session?.user?.name ?? session?.user?.email ?? '';
   const isLoggedIn = !!session?.user;
   const isAdmin = (session?.user as any)?.role === 'ADMIN';
+  const isMerchant = (session?.user as any)?.isMerchant === true;
 
   function isActive(p: string, target: string) {
     return p === target;
@@ -51,6 +51,24 @@ export default function Navbar() {
         <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
         <BootstrapNavbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
+            {isAdmin && (
+              <Nav.Link
+                as={Link}
+                href="/admin"
+                className={`nav-link-custom ${isActive(pathname, '/admin') ? 'active' : ''}`}
+              >
+                Admin
+              </Nav.Link>
+            )}
+            {isMerchant && (
+              <Nav.Link
+                as={Link}
+                href="/my-store"
+                className={`nav-link-custom ${isActive(pathname, '/my-store') ? 'active' : ''}`}
+              >
+                My Store
+              </Nav.Link>
+            )}
             <Nav.Link
               as={Link}
               href="/recipes"
@@ -60,8 +78,8 @@ export default function Navbar() {
             </Nav.Link>
             <Nav.Link
               as={Link}
-              href="/saved"
-              className={`nav-link-custom ${isActive(pathname, '/saved') ? 'active' : ''}`}
+              href="/favorites"
+              className={`nav-link-custom ${isActive(pathname, '/favorites') ? 'active' : ''}`}
             >
               Favorites
             </Nav.Link>
@@ -87,15 +105,6 @@ export default function Navbar() {
             >
               About
             </Nav.Link>
-            {isAdmin && (
-              <Nav.Link
-                as={Link}
-                href="/admin"
-                className={`nav-link-custom ${isActive(pathname, '/admin') ? 'active' : ''}`}
-              >
-                Admin
-              </Nav.Link>
-            )}
           </Nav>
 
           <Nav className="ms-auto">
@@ -116,7 +125,7 @@ export default function Navbar() {
               </NavDropdown>
             ) : (
               <NavDropdown
-                title={`Hello, ${userName}`}
+                title={`Hello, ${session?.user?.email}`}
                 id="user-dropdown"
               >
                 <NavDropdown.Item as={Link} href="/my-recipes" className="text-decoration-none">
