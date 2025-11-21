@@ -19,24 +19,25 @@ export default function VendorItemsPanel({ items }: { items: ItemClient[] }) {
         it.name.toLowerCase().includes(term)
         || it.unit.toLowerCase().includes(term)
         || String(it.price).toLowerCase().includes(term)
-      )
+      ),
     );
-  }, [items, searchTerm]);
+  }, [items, searchTerm]
+  );
 
   return (
     <>
-      <div className='d-flex align-items-center gap-3 mb-4'>
-        <div className='flex-grow-1'>
+      <div className="d-flex align-items-center gap-3 mb-4">
+        <div className="flex-grow-1">
           <input
-            type='text'
-            className='form-control form-control-lg rounded-pill px-4'
-            placeholder='Search items by name, unit, or price'
+            type="text"
+            className="form-control form-control-lg rounded-pill px-4"
+            placeholder="Search items by name, unit, or price"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div>
-          <Link href="/add-item" className='btn btn-outline-dark btn-lg rounded-pill'>
+          <Link href="/add-item" className="btn btn-outline-dark btn-lg rounded-pill">
             Add Item
           </Link>
         </div>

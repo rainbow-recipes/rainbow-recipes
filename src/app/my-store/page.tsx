@@ -75,7 +75,7 @@ const MyStorePage = async () => {
                   ))}
                 </Col>
                 <Col xs="auto">
-                  {store?.hours.map((hour, i) => (
+                  {store?.hours.map((hour) => (
                     <div>
                       {hour}
                     </div>
