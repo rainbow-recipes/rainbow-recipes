@@ -2,6 +2,7 @@
 
 'use client';
 
+import { createStore } from '@/lib/dbActions';
 import { useMemo, useState } from 'react';
 
 type Role = 'USER' | 'ADMIN';
@@ -39,7 +40,7 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
     });
   }, [users, searchTerm]);
 
-  const handleApproveMerchant = async (userId: string) => {
+  const handleApproveMerchant = async (userId: string, userEmail: string) => {
     // optimistic update
     setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, merchantApproved: true } : u)));
 
@@ -55,6 +56,7 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
     } catch (err) {
       console.error(err);
     }
+    await createStore({ id: userId, owner: userEmail });
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -132,7 +134,7 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-success me-2"
-                        onClick={() => handleApproveMerchant(u.id)}
+                        onClick={() => handleApproveMerchant(u.id, u.email)}
                       >
                         Approve merchant
                       </button>

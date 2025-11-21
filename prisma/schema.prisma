@@ -128,3 +128,21 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model Store {
+  id        String    @id @default(cuid())
+  name      String
+  website   String?
+  location  String
+  hours     String[]
+  owner     String
+}
+
+model Item {
+  id           Int     @id @default(autoincrement())
+  name         String
+  price        Decimal @db.Decimal(10, 2)
+  unit         String
+  availability Boolean
+  owner        String
+}

@@ -20,7 +20,7 @@ async function main() {
       create: {
         email: account.email,
         password,
-        role,
+        role
       },
     });
   }
@@ -40,6 +40,22 @@ async function main() {
         condition,
       },
     });
+  }
+
+  for (const item of config.defaultItems) {
+  console.log(`  Adding stuff: ${JSON.stringify(item)}`);
+  // eslint-disable-next-line no-await-in-loop
+  await prisma.item.upsert({
+    where: { id: config.defaultItems.indexOf(item) + 1 },
+    update: {},
+    create: {
+      name: item.name,
+      price: item.price,
+      unit: item.unit,
+      availability: item.availability,
+      owner: item.owner,
+    },
+  });
   }
 
   // ----- New: recipe tags -----
@@ -79,5 +95,4 @@ main()
     console.error(e);
     await prisma.$disconnect();
     process.exit(1);
-  });  
-  
+  });
