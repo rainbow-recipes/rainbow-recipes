@@ -17,7 +17,6 @@ const MyStorePage = async () => {
   const user = userId
     ? await prisma.user.findUnique({ where: { email: userId } })
     : null;
-  
   const id = user?.id;
   const store = await prisma.store.findUnique({
     where: { id: id ?? '' },
@@ -47,7 +46,8 @@ const MyStorePage = async () => {
           {website ? (
             <div className="text-end">
               <h5 className="mb-0">
-                Store Website:{' '}
+                Store Website:
+                {' '}
                 <a
                   href={website.startsWith('http') ? website : `https://${website}`}
                   target="_blank"
@@ -68,12 +68,17 @@ const MyStorePage = async () => {
               <Row>
                 <Col xs="auto">
                   {days.map((day) => (
-                    <div>{day}:</div>
+                    <div>
+                      {day}
+                      :
+                    </div>
                   ))}
                 </Col>
                 <Col xs="auto">
                   {store?.hours.map((hour, i) => (
-                    <div key={i}>{hour}</div>
+                    <div>
+                      {hour}
+                    </div>
                   ))}
                 </Col>
               </Row>
