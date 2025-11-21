@@ -1,68 +1,43 @@
+import { PrismaClient, Role } from '@prisma/client';
 import { getServerSession } from 'next-auth';
-import { Col, Container, Row, Table } from 'react-bootstrap';
-import StuffItemAdmin from '@/components/StuffItemAdmin';
-import { prisma } from '@/lib/prisma';
-import { adminProtectedPage } from '@/lib/page-protection';
-import authOptions from '@/lib/authOptions';
+import { authOptions } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import AdminPanel from '@/components/AdminPanel';
 
-const AdminPage = async () => {
+const prisma = new PrismaClient();
+
+export default async function AdminPage() {
   const session = await getServerSession(authOptions);
-  adminProtectedPage(
-    session as {
-      user: { email: string; id: string; randomKey: string };
-    } | null,
-  );
-  const stuff = await prisma.stuff.findMany({});
-  const users = await prisma.user.findMany({});
+  if (!session?.user?.email) {
+    redirect('/signin');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email! },
+  });
+
+  if (!user || user.role !== Role.ADMIN) {
+    redirect('/recipes');
+  }
+
+  const users = await prisma.user.findMany({
+    orderBy: { email: 'asc' },
+  });
+
+  const plainUsers = users.map((u) => ({
+    id: u.id,
+    email: u.email,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    role: u.role,
+    isMerchant: u.isMerchant,
+    merchantApproved: u.merchantApproved,
+  }));
 
   return (
-    <main>
-      <Container id="list" fluid className="py-3">
-        <Row>
-          <Col>
-            <h1>List Stuff Admin</h1>
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Quantity</th>
-                  <th>Condition</th>
-                  <th>Owner</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stuff.map((item) => (
-                  <StuffItemAdmin key={item.id} {...item} />
-                ))}
-              </tbody>
-            </Table>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <h1>List Users Admin</h1>
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Role</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td>{user.email}</td>
-                    <td>{user.role}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Col>
-        </Row>
-      </Container>
-    </main>
+    <div className="container my-4">
+      <h2 className="mb-3">Admin Dashboard</h2>
+      <AdminPanel initialUsers={plainUsers} />
+    </div>
   );
-};
-
-export default AdminPage;
+}
