@@ -10,7 +10,6 @@ export default function SignUpPage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +24,7 @@ export default function SignUpPage() {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, username, email, password }),
+        body: JSON.stringify({ firstName, lastName, email, password }),
       });
 
       const data = await res.json();
@@ -46,7 +45,7 @@ export default function SignUpPage() {
 
   return (
     <div className="container my-5" style={{ maxWidth: 480 }}>
-      <h2 className="mb-4 text-center">User Sign up</h2>
+      <h2 className="mb-4 text-center">Sign up</h2>
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={handleSubmit}>
@@ -67,17 +66,6 @@ export default function SignUpPage() {
             className="form-control"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label">Username</label>
-          <input
-            type="text"
-            className="form-control"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
           />
         </div>
 

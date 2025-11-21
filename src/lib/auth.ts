@@ -13,17 +13,16 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        username: { label: 'Username', type: 'text' },
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials.password) {
+        if (!credentials?.email || !credentials.password) {
           return null;
         }
 
         const user = await prisma.user.findUnique({
-          where: { username: credentials.username },
+          where: { email: credentials.email },
         });
 
         if (!user || !user.password) {
@@ -38,7 +37,6 @@ export const authOptions: NextAuthOptions = {
         // Expose role and merchant flags to JWT/session
         return {
           id: user.id,
-          username: user.username,
           email: user.email,
           name:
             user.name
@@ -59,7 +57,6 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.username = (user as any).username;
         token.role = (user as any).role;
         token.isMerchant = (user as any).isMerchant;
         token.merchantApproved = (user as any).merchantApproved;
@@ -68,7 +65,6 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).username = token.username;
         (session.user as any).role = token.role;
         (session.user as any).isMerchant = token.isMerchant;
         (session.user as any).merchantApproved = token.merchantApproved;
