@@ -77,7 +77,7 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
                 </Form.Group>
                 <Form.Group>
                   <Form.Label>Store Website</Form.Label>
-                  <input 
+                  <input
                     type="text"
                     {...register('website')}
                     className={`form-control ${errors.website ? 'is-invalid' : ''}`}

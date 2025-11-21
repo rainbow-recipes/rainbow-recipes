@@ -56,7 +56,6 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
     } catch (err) {
       console.error(err);
     }
-    
     await createStore({ id: userId, owner: userEmail });
   };
 
