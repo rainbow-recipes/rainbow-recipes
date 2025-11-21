@@ -42,6 +42,22 @@ async function main() {
     });
   }
 
+  for (const item of config.defaultItems) {
+  console.log(`  Adding stuff: ${JSON.stringify(item)}`);
+  // eslint-disable-next-line no-await-in-loop
+  await prisma.item.upsert({
+    where: { id: config.defaultItems.indexOf(item) + 1 },
+    update: {},
+    create: {
+      name: item.name,
+      price: item.price,
+      unit: item.unit,
+      availability: item.availability,
+      owner: item.owner,
+    },
+  });
+  }
+
   // ----- New: recipe tags -----
   const dietTags = [
     { name: 'Vegan', category: 'Diet' },

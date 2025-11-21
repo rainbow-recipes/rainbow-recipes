@@ -42,7 +42,6 @@ model User {
   role             Role       @default(USER)
   isMerchant       Boolean    @default(false)
   merchantApproved Boolean    @default(false)
-  storeName        String?
 
   // NextAuth relations
   accounts Account[]
@@ -145,4 +144,5 @@ model Item {
   price        Decimal @db.Decimal(10, 2)
   unit         String
   availability Boolean
+  owner        String
 }

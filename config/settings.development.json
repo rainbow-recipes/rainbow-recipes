@@ -9,5 +9,11 @@
     { "name": "Bicycle", "quantity": 2, "owner": "john@foo.com", "condition": "poor" },
     { "name": "Banana", "quantity": 2, "owner": "admin@foo.com", "condition": "good" },
     { "name": "Boogie Board", "quantity": 2, "owner": "admin@foo.com", "condition": "excellent" }
+  ],
+
+  "defaultItems": [
+    { "name": "Apple", "price": 1.2, "unit": "each", "availability": true, "owner": "vendor@foo.com" },
+    { "name": "Banana", "price": 0.5, "unit": "each", "availability": true, "owner": "vendor@foo.com" },
+    { "name": "Carrot", "price": 0.8, "unit": "each", "availability": false, "owner": "vendor@foo.com" }
   ]
 }
