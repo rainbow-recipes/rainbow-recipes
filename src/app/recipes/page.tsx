@@ -3,7 +3,6 @@
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import RecipeList from '@/components/RecipeList';
 
 const prisma = new PrismaClient();

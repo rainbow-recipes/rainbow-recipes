@@ -65,8 +65,8 @@ export default function Navbar() {
             >
               Vendors
             </Nav.Link>
-            <NavDropdown 
-              title="Categories" 
+            <NavDropdown
+              title="Categories"
               id="categories-dropdown"
             >
               <NavDropdown.Item disabled>
@@ -93,8 +93,8 @@ export default function Navbar() {
 
           <Nav className="ms-auto">
             {!isLoggedIn ? (
-              <NavDropdown 
-                title="Login" 
+              <NavDropdown
+                title="Login"
                 id="login-dropdown"
               >
                 <NavDropdown.Item as={Link} href="/signin" className="text-decoration-none">
@@ -105,8 +105,8 @@ export default function Navbar() {
                 </NavDropdown.Item>
               </NavDropdown>
             ) : (
-              <NavDropdown 
-                title={`Hello, ${userName}`} 
+              <NavDropdown
+                title={`Hello, ${userName}`}
                 id="user-dropdown"
               >
                 <NavDropdown.Item as={Link} href="/my-recipes" className="text-decoration-none">
@@ -116,7 +116,7 @@ export default function Navbar() {
                   Add Recipe
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
-                <NavDropdown.Item 
+                <NavDropdown.Item
                   onClick={() => signOut({ callbackUrl: '/' })}
                   style={{ cursor: 'pointer' }}
                 >

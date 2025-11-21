@@ -49,12 +49,12 @@ function GuestLanding() {
           {/* Feature 1 */}
           <Col md={4}>
             <div className="d-flex flex-column align-items-center">
-              <div 
+              <div
                 className="d-flex align-items-center justify-content-center rounded-circle mb-3"
                 style={{
                   width: '56px',
                   height: '56px',
-                  backgroundColor: 'rgba(0, 168, 107, 0.2)'
+                  backgroundColor: 'rgba(0, 168, 107, 0.2)',
                 }}
               >
                 <span className="fs-1">🍲</span>
@@ -70,12 +70,12 @@ function GuestLanding() {
           {/* Feature 2 */}
           <Col md={4}>
             <div className="d-flex flex-column align-items-center">
-              <div 
+              <div
                 className="d-flex align-items-center justify-content-center rounded-circle mb-3"
                 style={{
                   width: '56px',
                   height: '56px',
-                  backgroundColor: 'rgba(0, 168, 107, 0.2)'
+                  backgroundColor: 'rgba(0, 168, 107, 0.2)',
                 }}
               >
                 <span className="fs-1">🛒</span>
@@ -91,12 +91,12 @@ function GuestLanding() {
           {/* Feature 3 */}
           <Col md={4}>
             <div className="d-flex flex-column align-items-center">
-              <div 
+              <div
                 className="d-flex align-items-center justify-content-center rounded-circle mb-3"
                 style={{
                   width: '56px',
                   height: '56px',
-                  backgroundColor: 'rgba(0, 168, 107, 0.2)'
+                  backgroundColor: 'rgba(0, 168, 107, 0.2)',
                 }}
               >
                 <span className="fs-1">⭐</span>
@@ -137,8 +137,8 @@ function GuestLanding() {
           </Link>
         </div>
       </Container>
-
-      <div className="py-5"></div>
+      
+      <div className="py-5" />
     </div>
   );
 }
@@ -149,7 +149,9 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
       {/* HERO SECTION */}
       <Container className="text-center py-5" style={{ maxWidth: '800px' }}>
         <h1 className="display-4 fw-bold text-dark mb-4">
-          Welcome back, {userName}!
+          Welcome back,
+          {userName}
+          !
         </h1>
 
         <h2 className="fs-3 text-muted mb-4">
@@ -173,7 +175,7 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
         </div>
       </Container>
 
-      <div className="py-5"></div>
+      <div className="py-5" />
     </div>
   );
 }
@@ -182,3 +184,8 @@ export default function LandingPage({ role = 'guest', userName = 'User' }: Landi
   if (role === 'user') return <UserLanding userName={userName} />;
   return <GuestLanding />;
 }
+
+(LandingPage as any).defaultProps = {
+  role: 'guest',
+  userName: 'User',
+};
