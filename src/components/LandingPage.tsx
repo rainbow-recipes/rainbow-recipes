@@ -1,3 +1,5 @@
+/* eslint-disable react/require-default-props */
+
 import Link from 'next/link';
 import { Container, Row, Col } from 'react-bootstrap';
 
@@ -137,7 +139,6 @@ function GuestLanding() {
           </Link>
         </div>
       </Container>
-      
       <div className="py-5" />
     </div>
   );
