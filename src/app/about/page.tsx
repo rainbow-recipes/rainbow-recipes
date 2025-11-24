@@ -15,7 +15,7 @@ export default function AboutPage() {
           }
         });
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     );
 
     const elements = document.querySelectorAll('.fade-in');
@@ -32,7 +32,7 @@ export default function AboutPage() {
       <div className="py-5 fade-in" style={{ backgroundColor: '#f8f9fa' }}>
         <Container className="text-center py-5" style={{ maxWidth: '850px' }}>
           <h1 className="display-4 fw-bold text-dark mb-4">
-            <i className="bi bi-rainbow me-3 text-success"></i>
+            <i className="bi bi-rainbow me-3 text-success" />
             About Rainbow Recipes
           </h1>
           <h2 className="fs-3 text-muted mb-4">
@@ -46,17 +46,17 @@ export default function AboutPage() {
         <Row className="justify-content-center">
           <Col lg={10}>
             <h3 className="fw-bold mb-4">
-              <i className="bi bi-info-circle-fill me-2 text-success"></i>
+              <i className="bi bi-info-circle-fill me-2 text-success" />
               What is Rainbow Recipes?
             </h3>
             <p className="text-muted fs-5 mb-4 lh-base">
-              Rainbow Recipes is a comprehensive platform designed specifically for University of Hawaii students 
-              to discover quick, affordable, and delicious meal options. We understand the challenges of student 
+              Rainbow Recipes is a comprehensive platform designed specifically for University of Hawaii students
+              to discover quick, affordable, and delicious meal options. We understand the challenges of student
               life — tight budgets, limited time, and the need for convenient ingredient sourcing around campus.
             </p>
             <p className="text-muted fs-5 lh-base">
-              Our platform bridges the gap between wanting to cook healthy, budget-friendly meals and knowing 
-              where to find the ingredients and recipes that work for your lifestyle. Whether you're living in 
+              Our platform bridges the gap between wanting to cook healthy, budget-friendly meals and knowing
+              where to find the ingredients and recipes that work for your lifestyle. Whether you&apos;re living in
               the dorms or off-campus, Rainbow Recipes helps you eat well without breaking the bank.
             </p>
           </Col>
@@ -68,7 +68,7 @@ export default function AboutPage() {
       {/* Features Overview Section */}
       <div className="container py-5 fade-in">
         <h3 className="fw-bold text-center mb-5">
-          <i className="bi bi-stars me-2 text-success"></i>
+          <i className="bi bi-stars me-2 text-success" />
           What You Can Do With Rainbow Recipes
         </h3>
         <Row className="row-cols-1 row-cols-md-3 g-4">
@@ -80,7 +80,7 @@ export default function AboutPage() {
               </div>
               <h4 className="fw-semibold mb-3">Find Affordable Recipes</h4>
               <p className="text-muted">
-                Browse our collection of budget-friendly recipes designed for college life. Filter by cost, 
+                Browse our collection of budget-friendly recipes designed for college life. Filter by cost,
                 prep time, dietary restrictions, and cooking appliances to find meals that fit your needs.
               </p>
             </div>
@@ -94,7 +94,7 @@ export default function AboutPage() {
               </div>
               <h4 className="fw-semibold mb-3">Locate Ingredient Vendors</h4>
               <p className="text-muted">
-                Discover local stores, markets, and vendors around UH Mānoa where you can purchase 
+                Discover local stores, markets, and vendors around UH Mānoa where you can purchase
                 fresh ingredients. Find store hours, locations, and pricing information all in one place.
               </p>
             </div>
@@ -108,7 +108,7 @@ export default function AboutPage() {
               </div>
               <h4 className="fw-semibold mb-3">Save Your Favorite Meals</h4>
               <p className="text-muted">
-                Create your personal collection of go-to recipes. Save your favorites and build 
+                Create your personal collection of go-to recipes. Save your favorites and build
                 a personalized cookbook of meals that work for your taste and budget.
               </p>
             </div>
@@ -124,25 +124,25 @@ export default function AboutPage() {
           <Row className="justify-content-center">
             <Col lg={10}>
               <h3 className="fw-bold mb-4">
-                <i className="bi bi-heart-fill me-2 text-success"></i>
+                <i className="bi bi-heart-fill me-2 text-success" />
                 Why This Matters to UH Students
               </h3>
               <p className="text-muted fs-5 mb-4 lh-base">
-                As students, we know the struggle is real. Between tuition, textbooks, and living expenses, 
-                food often becomes an afterthought or a source of stress. Many students resort to expensive 
-                takeout or unhealthy processed foods because they don't know how to cook affordably or where 
+                As students, we know the struggle is real. Between tuition, textbooks, and living expenses,
+                food often becomes an afterthought or a source of stress. Many students resort to expensive
+                takeout or unhealthy processed foods because they don&apos;t know how to cook affordably or where
                 to shop for fresh ingredients near campus.
               </p>
               <p className="text-muted fs-5 mb-4 lh-base">
-                Most dorm kitchens have limited equipment — maybe just a microwave, mini-fridge, and if you're 
-                lucky, a hot plate. Off-campus housing might have a full kitchen, but without a car, getting 
-                to grocery stores can be challenging. Rainbow Recipes addresses these real challenges by focusing 
-                on recipes that work with minimal equipment and highlighting vendors accessible by walking, 
+                Most dorm kitchens have limited equipment — maybe just a microwave, mini-fridge, and if you&apos;re
+                lucky, a hot plate. Off-campus housing might have a full kitchen, but without a car, getting
+                to grocery stores can be challenging. Rainbow Recipes addresses these real challenges by focusing
+                on recipes that work with minimal equipment and highlighting vendors accessible by walking,
                 biking, or public transport.
               </p>
               <p className="text-muted fs-5 lh-base">
-                We believe that good nutrition shouldn't be a luxury. By connecting students with practical 
-                recipes and local ingredient sources, we're helping build a healthier, more food-secure 
+                We believe that good nutrition shouldn&apos;t be a luxury. By connecting students with practical
+                recipes and local ingredient sources, we&apos;re helping build a healthier, more food-secure
                 campus community — one meal at a time.
               </p>
             </Col>
@@ -157,10 +157,9 @@ export default function AboutPage() {
         <Row className="justify-content-center">
           <Col lg={10}>
             <h3 className="fw-bold mb-4">
-              <i className="bi bi-gear-fill me-2 text-success"></i>
+              <i className="bi bi-gear-fill me-2 text-success" />
               How It Works
             </h3>
-            
             <div className="d-flex align-items-start gap-3 mb-4">
               <div
                 className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold"
@@ -180,7 +179,7 @@ export default function AboutPage() {
                   </Link>
                 </h5>
                 <p className="text-muted mb-0">
-                  Explore our curated collection of student-friendly recipes. Use filters to find meals 
+                  Explore our curated collection of student-friendly recipes. Use filters to find meals
                   that match your budget, time constraints, and dietary preferences.
                 </p>
               </div>
@@ -205,7 +204,7 @@ export default function AboutPage() {
                   </Link>
                 </h5>
                 <p className="text-muted mb-0">
-                  Find local stores and vendors where you can purchase the ingredients you need. 
+                  Find local stores and vendors where you can purchase the ingredients you need.
                   Check store locations, hours, and connect with local merchants around campus.
                 </p>
               </div>
@@ -230,7 +229,7 @@ export default function AboutPage() {
                   </Link>
                 </h5>
                 <p className="text-muted mb-0">
-                  Create an account to save your favorite recipes and build your personal collection. 
+                  Create an account to save your favorite recipes and build your personal collection.
                   Keep track of the meals you love and want to make again.
                 </p>
               </div>
@@ -245,14 +244,14 @@ export default function AboutPage() {
       <div className="py-5 fade-in" style={{ backgroundColor: '#f8f9fa' }}>
         <Container className="py-5" style={{ maxWidth: '850px' }}>
           <h3 className="fw-bold text-center mb-5">
-            <i className="bi bi-people-fill me-2 text-success"></i>
+            <i className="bi bi-people-fill me-2 text-success" />
             Meet the Team
           </h3>
           <Row className="justify-content-center">
             <Col xs={12} sm={6} lg={3} className="mb-4">
               <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
                 <div className="mb-3">
-                  <i className="bi bi-person-circle fs-1 text-success"></i>
+                  <i className="bi bi-person-circle fs-1 text-success" />
                 </div>
                 <h5 className="fw-semibold mb-0">Ievgen B.</h5>
               </div>
@@ -260,7 +259,7 @@ export default function AboutPage() {
             <Col xs={12} sm={6} lg={3} className="mb-4">
               <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
                 <div className="mb-3">
-                  <i className="bi bi-person-circle fs-1 text-success"></i>
+                  <i className="bi bi-person-circle fs-1 text-success" />
                 </div>
                 <h5 className="fw-semibold mb-0">Jasmine C.</h5>
               </div>
@@ -268,7 +267,7 @@ export default function AboutPage() {
             <Col xs={12} sm={6} lg={3} className="mb-4">
               <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
                 <div className="mb-3">
-                  <i className="bi bi-person-circle fs-1 text-success"></i>
+                  <i className="bi bi-person-circle fs-1 text-success" />
                 </div>
                 <h5 className="fw-semibold mb-0">Megan W.</h5>
               </div>
@@ -276,7 +275,7 @@ export default function AboutPage() {
             <Col xs={12} sm={6} lg={3} className="mb-4">
               <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
                 <div className="mb-3">
-                  <i className="bi bi-person-circle fs-1 text-success"></i>
+                  <i className="bi bi-person-circle fs-1 text-success" />
                 </div>
                 <h5 className="fw-semibold mb-0">Tylor N.</h5>
               </div>
@@ -289,7 +288,7 @@ export default function AboutPage() {
       <div className="container py-5 fade-in">
         <blockquote className="blockquote text-center my-5">
           <p className="fs-4 fst-italic text-dark">
-            "Cooking on a student budget shouldn't be stressful."
+            &ldquo;Cooking on a student budget shouldn&apos;t be stressful.&rdquo;
           </p>
           <footer className="blockquote-footer mt-3">
             <cite title="Rainbow Recipes Team">Rainbow Recipes Team</cite>
@@ -304,15 +303,15 @@ export default function AboutPage() {
         <Row className="justify-content-center">
           <Col lg={8} className="text-center">
             <h3 className="fw-bold mb-4">
-              <i className="bi bi-code-square me-2 text-success"></i>
+              <i className="bi bi-code-square me-2 text-success" />
               About This Project
             </h3>
             <p className="text-muted fs-5 mb-4">
               Built by UH Mānoa students for ICS 314: Software Engineering
             </p>
             <p className="text-muted">
-              Rainbow Recipes is powered by modern web technologies including Next.js, 
-              Prisma, and NeonDB to provide a fast, reliable, and user-friendly experience 
+              Rainbow Recipes is powered by modern web technologies including Next.js,
+              Prisma, and NeonDB to provide a fast, reliable, and user-friendly experience
               for the UH community.
             </p>
           </Col>
@@ -323,7 +322,7 @@ export default function AboutPage() {
       <div className="py-5 text-center fade-in" style={{ backgroundColor: '#00664F' }}>
         <Container className="py-5" style={{ maxWidth: '850px' }}>
           <h3 className="fw-bold mb-4 text-white">
-            <i className="bi bi-rocket-takeoff me-2"></i>
+            <i className="bi bi-rocket-takeoff me-2" />
             Ready to Start Cooking?
           </h3>
           <p className="text-white fs-5 mb-4 opacity-75">
