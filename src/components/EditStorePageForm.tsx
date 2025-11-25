@@ -15,6 +15,7 @@ type EditStoreForm = {
   website: string | null;
   location: string;
   hours: string[];
+  image: string | null;
   owner: string;
 };
 
@@ -34,6 +35,7 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
       website: store.website ?? null,
       location: store.location,
       hours: defaultHours,
+      image: store.image ?? null,
       owner: store.owner,
     },
   });
@@ -48,6 +50,7 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
       website: data.website as string | null,
       location: data.location,
       hours: data.hours,
+      image: data.image as string | null,
       owner: data.owner,
     };
 
@@ -76,13 +79,22 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
                   <div className="invalid-feedback">{errors.name?.message}</div>
                 </Form.Group>
                 <Form.Group>
-                  <Form.Label>Store Website</Form.Label>
+                  <Form.Label>Store Website URL</Form.Label>
                   <input
                     type="text"
                     {...register('website')}
                     className={`form-control ${errors.website ? 'is-invalid' : ''}`}
                   />
                   <div className="invalid-feedback">{(errors as any).website?.message}</div>
+                </Form.Group>
+                <Form.Group>
+                  <Form.Label>Store Image URL</Form.Label>
+                  <input
+                    type="text"
+                    {...register('image')}
+                    className={`form-control ${errors.image ? 'is-invalid' : ''}`}
+                  />
+                  <div className="invalid-feedback">{(errors as any).image?.message}</div>
                 </Form.Group>
                 <Form.Group>
                   <Form.Label>Location</Form.Label>
