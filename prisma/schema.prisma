@@ -135,6 +135,7 @@ model Store {
   website   String?
   location  String
   hours     String[]
+  image     String?
   owner     String
 }
 

@@ -14,6 +14,7 @@ export async function createStore(credentials: { id: string; owner: string }) {
       website: null,
       location: '',
       hours: ['', '', '', '', '', '', ''],
+      image: null,
       owner: credentials.owner,
     },
   });
@@ -28,6 +29,7 @@ export async function editStore(store: Store) {
       website: store.website,
       location: store.location,
       hours: store.hours,
+      image: store.image,
       owner: store.owner,
     },
   });

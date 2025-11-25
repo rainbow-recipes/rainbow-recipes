@@ -21,5 +21,6 @@ export const EditStoreSchema = Yup.object({
   website: Yup.string().url().nullable().defined(),
   location: Yup.string().required(),
   hours: Yup.array().of(Yup.string().required()).required(),
+  image: Yup.string().url().nullable().defined(),
   owner: Yup.string().required(),
 });
