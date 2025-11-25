@@ -85,8 +85,8 @@ export default function Navbar() {
             </Nav.Link>
             <Nav.Link
               as={Link}
-              href="/list"
-              className={`nav-link-custom ${isActive(pathname, '/list') ? 'active' : ''}`}
+              href="/vendors"
+              className={`nav-link-custom ${isActive(pathname, '/vendors') ? 'active' : ''}`}
             >
               Vendors
             </Nav.Link>
