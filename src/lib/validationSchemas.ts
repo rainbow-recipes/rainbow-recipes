@@ -17,9 +17,9 @@ export const EditStuffSchema = Yup.object({
 
 export const EditStoreSchema = Yup.object({
   id: Yup.string().required(),
-  name: Yup.string().required(),
+  name: Yup.string().required('Store name is required'),
   website: Yup.string().url().nullable().defined(),
-  location: Yup.string().required(),
+  location: Yup.string().required('Location is required'),
   hours: Yup.array().of(Yup.string().required()).required(),
   image: Yup.string().url().nullable().defined(),
   owner: Yup.string().required(),
