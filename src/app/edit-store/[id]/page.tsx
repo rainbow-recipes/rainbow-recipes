@@ -4,7 +4,7 @@ import { vendorProtectedPage } from '@/lib/page-protection';
 import { prisma } from '@/lib/prisma';
 import EditStorePageForm from '@/components/EditStorePageForm';
 import { Store } from '@prisma/client';
-import notFound from '../../not-found';
+import notFound from '@/app/not-found';
 
 export default async function EditStorePage({ params }: { params: { id: string | string[] } }) {
   // Protect the page, only logged in users can access it.

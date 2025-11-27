@@ -1,12 +1,14 @@
 import { getServerSession } from 'next-auth';
-import { Col, Container, Row } from 'react-bootstrap';
+import { Col, Container, Row, Image } from 'react-bootstrap';
 import { prisma } from '@/lib/prisma';
+import { Store } from '@prisma/client';
 import { vendorProtectedPage } from '@/lib/page-protection';
 import { authOptions } from '@/lib/auth';
+import notFound from '@/app/not-found';
 import Link from 'next/link';
-import VendorItemsPanel from '@/components/VendorItemsPanel';
+import MyStoreItemsPanel from '@/components/MyStoreItemsPanel';
 
-const MyStorePage = async () => {
+export default async function MyStorePage() {
   const session = await getServerSession(authOptions);
   vendorProtectedPage(
     session as {
@@ -18,15 +20,19 @@ const MyStorePage = async () => {
     ? await prisma.user.findUnique({ where: { email: userId } })
     : null;
   const id = user?.id;
-  const store = await prisma.store.findUnique({
-    where: { id: id ?? '' },
+  const store: Store | null = await prisma.store.findUnique({
+    where: { id },
   });
-  const storeName = store?.name ?? 'My Store';
-  const website = store?.website;
+  // console.log(store);
+  if (!store) {
+    return notFound();
+  }
+
+  const { name: storeName, website, image } = store;
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   const itemsRaw = await prisma.item.findMany({
-    where: { owner: store?.owner ?? '' },
+    where: { owner: store.owner ?? '' },
   });
 
   // Make sure items are serializable for the client (numbers/strings/booleans)
@@ -41,29 +47,43 @@ const MyStorePage = async () => {
   return (
     <main>
       <Container id="list" className="py-3">
-        <div className="d-flex justify-content-between align-items-baseline pb-3">
-          <h1>{storeName}</h1>
-          {website ? (
-            <div className="text-end">
-              <h5 className="mb-0">
-                Store Website:
-                {' '}
-                <a
-                  href={website.startsWith('http') ? website : `https://${website}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {website}
-                </a>
-              </h5>
+        <Row className="d-flex justify-content-between align-items-center pb-3">
+          <Col>
+            <div className="d-flex align-items-center gap-3">
+              {image ? (
+                <Image
+                  src={image}
+                  alt={`${storeName} logo`}
+                  className="img-fluid rounded-circle"
+                  style={{ width: '75px', height: '75px', objectFit: 'cover' }}
+                />
+              ) : null}
+              <h1 className="mb-0">{storeName}</h1>
             </div>
-          ) : null}
-        </div>
+          </Col>
+          <Col>
+            {website ? (
+              <div className="text-end">
+                <h5 className="mb-0">
+                  Store Website:
+                  {' '}
+                  <a
+                    href={website.startsWith('http') ? website : `https://${website}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {website}
+                  </a>
+                </h5>
+              </div>
+            ) : null}
+          </Col>
+        </Row>
         <Container className="pt-4 border rounded-5 p-4">
           <Row>
             <Col className="pe-5" xs="auto">
               <h5>Location:</h5>
-              <p>{store?.location}</p>
+              <p>{store.location}</p>
               <h5>Hours:</h5>
               <Row>
                 <Col xs="auto">
@@ -75,7 +95,7 @@ const MyStorePage = async () => {
                   ))}
                 </Col>
                 <Col xs="auto">
-                  {store?.hours.map((hour) => (
+                  {store.hours.map((hour) => (
                     <div>
                       {hour}
                     </div>
@@ -86,7 +106,7 @@ const MyStorePage = async () => {
             <Col>
               {/* Client-side panel handles search and rendering */}
               {/* @ts-ignore server->client prop */}
-              <VendorItemsPanel items={items} />
+              <MyStoreItemsPanel items={items} />
             </Col>
           </Row>
           <Row>
@@ -100,6 +120,4 @@ const MyStorePage = async () => {
       </Container>
     </main>
   );
-};
-
-export default MyStorePage;
+}

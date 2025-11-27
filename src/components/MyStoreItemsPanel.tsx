@@ -3,11 +3,12 @@
 import { useMemo, useState } from 'react';
 import { Table } from 'react-bootstrap';
 import type { Item } from '@prisma/client';
-import VendorItem from './VendorItem';
+import Link from 'next/link';
+import MyStoreItem from './MyStoreItem';
 
 type ItemClient = Omit<Item, 'price'> & { price: number };
 
-export default function VendorItemsPanel({ items }: { items: ItemClient[] }) {
+export default function MyStoreItemsPanel({ items }: { items: ItemClient[] }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filtered = useMemo(() => {
@@ -31,6 +32,11 @@ export default function VendorItemsPanel({ items }: { items: ItemClient[] }) {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <div>
+          <Link href="/add-item" className="btn btn-outline-dark btn-lg rounded-pill">
+            Add Item
+          </Link>
+        </div>
       </div>
 
       <Table hover>
@@ -40,11 +46,12 @@ export default function VendorItemsPanel({ items }: { items: ItemClient[] }) {
             <th>Price $</th>
             <th>Unit</th>
             <th>Availability</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {filtered.map((item) => (
-            <VendorItem key={item.id} {...(item as any)} />
+            <MyStoreItem key={item.id} {...(item as any)} />
           ))}
         </tbody>
       </Table>

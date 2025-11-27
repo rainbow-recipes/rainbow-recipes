@@ -3,6 +3,7 @@ import VendorCard from '@/components/VendorCard';
 import { Col, Row } from 'react-bootstrap';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import Link from 'next/link';
 
 const prisma = new PrismaClient();
 
@@ -39,7 +40,12 @@ export default async function VendorsPage() {
       <Row xs={1} sm={2} md={2} lg={3} xl={4} className="g-4">
         {stores.map((store) => (
           <Col key={store.id}>
-            {(store.name !== 'My Store') && <VendorCard store={store} /> }
+            {(store.name !== 'My Store')
+              && (
+              <Link href={`/vendors/${store.id}`} className="text-decoration-none text-dark">
+                <VendorCard store={store} />
+              </Link>
+              )}
           </Col>
         ))}
       </Row>
