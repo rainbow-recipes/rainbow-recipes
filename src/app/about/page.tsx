@@ -240,6 +240,31 @@ export default function AboutPage() {
 
       <hr className="my-5" />
 
+      {/* Become a Vendor Section */}
+      <div className="container py-5 fade-in">
+        <Row className="justify-content-center">
+          <Col lg={8} className="text-center">
+            <h3 className="fw-bold mb-4">
+              <i className="bi bi-shop me-2 text-success" />
+              Become a Vendor
+            </h3>
+            <p className="text-muted fs-5 mb-4 lh-base">
+              Vendors are local shops, markets, or sellers who offer ingredients that students can use in their recipes.
+              If you run a business near UH Mānoa, you can apply to be listed on Rainbow Recipes so students can easily
+              discover your products. All vendor applications are manually reviewed to ensure accuracy and authenticity.
+            </p>
+            <Link
+              href="/merchant-signup"
+              className="btn btn-success btn-lg rounded-pill px-4 text-decoration-none fw-semibold"
+            >
+              Apply to Become a Vendor
+            </Link>
+          </Col>
+        </Row>
+      </div>
+
+      <hr className="my-5" />
+
       {/* Meet the Team Section */}
       <div className="py-5 fade-in" style={{ backgroundColor: '#f8f9fa' }}>
         <Container className="py-5" style={{ maxWidth: '850px' }}>
