@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Navbar as BootstrapNavbar,
   Nav,
@@ -14,6 +14,7 @@ import './Navbar.css';
 export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
 
   const isLoggedIn = !!session?.user;
   const isAdmin = (session?.user as any)?.role === 'ADMIN';
@@ -94,8 +95,35 @@ export default function Navbar() {
               title="Categories"
               id="categories-dropdown"
             >
-              <NavDropdown.Item disabled>
-                Coming Soon...
+              <NavDropdown.Header>Food Type</NavDropdown.Header>
+              <NavDropdown.Item onClick={() => router.push('/recipes?foodType=vegan')}>
+                Vegan
+              </NavDropdown.Item>
+              <NavDropdown.Item onClick={() => router.push('/recipes?foodType=vegetarian')}>
+                Vegetarian
+              </NavDropdown.Item>
+              <NavDropdown.Item onClick={() => router.push('/recipes?foodType=gluten-free')}>
+                Gluten-free
+              </NavDropdown.Item>
+              <NavDropdown.Item onClick={() => router.push('/recipes?foodType=dairy-free')}>
+                Dairy-free
+              </NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Header>Appliances</NavDropdown.Header>
+              <NavDropdown.Item onClick={() => router.push('/recipes?appliance=oven')}>
+                Oven
+              </NavDropdown.Item>
+              <NavDropdown.Item onClick={() => router.push('/recipes?appliance=stovetop')}>
+                Stovetop
+              </NavDropdown.Item>
+              <NavDropdown.Item onClick={() => router.push('/recipes?appliance=blender')}>
+                Blender
+              </NavDropdown.Item>
+              <NavDropdown.Item onClick={() => router.push('/recipes?appliance=microwave')}>
+                Microwave
+              </NavDropdown.Item>
+              <NavDropdown.Item onClick={() => router.push('/recipes?appliance=instant-pot')}>
+                Instant Pot
               </NavDropdown.Item>
             </NavDropdown>
             <Nav.Link

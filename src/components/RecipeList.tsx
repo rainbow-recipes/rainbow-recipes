@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import type { Recipe, Tag } from '@prisma/client';
 
 type RecipeWithTags = Recipe & { tags: Tag[] };
@@ -20,6 +21,21 @@ export default function RecipeList({
   isAdmin,
 }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeWithTags[]>(initialRecipes);
+  const searchParams = useSearchParams();
+  const urlFoodType = searchParams.get('foodType');
+  const urlAppliance = searchParams.get('appliance');
+
+  const dietTags = useMemo(() => allTags.filter((t) => t.category === 'Diet'), [allTags]);
+  const applianceTags = useMemo(() => allTags.filter((t) => t.category === 'Appliance'), [allTags]);
+
+  // Helper function to find tag IDs by name
+  const getTagIdsByName = (tagName: string, tagList: Tag[]) => {
+    const normalizeString = (str: string) => str.toLowerCase().replace('-', '').replace(' ', '');
+    const matchedTags = tagList.filter((tag) => normalizeString(tag.name) === normalizeString(tagName));
+    return matchedTags.map((tag) => tag.id);
+  };
+
+  // Initialize state without dependencies on initial props
   const [selectedDietTags, setSelectedDietTags] = useState<number[]>([]);
   const [selectedApplianceTags, setSelectedApplianceTags] = useState<number[]>([]);
   const [maxPrepTime, setMaxPrepTime] = useState<number | undefined>();
@@ -27,8 +43,32 @@ export default function RecipeList({
   const [searchTerm, setSearchTerm] = useState('');
   const [favoriteIds, setFavoriteIds] = useState<number[]>(initialFavoriteIds);
 
-  const dietTags = allTags.filter((t) => t.category === 'Diet');
-  const applianceTags = allTags.filter((t) => t.category === 'Appliance');
+  // State for collapsible sections
+  const [foodTypeOpen, setFoodTypeOpen] = useState(false);
+  const [applianceOpen, setApplianceOpen] = useState(false);
+
+  // Reactively handle URL parameter changes
+  useEffect(() => {
+    // Handle food type filter
+    if (urlFoodType) {
+      const ids = getTagIdsByName(urlFoodType, dietTags);
+      setSelectedDietTags(ids);
+      setFoodTypeOpen(true);
+    } else {
+      setSelectedDietTags([]);
+      setFoodTypeOpen(false);
+    }
+
+    // Handle appliance filter
+    if (urlAppliance) {
+      const ids = getTagIdsByName(urlAppliance, applianceTags);
+      setSelectedApplianceTags(ids);
+      setApplianceOpen(true);
+    } else {
+      setSelectedApplianceTags([]);
+      setApplianceOpen(false);
+    }
+  }, [urlFoodType, urlAppliance, dietTags, applianceTags]);
 
   const filteredRecipes = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -155,8 +195,15 @@ export default function RecipeList({
               </div>
 
               {/* Food Type */}
-              <details open className="mb-2">
-                <summary className="fw-semibold mb-1" style={{ cursor: 'pointer' }}>
+              <details open={foodTypeOpen} className="mb-2">
+                <summary
+                  className="fw-semibold mb-1"
+                  style={{ cursor: 'pointer' }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setFoodTypeOpen(!foodTypeOpen);
+                  }}
+                >
                   Food Type
                 </summary>
                 {dietTags.length === 0 && (
@@ -179,8 +226,15 @@ export default function RecipeList({
               </details>
 
               {/* Appliances */}
-              <details className="mb-2">
-                <summary className="fw-semibold mb-1" style={{ cursor: 'pointer' }}>
+              <details open={applianceOpen} className="mb-2">
+                <summary
+                  className="fw-semibold mb-1"
+                  style={{ cursor: 'pointer' }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setApplianceOpen(!applianceOpen);
+                  }}
+                >
                   Appliances
                 </summary>
                 {applianceTags.length === 0 && (
