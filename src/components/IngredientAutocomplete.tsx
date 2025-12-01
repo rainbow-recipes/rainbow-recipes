@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+/* eslint-disable react/require-default-props */
+import { useEffect, useRef, useState } from 'react';
 
 type ItemCategory =
   | 'produce'

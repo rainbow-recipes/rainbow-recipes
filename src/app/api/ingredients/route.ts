@@ -1,5 +1,6 @@
+/* eslint-disable import/prefer-default-export */
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma, DatabaseItem } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
 
     // Build OR filters: full-phrase match plus each significant token
     const tokens = qTrim.split(/\s+/).map((t) => t.trim()).filter(Boolean);
-    const ors: any[] = [];
+    const ors: Prisma.DatabaseItemWhereInput[] = [];
     // full query first
     ors.push({ name: { contains: qTrim, mode: 'insensitive' } });
     // include token matches (limit tokens to avoid many clauses)
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
 
     // dedupe by id (in case multiple clauses returned same item)
     const seen = new Set<number>();
-    const deduped: typeof items = [] as any;
+    const deduped: DatabaseItem[] = [];
     for (const it of items) {
       if (!seen.has(it.id)) {
         seen.add(it.id);
