@@ -156,10 +156,27 @@ export default function Navbar() {
                 title={`Hello, ${session?.user?.email}`}
                 id="user-dropdown"
               >
-                <NavDropdown.Item as={Link} href="/my-recipes" className="text-decoration-none">
+                {/* 👇 NEW: Profile link */}
+                <NavDropdown.Item
+                  as={Link}
+                  href="/profile"
+                  className="text-decoration-none"
+                >
+                  Profile
+                </NavDropdown.Item>
+
+                <NavDropdown.Item
+                  as={Link}
+                  href="/my-recipes"
+                  className="text-decoration-none"
+                >
                   My Recipes
                 </NavDropdown.Item>
-                <NavDropdown.Item as={Link} href="/add-recipe" className="text-decoration-none">
+                <NavDropdown.Item
+                  as={Link}
+                  href="/add-recipe"
+                  className="text-decoration-none"
+                >
                   Add Recipe
                 </NavDropdown.Item>
                 <NavDropdown.Divider />

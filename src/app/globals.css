@@ -17,3 +17,16 @@ body {
 .wrapper {
   padding-top: 70px; /* adjust if your navbar height changes */
 }
+/* Keep Edit Profile button solid white with black border/text in all states */
+.btn-profile-edit,
+.btn-profile-edit:hover,
+.btn-profile-edit:focus,
+.btn-profile-edit:active,
+.btn-profile-edit:active:focus,
+.btn-profile-edit:focus-visible {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+  opacity: 1 !important;
+  box-shadow: none !important; /* remove blue glow if any */
+}
