@@ -1,0 +1,129 @@
+.rr-footer {
+  width: 100%;
+  padding: 1.5rem 0 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  /* same green feel as navbar */
+  background-color: #006b5a;
+  color: #f9fafb;
+}
+
+.rr-footer-inner {
+  width: 100%;
+  max-width: var(--max-width);
+  padding: 0 6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Brand block */
+
+.rr-footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.rr-footer-logo {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.rr-footer-tagline {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--border-radius);
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  line-height: 1.4;
+  color: #e5e7eb;
+}
+
+/* Links */
+
+.rr-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+
+.rr-footer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  font-weight: 500;
+  color: #f9fafb;
+  opacity: 0.85;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.rr-footer-links a::after {
+  content: "↗";
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+/* Enable hover only on non-touch */
+@media (hover: hover) and (pointer: fine) {
+  .rr-footer-links a:hover {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+}
+
+/* Meta text */
+
+.rr-footer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  color: #e5e7eb;
+}
+
+.rr-footer-separator {
+  opacity: 0.8;
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+  .rr-footer {
+    padding: 1.5rem 0 2rem;
+  }
+
+  .rr-footer-inner {
+    padding: 0 2rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.2rem;
+  }
+
+  .rr-footer-tagline {
+    width: 100%;
+  }
+
+  .rr-footer-links {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .rr-footer-meta {
+    font-size: 0.8rem;
+  }
+}
+
+/* Tablet & smaller desktop */
+
+@media (min-width: 701px) and (max-width: 1120px) {
+  .rr-footer-inner {
+    padding: 0 4rem;
+  }
+}
