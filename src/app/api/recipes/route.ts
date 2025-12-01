@@ -35,7 +35,27 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, cost, prepTime, description, image, tagIds } = body;
+    const { name, cost, prepTime, description, image, tagIds, ingredients } = body;
+
+    // prepare nested write payload for ingredients (connect existing by id or connectOrCreate by name)
+    const ingredientConnect: Array<{ id: number }> = [];
+    const ingredientConnectOrCreate: Array<any> = [];
+    if (Array.isArray(ingredients)) {
+      for (const ing of ingredients) {
+        if (ing && typeof ing === 'object' && Number(ing.id)) {
+          ingredientConnect.push({ id: Number(ing.id) });
+        } else if (ing && typeof ing === 'object' && ing.name) {
+          const category = ing.itemCategory && typeof ing.itemCategory === 'string'
+            ? String(ing.itemCategory)
+            : 'other';
+          const cleaned = String(ing.name).trim().replace(/\s+/g, ' ');
+          ingredientConnectOrCreate.push({
+            where: { name: cleaned },
+            create: { name: cleaned, itemCategory: category },
+          });
+        }
+      }
+    }
 
     const recipe = await prisma.recipe.create({
       data: {
@@ -44,10 +64,20 @@ export async function POST(request: Request) {
         prepTime: Number(prepTime) || 0,
         description: description || '',
         image: image || null,
-        authorId: user.id,
+        // set relation via nested connect so Prisma accepts it
+        author: { connect: { id: user.id } },
         tags:
           tagIds && tagIds.length
             ? { connect: tagIds.map((id: number) => ({ id: Number(id) })) }
+            : undefined,
+        ingredients:
+          (ingredientConnect.length || ingredientConnectOrCreate.length)
+            ? {
+              ...(ingredientConnect.length ? { connect: ingredientConnect } : {}),
+              ...(ingredientConnectOrCreate.length
+                ? { connectOrCreate: ingredientConnectOrCreate }
+                : {}),
+            }
             : undefined,
       },
     });

@@ -4,18 +4,23 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import type { Tag } from '@prisma/client';
+import type { Tag, ItemCategory } from '@prisma/client';
+import { Form, Button, Container } from 'react-bootstrap';
+import IngredientAutocomplete from './IngredientAutocomplete';
 
 interface AddRecipeFormProps {
   allTags: Tag[];
 }
 
+type IngredientChoice = { id?: number; name: string; itemCategory?: ItemCategory };
+
 type RecipeFormValues = {
   name: string;
   cost: string;
   prepTime: string;
+  ingredients: IngredientChoice[];
   description: string;
   imageFile: FileList;
 } & {
@@ -26,9 +31,10 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
   const router = useRouter();
   const {
     register,
+    control,
     handleSubmit,
     formState: { isSubmitting },
-  } = useForm<RecipeFormValues>();
+  } = useForm<RecipeFormValues>({ defaultValues: { ingredients: [] } });
   const [error, setError] = useState<string | null>(null);
 
   const dietTags = allTags.filter((t) => t.category === 'Diet');
@@ -38,7 +44,7 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
     setError(null);
 
     try {
-      const { name, cost, prepTime, description, imageFile, ...tagFlags } = data;
+      const { name, cost, prepTime, ingredients, description, imageFile, ...tagFlags } = data;
 
       const costNum = cost ? Number(cost) : 0;
       const prepNum = prepTime ? Number(prepTime) : 0;
@@ -77,11 +83,24 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
           description,
           image: imageData,
           tagIds: selectedTagIds,
+          ingredients: ingredients.map((ing) => ({
+            id: ing.id,
+            name: ing.name,
+            itemCategory: (ing as any).itemCategory,
+          })),
         }),
       });
 
       if (!res.ok) {
-        throw new Error(`Server error: ${res.status}`);
+        // try to parse server error message to show user-friendly feedback
+        let payload: any = null;
+        try {
+          payload = await res.json();
+        } catch (e) {
+          // ignore
+        }
+        const msg = payload?.error || payload?.message || `Server error: ${res.status}`;
+        throw new Error(msg);
       }
 
       // Go back to recipes list
@@ -93,109 +112,128 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      {error && <div className="alert alert-danger">{error}</div>}
+    <Container className="py-3">
+      <h2 className="mb-3">Add new recipe</h2>
+      <Form onSubmit={handleSubmit(onSubmit)}>
+        {error && <div className="alert alert-danger">{error}</div>}
 
-      <div className="mb-3">
-        <label className="form-label">Food name</label>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="e.g. Creamy Tomato Pasta"
-          {...register('name', { required: true })}
-        />
-      </div>
+        <Form.Group className="mb-3">
+          <Form.Label className="form-label">Food name</Form.Label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="e.g. Creamy Tomato Pasta"
+            {...register('name', { required: true })}
+          />
+        </Form.Group>
 
-      <div className="mb-3">
-        <label className="form-label">Cost ($)</label>
-        <input
-          type="number"
-          step="0.01"
-          className="form-control"
-          placeholder="e.g. 12.50"
-          {...register('cost')}
-        />
-      </div>
+        <Form.Group className="mb-3">
+          <Form.Label className="form-label">Cost ($)</Form.Label>
+          <input
+            type="number"
+            step="0.01"
+            className="form-control"
+            placeholder="e.g. 12.50"
+            {...register('cost')}
+          />
+        </Form.Group>
 
-      <div className="mb-3">
-        <label className="form-label">Prep time (minutes)</label>
-        <input
-          type="number"
-          className="form-control"
-          placeholder="e.g. 30"
-          {...register('prepTime')}
-        />
-      </div>
+        <Form.Group className="mb-3">
+          <Form.Label className="form-label">Prep time (minutes)</Form.Label>
+          <input
+            type="number"
+            className="form-control"
+            placeholder="e.g. 30"
+            {...register('prepTime')}
+          />
+        </Form.Group>
 
-      <div className="mb-3">
-        <label className="form-label">Description / how it was prepped</label>
-        <textarea
-          className="form-control"
-          rows={4}
-          placeholder="Step-by-step description of how you prepared this dish..."
-          {...register('description')}
-        />
-      </div>
-
-      <div className="mb-3">
-        <label className="form-label">Image</label>
-        <input
-          type="file"
-          accept="image/*"
-          className="form-control"
-          {...register('imageFile')}
-        />
-      </div>
-
-      <div className="mb-3">
-        <strong>Dietary tags</strong>
-        <div>
-          {dietTags.map((tag) => (
-            <div key={tag.id} className="form-check form-check-inline">
-              <input
-                type="checkbox"
-                id={`diet-tag-${tag.id}`}
-                className="form-check-input"
-                {...register(`tag_${tag.id}`)}
+        <Form.Group className="mb-3">
+          <Form.Label className="form-label">Ingredient Tags</Form.Label>
+          <Controller
+            name="ingredients"
+            control={control}
+            rules={{ validate: (v) => Array.isArray(v) && v.length > 0 }}
+            render={({ field }) => (
+              <IngredientAutocomplete
+                value={field.value || []}
+                onChange={field.onChange}
+                placeholder="Type an ingredient and press Enter or pick a suggestion"
               />
-              <label htmlFor={`diet-tag-${tag.id}`} className="form-check-label">
-                {tag.name}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
+            )}
+          />
+        </Form.Group>
 
-      <div className="mb-3">
-        <strong>Appliance tags</strong>
-        <div>
-          {applianceTags.map((tag) => (
-            <div key={tag.id} className="form-check form-check-inline">
-              <input
-                type="checkbox"
-                id={`appl-tag-${tag.id}`}
-                className="form-check-input"
-                {...register(`tag_${tag.id}`)}
-              />
-              <label htmlFor={`appl-tag-${tag.id}`} className="form-check-label">
-                {tag.name}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
+        <Form.Group className="mb-3">
+          <Form.Label className="form-label">Description / how it was prepped</Form.Label>
+          <textarea
+            className="form-control"
+            rows={4}
+            placeholder="Step-by-step description of how you prepared this dish..."
+            {...register('description')}
+          />
+        </Form.Group>
 
-      <button type="submit" className="btn btn-success" disabled={isSubmitting}>
-        {isSubmitting ? 'Adding…' : 'Add recipe'}
-      </button>
-      {' '}
-      <button
-        type="button"
-        className="btn btn-secondary"
-        onClick={() => router.push('/recipes')}
-      >
-        Cancel
-      </button>
-    </form>
+        <Form.Group className="mb-3">
+          <Form.Label className="form-label">Image</Form.Label>
+          <input
+            type="file"
+            accept="image/*"
+            className="form-control"
+            {...register('imageFile')}
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label><strong>Dietary tags</strong></Form.Label>
+          <div>
+            {dietTags.map((tag) => (
+              <div key={tag.id} className="form-check form-check-inline">
+                <input
+                  type="checkbox"
+                  id={`diet-tag-${tag.id}`}
+                  className="form-check-input"
+                  {...register(`tag_${tag.id}`)}
+                />
+                <label htmlFor={`diet-tag-${tag.id}`} className="form-check-label">
+                  {tag.name}
+                </label>
+              </div>
+            ))}
+          </div>
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label><strong>Appliance tags</strong></Form.Label>
+          <div>
+            {applianceTags.map((tag) => (
+              <div key={tag.id} className="form-check form-check-inline">
+                <input
+                  type="checkbox"
+                  id={`appl-tag-${tag.id}`}
+                  className="form-check-input"
+                  {...register(`tag_${tag.id}`)}
+                />
+                <label htmlFor={`appl-tag-${tag.id}`} className="form-check-label">
+                  {tag.name}
+                </label>
+              </div>
+            ))}
+          </div>
+        </Form.Group>
+
+        <Button type="submit" className="btn btn-success" disabled={isSubmitting}>
+          {isSubmitting ? 'Adding…' : 'Add recipe'}
+        </Button>
+        {' '}
+        <Button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => router.push('/recipes')}
+        >
+          Cancel
+        </Button>
+      </Form>
+    </Container>
   );
 }
