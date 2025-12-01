@@ -19,13 +19,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const classString = `${inter.className} wrapper`;
+
   return (
     <html lang="en">
       <body className={classString}>
-        <Providers>
-          <Navbar />
-          {children}
-        </Providers>
+        <div className="page-shell">
+          <Providers>
+            <Navbar />
+            <main className="page-main">
+              {children}
+            </main>
+          </Providers>
+        </div>
         <Footer />
       </body>
     </html>
