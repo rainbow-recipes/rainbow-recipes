@@ -60,6 +60,13 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
   };
 
   const handleDeleteUser = async (userId: string) => {
+    // 🛑 confirmation popup
+    // eslint-disable-next-line no-alert
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this user? This action cannot be undone.',
+    );
+    if (!confirmed) return;
+
     // optimistic removal
     const prevUsers = users;
     setUsers((prev) => prev.filter((u) => u.id !== userId));
@@ -116,7 +123,7 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
                 <tr key={u.id}>
                   <td>{u.email}</td>
                   <td>
-                    {(u.firstName || u.lastName)
+                    {u.firstName || u.lastName
                       ? `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim()
                       : '—'}
                   </td>
