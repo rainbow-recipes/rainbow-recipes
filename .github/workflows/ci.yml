@@ -13,9 +13,27 @@ jobs:
         project: [chromium, firefox, webkit]
     env:
       # Prefer a secret set in the repository/org; fallback to a safe CI-only value
-      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci_playwright_secret' }}
+      # NextAuth secret should be provided as a repository secret. If you haven't
+      # set it, create a repo secret named NEXTAUTH_SECRET with a strong value.
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
       # NextAuth needs NEXTAUTH_URL in production; set to the local webServer URL
       NEXTAUTH_URL: http://localhost:3000
+      # Explicit DATABASE_URL pointing at the test Postgres service
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rainbow_test
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rainbow_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,6 +55,16 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Wait for Postgres
+        # give the service a few seconds to become ready
+        run: sleep 10
+
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed database
+        run: npx prisma db seed
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
