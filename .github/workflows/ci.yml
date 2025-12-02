@@ -20,6 +20,8 @@ jobs:
       NEXTAUTH_URL: http://localhost:3000
       # Explicit DATABASE_URL pointing at the test Postgres service
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rainbow_test
+      # Prisma may reference an unpooled direct URL; set the unpooled var too
+      DATABASE_URL_UNPOOLED: postgresql://postgres:postgres@localhost:5432/rainbow_test
     services:
       postgres:
         image: postgres:15
