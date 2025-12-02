@@ -5,6 +5,10 @@
     { "email": "vendor@foo.com", "password": "changeme", "isMerchant": true, "merchantApproved": true }
   ],
 
+  "defaultStore": [
+    { "name": "Bobby's Farm", "owner": "vendor@foo.com" }
+  ],
+
   "defaultData": [
     { "name": "Basket", "quantity": 3, "owner": "john@foo.com", "condition": "excellent" },
     { "name": "Bicycle", "quantity": 2, "owner": "john@foo.com", "condition": "poor" },

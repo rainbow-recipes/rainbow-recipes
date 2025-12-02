@@ -10,11 +10,14 @@ async function main() {
   // ----- Users -----
   const password = await hash('changeme', 10);
 
+  // Keep a map of email -> user id so stores can use the owner's id as the store id
+  const emailToId: Record<string, string> = {};
+
   for (const account of config.defaultAccounts) {
     const role = (account.role as Role) || Role.USER;
     console.log(`  Creating user: ${account.email} with role: ${role}`);
     // eslint-disable-next-line no-await-in-loop
-    await prisma.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email: account.email },
       update: {},
       create: {
@@ -23,6 +26,39 @@ async function main() {
         role,
         isMerchant: account.isMerchant || false,
         merchantApproved: account.merchantApproved || false,
+      },
+    });
+    emailToId[account.email] = user.id;
+  }
+
+  for (const store of config.defaultStore) {
+    console.log(`  Adding store: ${JSON.stringify(store)}`);
+    // Resolve the owner's user id from the map (or fallback to DB lookup)
+    const ownerEmail = store.owner as string;
+    let ownerId: string | undefined = emailToId[ownerEmail];
+    if (!ownerId) {
+      // eslint-disable-next-line no-await-in-loop
+      const user = await prisma.user.findUnique({ where: { email: ownerEmail } });
+      ownerId = user?.id;
+    }
+    if (!ownerId) {
+      console.warn(`  Skipping store '${store.name}': owner '${ownerEmail}' not found`);
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    // Use the owner's user id as the Store.id and store.owner value
+    // eslint-disable-next-line no-await-in-loop
+    await prisma.store.upsert({
+      where: { id: ownerId },
+      update: {},
+      create: {
+        id: ownerId,
+        name: store.name,
+        // Required fields on Store: provide sensible defaults for seed data
+        location: '',
+        hours: [],
+        owner: ownerEmail,
       },
     });
   }
