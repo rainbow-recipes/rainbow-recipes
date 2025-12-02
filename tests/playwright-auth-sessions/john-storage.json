@@ -1,0 +1,35 @@
+{
+  "cookies": [
+    {
+      "name": "next-auth.csrf-token",
+      "value": "7cad10b2914307e3efe7646f88763f0d43fa729b0a9939a0a28dbafe5911575f%7Ce39eaface0275b3e2e4896529b8b0fe6822d4c5162ad4a245bac320c16b18812",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "next-auth.callback-url",
+      "value": "http%3A%2F%2Flocalhost%3A3000%2Frecipes",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://127.0.0.1:3000",
+      "localStorage": [
+        {
+          "name": "nextauth.message",
+          "value": "{\"event\":\"session\",\"data\":{\"trigger\":\"getSession\"},\"timestamp\":1764694379}"
+        }
+      ]
+    }
+  ]
+}

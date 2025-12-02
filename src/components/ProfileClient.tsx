@@ -166,7 +166,7 @@ export default function ProfileClient({
                 </span>
                 {user.isMerchant && (
                   <span className="badge bg-warning-subtle text-warning border border-warning-subtle ms-2">
-                    Merchant
+                    Vendor
                     {user.merchantApproved ? '' : ' (Pending)'}
                   </span>
                 )}

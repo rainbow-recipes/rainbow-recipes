@@ -1,7 +1,8 @@
 'use client';
 
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
+import { useEffect, useMemo } from 'react';
 import swal from 'sweetalert';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Store } from '@prisma/client';
@@ -63,8 +64,9 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
     register,
     handleSubmit,
     reset,
-    watch,
-    formState: { errors },
+    setValue,
+    control,
+    formState: { errors, isSubmitted },
   } = useForm<EditStoreForm>({
     // validate on change so users see required errors immediately when left blank
     mode: 'onChange',
@@ -90,9 +92,14 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
     },
   });
 
-  const hoursStatus = (watch('hoursStatus') as boolean[] | undefined) ?? [];
+  // useWatch avoids unstable watch() dependency arrays for effects
+  const rawHoursStatus = useWatch({ control, name: 'hoursStatus' }) as boolean[] | undefined;
+  const rawHoursOpenWatch = useWatch({ control, name: 'hoursOpen' }) as string[] | undefined;
+  const rawHoursCloseWatch = useWatch({ control, name: 'hoursClose' }) as string[] | undefined;
 
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const hoursStatus = useMemo(() => rawHoursStatus ?? [], [rawHoursStatus]);
+  const hoursOpenWatch = useMemo(() => rawHoursOpenWatch ?? [], [rawHoursOpenWatch]);
+  const hoursCloseWatch = useMemo(() => rawHoursCloseWatch ?? [], [rawHoursCloseWatch]);
 
   // helper: convert 'HH:MM' (24h) to 'h:MM am|pm'
   const formatTo12 = (time24?: string) => {
@@ -107,13 +114,34 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
     return `${h12}:${mm} ${period}`;
   };
 
+  // Keep `hours` in sync for validation: compose visible hours from the time inputs
+  useEffect(() => {
+    const composed = Array.from({ length: 7 }).map((_, i) => {
+      const status = hoursStatus[i];
+      if (status === false) return 'Closed';
+      const o = hoursOpenWatch[i] ?? '';
+      const c = hoursCloseWatch[i] ?? '';
+      if (!o && !c) return '';
+      const start = formatTo12(o);
+      const end = formatTo12(c);
+      return end ? `${start} - ${end}` : `${start}`;
+    });
+
+    // update the hidden/validated `hours` field so the resolver sees current values
+    // do not validate on every change — only validate on submit to avoid showing
+    // required warnings for hours before the user attempts to submit
+    setValue('hours', composed, { shouldValidate: false, shouldDirty: true });
+  }, [hoursStatus, hoursOpenWatch, hoursCloseWatch, setValue]);
+
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
   const onSubmit = async (data: EditStoreForm) => {
     // Compose hours from hoursOpen and hoursClose arrays
     const open = (data as any).hoursOpen ?? [];
     const close = (data as any).hoursClose ?? [];
     const statusArr = (data as any).hoursStatus ?? [];
     const composedHours = Array.from({ length: 7 }).map((_, i) => {
-      if (statusArr[i] === false || statusArr[i] === 'closed') return 'Closed';
+      if (statusArr[i] === false) return 'Closed';
       const o = open[i] ?? '';
       const c = close[i] ?? '';
       if (!o && !c) return '';
@@ -235,7 +263,7 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
                             type="time"
                             step={300}
                             {...register(`hoursOpen.${idx}` as const)}
-                            className={`form-control ${errors.hours ? 'is-invalid' : ''}`}
+                            className={`form-control ${isSubmitted && (errors as any).hours ? 'is-invalid' : ''}`}
                             aria-label={`${day} opening time`}
                             disabled={!status}
                           />
@@ -246,7 +274,7 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
                             type="time"
                             step={300}
                             {...register(`hoursClose.${idx}` as const)}
-                            className={`form-control ${errors.hours ? 'is-invalid' : ''}`}
+                            className={`form-control ${isSubmitted && (errors as any).hours ? 'is-invalid' : ''}`}
                             aria-label={`${day} closing time`}
                             disabled={!status}
                           />
@@ -256,7 +284,7 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
                   </Row>
                 );
               })}
-              <div className="invalid-feedback">{(errors as any).hours?.message}</div>
+              <div className="invalid-feedback">{isSubmitted ? (errors as any).hours?.message : ''}</div>
             </Form.Group>
             <input type="hidden" {...register('owner')} />
             <Form.Group className="form-group mt-4 text-end">
