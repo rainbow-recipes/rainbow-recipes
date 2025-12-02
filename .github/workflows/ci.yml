@@ -8,6 +8,9 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [chromium, firefox, webkit]
     env:
       # Prefer a secret set in the repository/org; fallback to a safe CI-only value
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci_playwright_secret' }}
@@ -18,19 +21,35 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
+      - name: Restore cache (node_modules + Playwright)
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+            .next/cache
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-{{ matrix.project }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: npm ci
+
       - name: Build
         run: npm run build
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+
       - name: Run ESLint
-        run: npm run lint
-      - name: Run Playwright tests
-        run: npx playwright test
+        run: npm run lint &
+
+      - name: Run Playwright tests for ${{ matrix.project }}
+        run: npx playwright test --project=${{ matrix.project }} --workers=auto --reporter=list
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
           retention-days: 30
