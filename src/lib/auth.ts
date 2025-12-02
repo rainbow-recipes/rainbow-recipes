@@ -9,6 +9,9 @@ import { compare } from 'bcrypt';
 const prisma = new PrismaClient();
 
 export const authOptions: NextAuthOptions = {
+  // Ensure NextAuth has a secret in production. Also read from env so CI
+  // and production environments can provide the value via `NEXTAUTH_SECRET`.
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'Credentials',

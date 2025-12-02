@@ -55,6 +55,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify NEXTAUTH_SECRET is set
+        run: |
+          if [ -z "${NEXTAUTH_SECRET}" ]; then
+            echo "ERROR: NEXTAUTH_SECRET is not set. Add a repository secret named NEXTAUTH_SECRET with a strong value." >&2
+            exit 1
+          fi
+
       - name: Build
         run: npm run build
 
