@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import type { Recipe, Tag } from '@prisma/client';
-import { Button, Card } from 'react-bootstrap';
+import { Card } from 'react-bootstrap';
 import { SuitHeart, SuitHeartFill } from 'react-bootstrap-icons';
 import defaultRecipeImage from '../../public/default-recipe-image.png';
 
@@ -532,17 +532,22 @@ function RecipeList({
 
                       <Card.Body>
                         {/* Title + heart row */}
-                        <div className="d-flex justify-content-between align-items-baseline mb-2">
-                          <Card.Title>{recipe.name}</Card.Title>
-                          <Button
-                            className="btn btn-link p-0 border-0 bg-transparent"
+                        <div className="d-flex justify-content-between align-items-start mb-2">
+                          <h5 className="card-title mb-0">
+                            <Link href={`selected-recipe/${recipe.id}`}>
+                              <h5 className="card-title">{recipe.name}</h5>
+                            </Link>
+                          </h5>
+                          <button
+                            type="button"
+                            className="btn btn-link p-0 border-0"
                             onClick={() => toggleFavorite(recipe.id)}
                             aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                           >
                             <span style={{ fontSize: '1.4rem' }}>
                               {isFavorite ? <SuitHeartFill /> : <SuitHeart />}
                             </span>
-                          </Button>
+                          </button>
                         </div>
 
                         <Card.Text className="mb-2">

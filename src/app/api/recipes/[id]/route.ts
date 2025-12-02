@@ -8,6 +8,21 @@ import { authOptions } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const recipeId = Number(params.id);
+  try {
+    const recipe = await prisma.recipe.findUnique({
+      where: { id: recipeId },
+      include: { tags: true, ingredients: true, author: true },
+    });
+    return NextResponse.json(recipe);
+  } catch (err) {
+    console.error('Error fetching recipe with includes, falling back:', err);
+    const recipe = await prisma.recipe.findUnique({ where: { id: recipeId } });
+    return NextResponse.json(recipe);
+  }
+}
+
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
