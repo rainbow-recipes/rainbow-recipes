@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import type { Recipe, Tag } from '@prisma/client';
 
 type RecipeWithTags = Recipe & { tags: Tag[] };
@@ -12,6 +12,7 @@ interface RecipeListProps {
   allTags: Tag[];
   initialFavoriteIds: number[];
   isAdmin: boolean;
+  // eslint-disable-next-line react/require-default-props
   showSearch?: boolean;
 }
 
@@ -20,7 +21,7 @@ function RecipeList({
   allTags,
   initialFavoriteIds,
   isAdmin,
-  showSearch,
+  showSearch = true,
 }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeWithTags[]>(initialRecipes);
   const searchParams = useSearchParams();
@@ -49,6 +50,26 @@ function RecipeList({
   // State for collapsible sections
   const [foodTypeOpen, setFoodTypeOpen] = useState(false);
   const [applianceOpen, setApplianceOpen] = useState(false);
+  const [sortOption, setSortOption] = useState('none');
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setIsSortOpen(false);
+      }
+    };
+
+    if (isSortOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSortOpen]);
 
   // Reactively handle URL parameter changes
   useEffect(() => {
@@ -76,7 +97,7 @@ function RecipeList({
   const filteredRecipes = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
 
-    return recipes.filter((recipe) => {
+    const result = [...recipes].filter((recipe) => {
       if (term) {
         const inName = recipe.name.toLowerCase().includes(term);
         const inDesc = recipe.description.toLowerCase().includes(term);
@@ -104,6 +125,40 @@ function RecipeList({
 
       return true;
     });
+
+    // Apply sorting
+    switch (sortOption) {
+      case 'cost-asc':
+        result.sort((a, b) => a.cost - b.cost);
+        break;
+      case 'cost-desc':
+        result.sort((a, b) => b.cost - a.cost);
+        break;
+      case 'prep-asc':
+        result.sort((a, b) => a.prepTime - b.prepTime);
+        break;
+      case 'prep-desc':
+        result.sort((a, b) => b.prepTime - a.prepTime);
+        break;
+      case 'alpha-asc':
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'alpha-desc':
+        result.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'favorites-first':
+        result.sort((a, b) => {
+          const aFav = favoriteIds.includes(a.id) ? 1 : 0;
+          const bFav = favoriteIds.includes(b.id) ? 1 : 0;
+          return bFav - aFav;
+        });
+        break;
+      default:
+        // No sorting applied
+        break;
+    }
+
+    return result;
   }, [
     recipes,
     maxPrepTime,
@@ -111,6 +166,8 @@ function RecipeList({
     selectedDietTags,
     selectedApplianceTags,
     searchTerm,
+    sortOption,
+    favoriteIds,
   ]);
 
   const toggleDiet = (id: number) => {
@@ -164,9 +221,10 @@ function RecipeList({
     <>
       {showSearch && (
         <>
-          {/* Top bar: search + add button */}
-          <div className="d-flex align-items-center gap-3 mb-4">
-            <div className="flex-grow-1">
+          {/* Top bar: search + sort + add recipe */}
+          <div className="row align-items-center mb-4 g-3">
+            {/* Search bar - full width on mobile, grows on desktop */}
+            <div className="col-12 col-md">
               <input
                 type="text"
                 className="form-control form-control-lg rounded-pill px-4"
@@ -175,13 +233,141 @@ function RecipeList({
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {pathname === '/recipes' && (
-              <div>
-                <Link href="/add-recipe" className="btn btn-outline-dark btn-lg rounded-pill">
-                  Add Recipe
-                </Link>
+            {/* Sort and Add Recipe controls - centered on mobile, right-aligned on desktop */}
+            <div className="col-12 col-md-auto">
+              <div className="d-flex align-items-center justify-content-center justify-content-md-end gap-2">
+                {/* Sort dropdown with proper positioning */}
+                <div ref={sortDropdownRef} style={{ position: 'relative' }}>
+                  <button
+                    className={`btn btn-outline-secondary dropdown-toggle 
+                      d-flex align-items-center justify-content-center`}
+                    type="button"
+                    onClick={() => setIsSortOpen(!isSortOpen)}
+                    aria-expanded={isSortOpen}
+                    aria-label="Sort options"
+                  >
+                    <i className="bi bi-arrow-down-up" />
+                  </button>
+                  {isSortOpen && (
+                    <ul
+                      className="dropdown-menu show"
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        right: 0,
+                        zIndex: 2000,
+                        minWidth: '200px',
+                      }}
+                    >
+                      <li><h6 className="dropdown-header">Sort By Cost</h6></li>
+                      <li>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSortOption('cost-asc');
+                            setIsSortOpen(false);
+                          }}
+                        >
+                          Cost: Low → High
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSortOption('cost-desc');
+                            setIsSortOpen(false);
+                          }}
+                        >
+                          Cost: High → Low
+                        </button>
+                      </li>
+
+                      <li><hr className="dropdown-divider" /></li>
+
+                      <li><h6 className="dropdown-header">Sort By Prep Time</h6></li>
+                      <li>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSortOption('prep-asc');
+                            setIsSortOpen(false);
+                          }}
+                        >
+                          Prep Time: Low → High
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSortOption('prep-desc');
+                            setIsSortOpen(false);
+                          }}
+                        >
+                          Prep Time: High → Low
+                        </button>
+                      </li>
+
+                      <li><hr className="dropdown-divider" /></li>
+
+                      <li><h6 className="dropdown-header">Alphabetical</h6></li>
+                      <li>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSortOption('alpha-asc');
+                            setIsSortOpen(false);
+                          }}
+                        >
+                          A → Z
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSortOption('alpha-desc');
+                            setIsSortOpen(false);
+                          }}
+                        >
+                          Z → A
+                        </button>
+                      </li>
+
+                      <li><hr className="dropdown-divider" /></li>
+
+                      <li><h6 className="dropdown-header">Favorites</h6></li>
+                      <li>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSortOption('favorites-first');
+                            setIsSortOpen(false);
+                          }}
+                        >
+                          Favorites First
+                        </button>
+                      </li>
+                    </ul>
+                  )}
+                </div>
+
+                {/* Add Recipe button - only on /recipes page */}
+                {pathname === '/recipes' && (
+                  <Link href="/add-recipe" className="btn btn-outline-dark btn-lg rounded-pill">
+                    Add Recipe
+                  </Link>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </>
       )}
@@ -388,9 +574,4 @@ function RecipeList({
     </>
   );
 }
-
-RecipeList.defaultProps = {
-  showSearch: true,
-};
-
 export default RecipeList;
