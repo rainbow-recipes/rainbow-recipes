@@ -145,7 +145,7 @@ export default function Navbar() {
               </Nav.Link>
             )}
             {!isLoggedIn && (
-              <Nav.Link 
+              <Nav.Link
                 as={Link}
                 href="/vendor-signup"
                 className={`nav-link-custom ${isActive(pathname, '/vendor-signup') ? 'active' : ''}`}

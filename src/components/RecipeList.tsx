@@ -5,7 +5,7 @@ import { useSearchParams, usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import type { Recipe, Tag } from '@prisma/client';
 import { Button, Card } from 'react-bootstrap';
-import { Heart, HeartFill, Plus, SuitHeart, SuitHeartFill } from 'react-bootstrap-icons';
+import { SuitHeart, SuitHeartFill } from 'react-bootstrap-icons';
 import defaultRecipeImage from '../../public/default-recipe-image.png';
 
 type RecipeWithTags = Recipe & { tags: Tag[] };
