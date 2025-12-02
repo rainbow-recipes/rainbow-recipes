@@ -151,7 +151,7 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
       <div className="rr-hero">
         <Container
           className="d-flex flex-column justify-content-center text-center py-5 rr-hero-content"
-          style={{ maxWidth: '800px', height: '60vh' }}
+          style={{ maxWidth: '800px', height: '70vh' }}
         >
           <h1 className="display-4 fw-bold text-white mb-4">
             Welcome back,
