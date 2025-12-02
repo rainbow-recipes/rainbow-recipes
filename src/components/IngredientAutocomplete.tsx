@@ -2,6 +2,7 @@
 
 /* eslint-disable react/require-default-props */
 import { useEffect, useRef, useState } from 'react';
+import { CaretRight } from 'react-bootstrap-icons';
 
 type ItemCategory =
   | 'produce'
@@ -13,15 +14,16 @@ type ItemCategory =
   | 'condiments_spices'
   | 'other';
 
-type IngredientChoice = { id?: number; name: string; itemCategory?: ItemCategory };
+type IngredientChoice = { id?: number; name: string; itemCategory?: ItemCategory; detail?: string };
 
 type Props = {
   value: IngredientChoice[];
   onChange: (v: IngredientChoice[]) => void;
   placeholder?: string;
+  detailErrors?: boolean[];
 };
 
-export default function IngredientAutocomplete({ value, onChange, placeholder = '' }: Props) {
+export default function IngredientAutocomplete({ value, onChange, placeholder = '', detailErrors = [] }: Props) {
   function normalizeName(s: string) {
     return s.trim().replace(/\s+/g, ' ').toLowerCase();
   }
@@ -53,9 +55,21 @@ export default function IngredientAutocomplete({ value, onChange, placeholder = 
   const debounceRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [checkingExact, setCheckingExact] = useState(false);
+  const [typedDetail, setTypedDetail] = useState<boolean[]>([]);
   useEffect(() => () => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
   }, []);
+
+  // keep a parallel array tracking whether the user has typed into each
+  // detail input. We only show the invalid state after the user has typed
+  // at least once into that input (so initial empty fields don't show).
+  useEffect(() => {
+    setTypedDetail((prev) => {
+      if (prev.length === value.length) return prev;
+      const next = Array.from({ length: value.length }, (_, i) => !!prev[i]);
+      return next;
+    });
+  }, [value.length]);
 
   useEffect(() => {
     const q = query.trim();
@@ -139,18 +153,20 @@ export default function IngredientAutocomplete({ value, onChange, placeholder = 
 
   function addChoice(choice: IngredientChoice) {
     const cleaned = (choice.name || '').trim().replace(/\s+/g, ' ');
-    const norm = normalizeName(cleaned);
+    // keep normalized name available for potential future use
+    // (currently we allow duplicates so it's not used)
+    normalizeName(cleaned);
 
-    // prevent duplicate by id
-    if (choice.id && value.some((v) => v.id && v.id === choice.id)) return;
-    // prevent duplicate by normalized name (case/whitespace-insensitive)
-    if (value.some((v) => normalizeName(v.name) === norm)) return;
+    // allow duplicates: users may want the same ingredient multiple times
+    // (for example, "salt" in two separate steps). We no longer block
+    // additions by id or normalized name.
 
     const newChoice: IngredientChoice = {
       id: choice.id,
       name: cleaned,
       // default new free-text items to 'other'; existing items carry their itemCategory
       itemCategory: choice.itemCategory ?? 'other',
+      detail: choice.detail ?? '',
     };
     onChange([...value, newChoice]);
     setQuery('');
@@ -166,48 +182,89 @@ export default function IngredientAutocomplete({ value, onChange, placeholder = 
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 6 }}>
         {value.map((v, i) => (
           <div
             key={`${v.id ?? 'new'}_${v.name}`}
-            className="badge bg-success text-white"
-            style={{ padding: '6px 8px', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 6,
+            }}
           >
-            <span style={{ marginRight: 8 }}>{v.name}</span>
-            {/* if item is new (no id), allow selecting category in the badge */}
-            {v.id ? (
-              v.itemCategory && (
-                <small style={{ opacity: 0.8, marginLeft: 4 }}>{prettyCategory(v.itemCategory)}</small>
-              )
-            ) : (
-              <select
-                className="form-select form-select-sm"
-                value={v.itemCategory ?? 'other'}
+            <CaretRight />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <input
+                type="text"
+                placeholder="Quantity"
+                value={v.detail ?? ''}
                 onChange={(e) => {
+                  const val = e.target.value;
                   const next = [...value];
-                  next[i] = { ...next[i], itemCategory: e.target.value as ItemCategory };
+                  next[i] = { ...next[i], detail: val };
                   onChange(next);
+                  // mark as typed once the user has entered any characters
+                  if (!typedDetail[i] && val.length > 0) {
+                    const td = [...typedDetail];
+                    td[i] = true;
+                    setTypedDetail(td);
+                  }
                 }}
-                aria-label={`Category for ${v.name}`}
-                style={{ height: 28, fontSize: '0.75rem', padding: '2px 6px' }}
-              >
-                <option value="produce">{prettyCategory('produce')}</option>
-                <option value="meat_seafood">{prettyCategory('meat_seafood')}</option>
-                <option value="dairy_eggs">{prettyCategory('dairy_eggs')}</option>
-                <option value="frozen">{prettyCategory('frozen')}</option>
-                <option value="canned">{prettyCategory('canned')}</option>
-                <option value="dry">{prettyCategory('dry')}</option>
-                <option value="condiments_spices">{prettyCategory('condiments_spices')}</option>
-                <option value="other">{prettyCategory('other')}</option>
-              </select>
-            )}
+                style={{ width: 150 }}
+                className={`form-control form-control-sm ${detailErrors[i] && typedDetail[i] ? 'is-invalid' : ''}`}
+              />
+              {/* validation visual only (red border) — no inline message shown */}
+            </div>
+            <div
+              className="badge"
+              style={{
+                padding: '6px 8px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'transparent',
+                color: 'inherit',
+                border: '1px solid rgba(0,0,0,0.08)',
+              }}
+            >
+              <span style={{ marginRight: 8 }}>{v.name}</span>
+              {/* if item is new (no id), allow selecting category in the badge */}
+              {v.id ? (
+                v.itemCategory && (
+                  <small style={{ opacity: 0.8, marginLeft: 4 }}>{prettyCategory(v.itemCategory)}</small>
+                )
+              ) : (
+                <select
+                  className="form-select form-select-sm"
+                  value={v.itemCategory ?? 'other'}
+                  onChange={(e) => {
+                    const next = [...value];
+                    next[i] = { ...next[i], itemCategory: e.target.value as ItemCategory };
+                    onChange(next);
+                  }}
+                  aria-label={`Category for ${v.name}`}
+                  style={{ height: 28, fontSize: '0.75rem', padding: '2px 6px', width: 'auto', minWidth: 80 }}
+                >
+                  <option value="produce">{prettyCategory('produce')}</option>
+                  <option value="meat_seafood">{prettyCategory('meat_seafood')}</option>
+                  <option value="dairy_eggs">{prettyCategory('dairy_eggs')}</option>
+                  <option value="frozen">{prettyCategory('frozen')}</option>
+                  <option value="canned">{prettyCategory('canned')}</option>
+                  <option value="dry">{prettyCategory('dry')}</option>
+                  <option value="condiments_spices">{prettyCategory('condiments_spices')}</option>
+                  <option value="other">{prettyCategory('other')}</option>
+                </select>
+              )}
 
-            <button
-              type="button"
-              className="btn-close btn-close-white mx-2"
-              aria-label="Remove"
-              onClick={() => removeAt(i)}
-            />
+              <button
+                type="button"
+                className="btn-close mx-2"
+                aria-label="Remove"
+                onClick={() => removeAt(i)}
+                style={{ marginLeft: 8 }}
+              />
+            </div>
           </div>
         ))}
       </div>

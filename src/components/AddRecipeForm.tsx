@@ -14,7 +14,7 @@ interface AddRecipeFormProps {
   allTags: Tag[];
 }
 
-type IngredientChoice = { id?: number; name: string; itemCategory?: ItemCategory };
+type IngredientChoice = { id?: number; name: string; itemCategory?: ItemCategory; detail?: string };
 
 type RecipeFormValues = {
   name: string;
@@ -33,8 +33,8 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
     register,
     control,
     handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<RecipeFormValues>({ defaultValues: { ingredients: [] } });
+    formState: { isSubmitting, errors },
+  } = useForm<RecipeFormValues>({ mode: 'onChange', defaultValues: { ingredients: [] } });
   const [error, setError] = useState<string | null>(null);
 
   const dietTags = allTags.filter((t) => t.category === 'Diet');
@@ -45,6 +45,35 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
 
     try {
       const { name, cost, prepTime, ingredients, description, imageFile, ...tagFlags } = data;
+
+      // validate that every ingredient has a non-empty detail
+      if ((ingredients || []).some((ing) => !((ing as any).detail && (ing as any).detail.trim()))) {
+        setError('Please provide quantity/notes for every ingredient.');
+        return;
+      }
+
+      // If any ingredients include a detail (e.g. "1lb, frozen"), prepend them to the
+      // description as lines like: "chicken: 1lb, frozen"
+      let finalDescription = description || '';
+      try {
+        const detailLines = (ingredients || [])
+          .map((ing) => {
+            const d = (ing as IngredientChoice).detail;
+            if (!d) return null;
+            const trimmed = d.trim();
+            if (!trimmed) return null;
+            return `${ing.name}: ${trimmed}`;
+          })
+          .filter(Boolean) as string[];
+
+        if (detailLines.length > 0) {
+          const prefix = `${detailLines.join('\n')}\n\n`;
+          finalDescription = `${prefix}${finalDescription}`;
+        }
+      } catch (e) {
+        // best-effort only; don't block submission for formatting errors
+        console.warn('Failed to format ingredient details', e);
+      }
 
       const costNum = cost ? Number(cost) : 0;
       const prepNum = prepTime ? Number(prepTime) : 0;
@@ -80,7 +109,7 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
           name,
           cost: costNum,
           prepTime: prepNum,
-          description,
+          description: finalDescription,
           image: imageData,
           tagIds: selectedTagIds,
           ingredients: ingredients.map((ing) => ({
@@ -118,13 +147,19 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
         {error && <div className="alert alert-danger">{error}</div>}
 
         <Form.Group className="mb-3">
-          <Form.Label className="form-label">Food name</Form.Label>
+          <Form.Label className="form-label">Recipe name</Form.Label>
           <input
             type="text"
-            className="form-control"
             placeholder="e.g. Creamy Tomato Pasta"
-            {...register('name', { required: true })}
+            {...register('name', { required: 'Recipe name is required' })}
+            aria-invalid={errors.name ? 'true' : 'false'}
+            aria-required="true"
+            required
+            className={`form-control ${errors.name ? 'is-invalid' : ''}`}
           />
+          <div className="invalid-feedback" role="alert" aria-live="polite">
+            {(errors.name as any)?.message}
+          </div>
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -132,46 +167,78 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
           <input
             type="number"
             step="0.01"
-            className="form-control"
             placeholder="e.g. 12.50"
-            {...register('cost')}
+            {...register('cost', { required: 'Cost is required' })}
+            aria-invalid={errors.cost ? 'true' : 'false'}
+            aria-required="true"
+            required
+            className={`form-control ${errors.cost ? 'is-invalid' : ''}`}
           />
+          <div className="invalid-feedback" role="alert" aria-live="polite">
+            {(errors.cost as any)?.message}
+          </div>
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label className="form-label">Prep time (minutes)</Form.Label>
           <input
             type="number"
-            className="form-control"
             placeholder="e.g. 30"
-            {...register('prepTime')}
+            {...register('prepTime', { required: 'Prep time is required' })}
+            aria-invalid={errors.prepTime ? 'true' : 'false'}
+            aria-required="true"
+            required
+            className={`form-control ${errors.prepTime ? 'is-invalid' : ''}`}
           />
+          <div className="invalid-feedback" role="alert" aria-live="polite">
+            {(errors.prepTime as any)?.message}
+          </div>
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label className="form-label">Ingredient Tags</Form.Label>
+          <Form.Label className="form-label">Ingredients</Form.Label>
           <Controller
             name="ingredients"
             control={control}
-            rules={{ validate: (v) => Array.isArray(v) && v.length > 0 }}
-            render={({ field }) => (
-              <IngredientAutocomplete
-                value={field.value || []}
-                onChange={field.onChange}
-                placeholder="Type an ingredient and press Enter or pick a suggestion"
-              />
-            )}
+            rules={{ validate: (v) => (Array.isArray(v) && v.length > 0) || 'Please add at least one ingredient' }}
+            render={({ field }) => {
+              const detailErrors = (field.value || []).map((ing: IngredientChoice) => {
+                const d = (ing as any).detail;
+                return !(d && d.trim());
+              });
+              return (
+                <div>
+                  <IngredientAutocomplete
+                    value={field.value || []}
+                    onChange={field.onChange}
+                    placeholder="Type an ingredient and press Enter or pick a suggestion"
+                    detailErrors={detailErrors}
+                  />
+                  <div
+                    className="invalid-feedback"
+                    role="alert"
+                    style={{ display: errors.ingredients ? 'block' : 'none' }}
+                    aria-live="polite"
+                  >
+                    {(errors.ingredients as any)?.message}
+                  </div>
+                </div>
+              );
+            }}
           />
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label className="form-label">Description / how it was prepped</Form.Label>
+          <Form.Label className="form-label">Description / Instructions</Form.Label>
           <textarea
             className="form-control"
             rows={4}
-            placeholder="Step-by-step description of how you prepared this dish..."
-            {...register('description')}
+            placeholder="Step-by-step instructions of how you prepared this dish..."
+            {...register('description', { required: 'Description / Instructions are required' })}
+            aria-required="true"
+            required
           />
+          {errors.description && <div className="text-danger mt-1">{(errors.description as any).message}</div>}
         </Form.Group>
 
         <Form.Group className="mb-3">
