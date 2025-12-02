@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import type { Recipe, Tag } from '@prisma/client';
 
@@ -12,16 +12,19 @@ interface RecipeListProps {
   allTags: Tag[];
   initialFavoriteIds: number[];
   isAdmin: boolean;
+  showSearch?: boolean;
 }
 
-export default function RecipeList({
+function RecipeList({
   initialRecipes,
   allTags,
   initialFavoriteIds,
   isAdmin,
+  showSearch,
 }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeWithTags[]>(initialRecipes);
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const urlFoodType = searchParams.get('foodType');
   const urlAppliance = searchParams.get('appliance');
 
@@ -159,23 +162,29 @@ export default function RecipeList({
 
   return (
     <>
-      {/* Top bar: search + add button */}
-      <div className="d-flex align-items-center gap-3 mb-4">
-        <div className="flex-grow-1">
-          <input
-            type="text"
-            className="form-control form-control-lg rounded-pill px-4"
-            placeholder="Search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div>
-          <Link href="/add-recipe" className="btn btn-outline-dark btn-lg rounded-pill">
-            Add Recipe
-          </Link>
-        </div>
-      </div>
+      {showSearch && (
+        <>
+          {/* Top bar: search + add button */}
+          <div className="d-flex align-items-center gap-3 mb-4">
+            <div className="flex-grow-1">
+              <input
+                type="text"
+                className="form-control form-control-lg rounded-pill px-4"
+                placeholder="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            {pathname === '/recipes' && (
+              <div>
+                <Link href="/add-recipe" className="btn btn-outline-dark btn-lg rounded-pill">
+                  Add Recipe
+                </Link>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Main layout: left filter column + right cards */}
       <div className="row">
@@ -379,3 +388,9 @@ export default function RecipeList({
     </>
   );
 }
+
+RecipeList.defaultProps = {
+  showSearch: true,
+};
+
+export default RecipeList;
