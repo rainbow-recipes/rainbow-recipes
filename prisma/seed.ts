@@ -1,4 +1,4 @@
-import { PrismaClient, Role, Condition } from '@prisma/client';
+import { PrismaClient, Role, Condition, ItemCategory } from '@prisma/client';
 import { hash } from 'bcrypt';
 import * as config from '../config/settings.development.json';
 
@@ -20,7 +20,7 @@ async function main() {
       create: {
         email: account.email,
         password,
-        role
+        role,
       },
     });
   }
@@ -54,6 +54,23 @@ async function main() {
         unit: item.unit,
         availability: item.availability,
         owner: item.owner,
+      },
+    });
+  }
+
+  // ----- Database items (produce, meat, dairy, etc.) -----
+  for (const databaseItem of config.defaultDatabaseItems) {
+    const itemCategory = (databaseItem.itemCategory as ItemCategory) || ItemCategory.other;
+    console.log(`  Adding database item: ${JSON.stringify(databaseItem)}`);
+    // eslint-disable-next-line no-await-in-loop
+    // Upsert by name (name is unique in schema)
+    // eslint-disable-next-line no-await-in-loop
+    await prisma.databaseItem.upsert({
+      where: { name: String(databaseItem.name) },
+      update: { itemCategory },
+      create: {
+        name: databaseItem.name,
+        itemCategory,
       },
     });
   }

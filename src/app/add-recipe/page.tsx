@@ -16,7 +16,6 @@ export default async function AddRecipePage() {
 
   return (
     <div className="container my-4">
-      <h2 className="mb-3">Add new recipe</h2>
       <AddRecipeForm allTags={tags} />
     </div>
   );

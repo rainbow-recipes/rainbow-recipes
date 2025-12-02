@@ -52,17 +52,57 @@ model User {
   recipes   Recipe[]   @relation("UserRecipes")
 }
 
+model Store {
+  id        String    @id @default(cuid())
+  name      String
+  website   String?
+  location  String
+  hours     String[]
+  image     String?
+  owner     String
+}
+
+enum ItemCategory {
+  produce
+  meat_seafood
+  dairy_eggs
+  frozen
+  canned
+  dry
+  condiments_spices
+  other
+}
+
+model Item {
+  id           Int          @id @default(autoincrement())
+  name         String
+  variety      String?
+  price        Decimal      @db.Decimal(10, 2)
+  unit         String
+  availability Boolean
+  itemCategory ItemCategory @default(other)
+  owner        String
+}
+
+model DatabaseItem {
+  id           Int          @id @default(autoincrement())
+  name         String       @unique
+  itemCategory ItemCategory
+  recipes      Recipe[]     @relation("RecipeIngredients")
+}
+
 model Recipe {
-  id          Int        @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   name        String
   cost        Float
   prepTime    Int
+  ingredients DatabaseItem[]  @relation("RecipeIngredients")
   description String
   image       String?
-  tags        Tag[]      @relation("RecipeTags")
+  tags        Tag[]           @relation("RecipeTags")
 
   authorId String?
-  author   User?         @relation("UserRecipes", fields: [authorId], references: [id], onDelete: Cascade)
+  author   User?              @relation("UserRecipes", fields: [authorId], references: [id], onDelete: Cascade)
 
   favorites Favorite[]
 }
@@ -129,21 +169,4 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Store {
-  id        String    @id @default(cuid())
-  name      String
-  website   String?
-  location  String
-  hours     String[]
-  image     String?
-  owner     String
-}
 
-model Item {
-  id           Int     @id @default(autoincrement())
-  name         String
-  price        Decimal @db.Decimal(10, 2)
-  unit         String
-  availability Boolean
-  owner        String
-}

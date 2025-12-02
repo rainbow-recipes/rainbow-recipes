@@ -126,14 +126,14 @@ function GuestLanding() {
         <div className="d-flex justify-content-center gap-3">
           <Link
             href="/recipes"
-            className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
+            className="btn btn-success btn-lg rounded-pill px-4 py-2"
           >
             Browse Recipes
           </Link>
 
           <Link
-            href="/list"
-            className="btn btn-outline-success rounded-pill px-4 py-2 text-decoration-none"
+            href="/vendors"
+            className="btn btn-outline-success rounded-pill px-4 justify-content-center d-flex align-items-center"
           >
             Find Vendors
           </Link>

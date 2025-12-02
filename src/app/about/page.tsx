@@ -364,7 +364,7 @@ export default function AboutPage() {
             </Link>
 
             <Link
-              href="/list"
+              href="/vendors"
               className="btn btn-outline btn-lg rounded-pill px-4 text-decoration-none fw-semibold bg-white"
               style={{ borderColor: '#00A86B', color: '#00A86B' }}
             >
