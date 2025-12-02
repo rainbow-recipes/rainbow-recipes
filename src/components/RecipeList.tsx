@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+
 'use client';
 
 import Link from 'next/link';
@@ -15,6 +17,9 @@ interface RecipeListProps {
   allTags: Tag[];
   initialFavoriteIds: number[];
   isAdmin: boolean;
+  // the currently signed-in user's id (optional) - may be string or number depending on auth
+  // eslint-disable-next-line react/require-default-props
+  currentUserId?: string | number;
   // eslint-disable-next-line react/require-default-props
   showSearch?: boolean;
 }
@@ -24,6 +29,7 @@ function RecipeList({
   allTags,
   initialFavoriteIds,
   isAdmin,
+  currentUserId,
   showSearch = true,
 }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeWithTags[]>(initialRecipes);
@@ -501,6 +507,9 @@ function RecipeList({
             <div className="row">
               {filteredRecipes.map((recipe) => {
                 const isFavorite = favoriteIds.includes(recipe.id);
+                // recipe.authorId may be string | null depending on Prisma schema; coerce for comparison
+                const isOwner = recipe.authorId != null && String(currentUserId) === String(recipe.authorId);
+
                 return (
                   <div key={recipe.id} className="col-md-4 mb-4">
                     <Card className="h-100 border-0 shadow-sm">
@@ -520,6 +529,7 @@ function RecipeList({
                           style={{ objectFit: 'cover', maxHeight: '180px' }}
                         />
                       )}
+
                       <Card.Body>
                         {/* Title + heart row */}
                         <div className="d-flex justify-content-between align-items-baseline mb-2">
@@ -527,9 +537,7 @@ function RecipeList({
                           <Button
                             className="btn btn-link p-0 border-0 bg-transparent"
                             onClick={() => toggleFavorite(recipe.id)}
-                            aria-label={
-                              isFavorite ? 'Remove from favorites' : 'Add to favorites'
-                            }
+                            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                           >
                             <span style={{ fontSize: '1.4rem' }}>
                               {isFavorite ? <SuitHeartFill /> : <SuitHeart />}
@@ -551,14 +559,16 @@ function RecipeList({
                         <div className="mt-auto d-flex justify-content-between align-items-end">
                           <div>
                             {recipe.tags.map((tag) => (
-                              <span
-                                key={tag.id}
-                                className="badge bg-light text-dark border me-1"
-                              >
-                                {tag.name}
-                              </span>
+                              <span key={tag.id} className="badge bg-light text-dark border me-1">{tag.name}</span>
                             ))}
                           </div>
+
+                          {(isAdmin || isOwner) && (
+                            <Link href={`/recipes/${recipe.id}/edit`} className="btn btn-sm btn-outline-primary ms-2">
+                              Edit
+                            </Link>
+                          )}
+
                           {isAdmin && (
                             <button
                               type="button"
