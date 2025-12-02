@@ -35,3 +35,11 @@
 .navbar .navbar-brand.nav-link-custom:focus {
   color: #ffffff !important;
 }
+
+/* Make dropdown menus in the navbar size to their content text */
+.navbar .dropdown-menu {
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  white-space: nowrap; /* keep items on one line so width matches text */
+}

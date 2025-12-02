@@ -6,8 +6,7 @@
   align-items: center;
   font-size: 0.85rem;
   font-family: var(--font-mono);
-  /* same green feel as navbar */
-  background-color: #006b5a;
+  background-color: #024731;
   color: #f9fafb;
 }
 
@@ -53,6 +52,12 @@
   gap: 0.75rem 1.5rem;
 }
 
+/* Center the footer nav links horizontally between brand and meta on wide screens */
+.rr-footer-links {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .rr-footer-links a {
   display: inline-flex;
   align-items: center;
@@ -83,13 +88,56 @@
 .rr-footer-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  /* reduce vertical spacing between meta rows */
+  gap: 0.25rem;
   align-items: center;
   color: #e5e7eb;
 }
 
+/* Right-align the meta block on larger screens */
+.rr-footer-meta {
+  justify-content: flex-end;
+  text-align: right;
+  margin-left: auto;
+}
+
 .rr-footer-separator {
   opacity: 0.8;
+}
+
+/* Make links inside footer meta match the surrounding meta text color */
+.rr-footer-meta a {
+  color: inherit;
+  text-decoration: underline;
+  opacity: 0.95;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rr-footer-meta a:hover {
+    opacity: 1;
+  }
+}
+
+/* Some links in the footer use the Bootstrap helper `text-decoration-none`.
+   Ensure they still show an underline on hover (and focus) for affordance. */
+.rr-footer-meta a.text-decoration-none:hover,
+.rr-footer-meta a.text-decoration-none:focus {
+  text-decoration: underline !important;
+  opacity: 1;
+}
+
+/* Ensure the "Made for..." line appears on its own row after the main meta row */
+.rr-footer-made {
+  flex-basis: 100%;
+  width: 100%;
+  order: 2;
+  /* smaller gap so the second line appears closer to the first */
+  margin-top: 0.125rem;
+}
+
+/* Keep the primary meta items (copyright + view link) on the first row */
+.rr-footer-meta > :not(.rr-footer-made) {
+  order: 1;
 }
 
 /* Mobile */
@@ -113,10 +161,17 @@
   .rr-footer-links {
     width: 100%;
     justify-content: flex-start;
+    /* reset centering on small screens */
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .rr-footer-meta {
     font-size: 0.8rem;
+    /* Revert alignment on small screens for readability */
+    justify-content: flex-start;
+    text-align: left;
+    margin-left: 0;
   }
 }
 
@@ -125,5 +180,37 @@
 @media (min-width: 701px) and (max-width: 1120px) {
   .rr-footer-inner {
     padding: 0 4rem;
+  }
+}
+
+/* Use a three-column grid on larger screens so links are centered between brand and meta */
+@media (min-width: 901px) {
+  .rr-footer-inner {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    column-gap: 2rem;
+    padding: 0 6rem;
+    position: relative; /* allow absolute centering of the links */
+  }
+
+  .rr-footer-brand {
+    justify-self: start;
+  }
+
+  /* Absolutely center the nav links within the footer inner container */
+  .rr-footer-links {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-left: 0;
+    margin-right: 0;
+    z-index: 1;
+  }
+
+  .rr-footer-meta {
+    justify-self: end;
+    text-align: right;
+    margin-left: 0;
   }
 }

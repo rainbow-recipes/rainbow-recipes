@@ -138,148 +138,137 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
   };
 
   return (
-    <Container className="py-3">
+    <Container className="py-4">
       <Row className="justify-content-center">
         <Col md={8} lg={6}>
-          <Col className="text-center">
-            <h2>Edit My Store</h2>
-          </Col>
-          <Card>
-            <Card.Body>
-              <Form onSubmit={handleSubmit(onSubmit)}>
-                <input type="hidden" {...register('id')} />
-                <Form.Group className="mb-3">
-                  <Form.Label className="mb-1">
-                    Store Name
-                    <span className="text-danger ms-1">*</span>
-                  </Form.Label>
-                  <input
-                    type="text"
-                    placeholder="Enter store name"
-                    {...register('name')}
-                    required
-                    aria-required="true"
-                    className={`form-control ${errors.name ? 'is-invalid' : ''}`}
-                  />
-                  <div className="invalid-feedback" role="alert" aria-live="polite">
-                    {errors.name?.message}
-                  </div>
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label className="mb-1">Store Website URL</Form.Label>
-                  <input
-                    type="text"
-                    placeholder="Enter store website"
-                    {...register('website')}
-                    className={`form-control ${errors.website ? 'is-invalid' : ''}`}
-                  />
-                  <div className="invalid-feedback">{(errors as any).website?.message}</div>
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label className="mb-1">Store Image URL</Form.Label>
-                  <input
-                    type="text"
-                    placeholder="Enter store image URL"
-                    {...register('image')}
-                    className={`form-control ${errors.image ? 'is-invalid' : ''}`}
-                  />
-                  <div className="invalid-feedback">{(errors as any).image?.message}</div>
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label className="mb-1">
-                    Location
-                    <span className="text-danger ms-1">*</span>
-                  </Form.Label>
-                  <input
-                    type="text"
-                    placeholder="Enter location"
-                    {...register('location')}
-                    required
-                    aria-required="true"
-                    className={`form-control ${errors.location ? 'is-invalid' : ''}`}
-                  />
-                  <div className="invalid-feedback" role="alert" aria-live="polite">
-                    {errors.location?.message}
-                  </div>
-                </Form.Group>
-                <Form.Group className="mb-2">
-                  <Form.Label className="mb-1">Hours</Form.Label>
-                  {days.map((day, idx) => {
-                    const defaultOpen = !(
-                      typeof defaultHours[idx] === 'string'
-                      && defaultHours[idx].toLowerCase() === 'closed'
-                    );
-                    const status = hoursStatus[idx] ?? defaultOpen;
-                    return (
-                      <Row key={day} className="mb-3">
-                        <Col>
-                          <Row className="g-2 d-flex flex-nowrap align-items-center">
-                            <Col className="pe-2 d-flex align-items-center">
-                              <Col xs={2} lg={8}>
-                                <Form.Label className="mb-0 small me-2">{day}</Form.Label>
-                              </Col>
-                              <Col>
-                                <div className="form-check mb-0">
-                                  <input
-                                    type="checkbox"
-                                    {...register(`hoursStatus.${idx}` as const)}
-                                    className="form-check-input"
-                                    id={`hoursStatus-${idx}`}
-                                    aria-label={`${day} open`}
-                                  />
-                                </div>
-                              </Col>
-                            </Col>
-                          </Row>
-                        </Col>
-                        <Col lg={5} xl={10}>
-                          <Row className="g-2">
-                            <Col>
+          <h2 className="mb-3">Edit My Store</h2>
+          <Form onSubmit={handleSubmit(onSubmit)}>
+            <input type="hidden" {...register('id')} />
+            <Form.Group className="mb-3">
+              <Form.Label className="mb-1">
+                Store Name
+                <span className="text-danger ms-1">*</span>
+              </Form.Label>
+              <input
+                type="text"
+                placeholder="Enter store name"
+                {...register('name')}
+                required
+                aria-required="true"
+                className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+              />
+              <div className="invalid-feedback" role="alert" aria-live="polite">
+                {errors.name?.message}
+              </div>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label className="mb-1">Store Website URL</Form.Label>
+              <input
+                type="text"
+                placeholder="Enter store website"
+                {...register('website')}
+                className={`form-control ${errors.website ? 'is-invalid' : ''}`}
+              />
+              <div className="invalid-feedback">{(errors as any).website?.message}</div>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label className="mb-1">Store Image URL</Form.Label>
+              <input
+                type="text"
+                placeholder="Enter store image URL"
+                {...register('image')}
+                className={`form-control ${errors.image ? 'is-invalid' : ''}`}
+              />
+              <div className="invalid-feedback">{(errors as any).image?.message}</div>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label className="mb-1">
+                Location
+                <span className="text-danger ms-1">*</span>
+              </Form.Label>
+              <input
+                type="text"
+                placeholder="Enter location"
+                {...register('location')}
+                required
+                aria-required="true"
+                className={`form-control ${errors.location ? 'is-invalid' : ''}`}
+              />
+              <div className="invalid-feedback" role="alert" aria-live="polite">
+                {errors.location?.message}
+              </div>
+            </Form.Group>
+            <Form.Group className="mb-2">
+              <Form.Label className="mb-1">Hours</Form.Label>
+              {days.map((day, idx) => {
+                const defaultOpen = !(
+                  typeof defaultHours[idx] === 'string'
+                  && defaultHours[idx].toLowerCase() === 'closed'
+                );
+                const status = hoursStatus[idx] ?? defaultOpen;
+                return (
+                  <Row key={day} className="mb-3">
+                    <Col>
+                      <Row className="g-2 d-flex flex-nowrap align-items-center">
+                        <Col className="pe-2 d-flex align-items-center">
+                          <Col xs={2} lg={8}>
+                            <Form.Label className="mb-0 small me-2">{day}</Form.Label>
+                          </Col>
+                          <Col>
+                            <div className="form-check mb-0">
                               <input
-                                type="time"
-                                step={300}
-                                {...register(`hoursOpen.${idx}` as const)}
-                                className={`form-control ${errors.hours ? 'is-invalid' : ''}`}
-                                aria-label={`${day} opening time`}
-                                disabled={!status}
+                                type="checkbox"
+                                {...register(`hoursStatus.${idx}` as const)}
+                                className="form-check-input"
+                                id={`hoursStatus-${idx}`}
+                                aria-label={`${day} open`}
                               />
-                            </Col>
-                            <Col xs="auto" className="d-flex align-items-center">to</Col>
-                            <Col>
-                              <input
-                                type="time"
-                                step={300}
-                                {...register(`hoursClose.${idx}` as const)}
-                                className={`form-control ${errors.hours ? 'is-invalid' : ''}`}
-                                aria-label={`${day} closing time`}
-                                disabled={!status}
-                              />
-                            </Col>
-                          </Row>
+                            </div>
+                          </Col>
                         </Col>
                       </Row>
-                    );
-                  })}
-                  <div className="invalid-feedback">{(errors as any).hours?.message}</div>
-                </Form.Group>
-                <input type="hidden" {...register('owner')} />
-                <Form.Group className="form-group mt-4">
-                  <Row className="pt-3">
-                    <Col>
-                      <Button type="submit" variant="primary">
-                        Submit
-                      </Button>
                     </Col>
-                    <Col>
-                      <Button type="button" onClick={() => reset()} variant="warning" className="float-right">
-                        Reset
-                      </Button>
+                    <Col lg={5} xl={10}>
+                      <Row className="g-2">
+                        <Col>
+                          <input
+                            type="time"
+                            step={300}
+                            {...register(`hoursOpen.${idx}` as const)}
+                            className={`form-control ${errors.hours ? 'is-invalid' : ''}`}
+                            aria-label={`${day} opening time`}
+                            disabled={!status}
+                          />
+                        </Col>
+                        <Col xs="auto" className="d-flex align-items-center">to</Col>
+                        <Col>
+                          <input
+                            type="time"
+                            step={300}
+                            {...register(`hoursClose.${idx}` as const)}
+                            className={`form-control ${errors.hours ? 'is-invalid' : ''}`}
+                            aria-label={`${day} closing time`}
+                            disabled={!status}
+                          />
+                        </Col>
+                      </Row>
                     </Col>
                   </Row>
-                </Form.Group>
-              </Form>
-            </Card.Body>
-          </Card>
+                );
+              })}
+              <div className="invalid-feedback">{(errors as any).hours?.message}</div>
+            </Form.Group>
+            <input type="hidden" {...register('owner')} />
+            <Form.Group className="form-group mt-4 text-end">
+              <Button type="button" onClick={() => reset()} variant="secondary" className="float-right">
+                Reset
+              </Button>
+              {' '}
+              <Button type="submit" variant="success">
+                Submit
+              </Button>
+            </Form.Group>
+          </Form>
         </Col>
       </Row>
     </Container>

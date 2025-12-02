@@ -10,6 +10,9 @@ import {
   Container,
 } from 'react-bootstrap';
 import './Navbar.css';
+import {
+  Basket2, Person, PersonCircle, PersonPlus, JournalText, PlusLg, BoxArrowRight, SuitHeartFill,
+} from 'react-bootstrap-icons';
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -28,7 +31,7 @@ export default function Navbar() {
     <BootstrapNavbar
       expand="lg"
       fixed="top"
-      style={{ backgroundColor: '#00664F' }}
+      style={{ backgroundColor: '#024731' }}
       variant="dark"
       className="shadow-sm"
     >
@@ -76,13 +79,6 @@ export default function Navbar() {
               className={`nav-link-custom ${isActive(pathname, '/recipes') ? 'active' : ''}`}
             >
               Recipes
-            </Nav.Link>
-            <Nav.Link
-              as={Link}
-              href="/favorites"
-              className={`nav-link-custom ${isActive(pathname, '/favorites') ? 'active' : ''}`}
-            >
-              Favorites
             </Nav.Link>
             <Nav.Link
               as={Link}
@@ -136,19 +132,42 @@ export default function Navbar() {
           </Nav>
 
           <Nav className="ms-auto">
+            {isLoggedIn && (
+              <Nav.Link
+                as={Link}
+                href="/favorites"
+                className={`nav-link-custom ${isActive(pathname, '/favorites') ? 'active' : ''}`}
+              >
+                <div className="d-inline-flex align-items-center gap-2">
+                  Favorites
+                  <SuitHeartFill />
+                </div>
+              </Nav.Link>
+            )}
+            {!isLoggedIn && (
+              <Nav.Link 
+                as={Link}
+                href="/vendor-signup"
+                className={`nav-link-custom ${isActive(pathname, '/vendor-signup') ? 'active' : ''}`}
+              >
+                <div className="d-inline-flex align-items-center gap-2">
+                  Vendor Sign Up
+                  <Basket2 />
+                </div>
+              </Nav.Link>
+            )}
             {!isLoggedIn ? (
               <NavDropdown
-                title="Login"
+                title="Log In"
                 id="login-dropdown"
               >
-                <NavDropdown.Item as={Link} href="/signin" className="text-decoration-none">
-                  Log In
+                <NavDropdown.Item as={Link} href="/signin" className="d-flex align-items-center gap-2">
+                  <Person />
+                  Sign In
                 </NavDropdown.Item>
-                <NavDropdown.Item as={Link} href="/signup" className="text-decoration-none">
-                  Register
-                </NavDropdown.Item>
-                <NavDropdown.Item as={Link} href="/merchant-signup">
-                  Vendor Sign Up
+                <NavDropdown.Item as={Link} href="/signup" className="d-flex align-items-center gap-2">
+                  <PersonPlus />
+                  Sign Up
                 </NavDropdown.Item>
               </NavDropdown>
             ) : (
@@ -160,31 +179,36 @@ export default function Navbar() {
                 <NavDropdown.Item
                   as={Link}
                   href="/profile"
-                  className="text-decoration-none"
+                  className="text-decoration-none d-flex align-items-center gap-2"
                 >
+                  <PersonCircle />
                   Profile
                 </NavDropdown.Item>
 
                 <NavDropdown.Item
                   as={Link}
                   href="/my-recipes"
-                  className="text-decoration-none"
+                  className="text-decoration-none d-flex align-items-center gap-2"
                 >
+                  <JournalText />
                   My Recipes
                 </NavDropdown.Item>
                 <NavDropdown.Item
                   as={Link}
                   href="/add-recipe"
-                  className="text-decoration-none"
+                  className="text-decoration-none d-flex align-items-center gap-2"
                 >
+                  <PlusLg />
                   Add Recipe
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item
                   onClick={() => signOut({ callbackUrl: '/' })}
                   style={{ cursor: 'pointer' }}
+                  className="d-flex align-items-center gap-2"
                 >
-                  Logout
+                  Sign Out
+                  <BoxArrowRight />
                 </NavDropdown.Item>
               </NavDropdown>
             )}

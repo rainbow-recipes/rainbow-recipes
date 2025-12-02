@@ -6,7 +6,7 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function MerchantSignUpPage() {
+export default function VendorSignUpPage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -21,7 +21,7 @@ export default function MerchantSignUpPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/merchant-signup', {
+      const res = await fetch('/api/auth/vendor-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, lastName, email, password }),
@@ -30,14 +30,14 @@ export default function MerchantSignUpPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Failed to sign up as merchant');
+        setError(data.error || 'Failed to sign up as vendor');
       } else {
-        // After merchant sign up, send them to sign in with a note
+        // After vendor sign up, send them to sign in with a note
         router.push('/signin');
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to sign up as merchant');
+      setError('Failed to sign up as vendor');
     } finally {
       setLoading(false);
     }
@@ -45,12 +45,12 @@ export default function MerchantSignUpPage() {
 
   return (
     <div className="container my-5" style={{ maxWidth: 480 }}>
-      <h2 className="mb-4 text-center">Merchant sign up</h2>
+      <h2 className="mb-4 text-center">Vendor sign up</h2>
       {error && <div className="alert alert-danger">{error}</div>}
 
       <p className="text-muted small mb-3">
-        Submit your application as a merchant. An admin will review and approve it before you can
-        use merchant-specific features.
+        Submit your application as a vendor. An admin will review and approve it before you can
+        use vendor-specific features.
       </p>
 
       <form onSubmit={handleSubmit}>

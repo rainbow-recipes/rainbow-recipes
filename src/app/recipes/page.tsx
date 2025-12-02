@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import RecipeList from '@/components/RecipeList';
+import { Row } from 'react-bootstrap';
 
 const prisma = new PrismaClient();
 
@@ -36,7 +37,9 @@ export default async function RecipesPage() {
 
   return (
     <div className="container my-4">
-      <h2 className="mb-4">Recipes</h2>
+      <Row>
+        <h2 className="mb-4">Recipes</h2>
+      </Row>
       <RecipeList
         initialRecipes={recipes}
         allTags={tags}

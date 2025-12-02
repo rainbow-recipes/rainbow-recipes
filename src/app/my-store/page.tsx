@@ -6,7 +6,7 @@ import { vendorProtectedPage } from '@/lib/page-protection';
 import { authOptions } from '@/lib/auth';
 import notFound from '@/app/not-found';
 import Link from 'next/link';
-import MyStoreItemsPanel from '@/components/MyStoreItemsPanel';
+import MyStoreItemsPanel from '@/components/my-store/MyStoreItemsPanel';
 
 export default async function MyStorePage() {
   const session = await getServerSession(authOptions);
@@ -79,7 +79,7 @@ export default async function MyStorePage() {
             ) : null}
           </Col>
         </Row>
-        <Container className="pt-4 border rounded-5 p-4">
+        <Container className="pt-4 shadow-sm rounded-4 p-4">
           <Row>
             <Col className="pe-5" xs="auto">
               <h5>Location:</h5>

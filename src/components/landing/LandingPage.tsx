@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Container, Row, Col } from 'react-bootstrap';
+import './LandingPage.css';
 
 interface LandingPageProps {
   role?: string;
@@ -16,35 +17,34 @@ function GuestLanding() {
   return (
     <div className="w-100">
       {/* HERO SECTION */}
-      <Container className="text-center py-5" style={{ maxWidth: '800px' }}>
-        <h1 className="display-4 fw-bold text-dark mb-4">
-          Rainbow Recipes
-        </h1>
+      <div className="rr-hero">
+        <Container className="text-center py-5 rr-hero-content" style={{ maxWidth: '800px' }}>
+          <h1 className="display-4 fw-bold text-white mb-4">
+            Rainbow Recipes
+          </h1>
 
-        <h2 className="fs-3 text-muted mb-4">
-          Easy and fast recipes for UH students!
-        </h2>
+          <h2 className="fs-3 text-white-50 mb-4">
+            Easy and fast recipes for UH students!
+          </h2>
 
-        <p className="text-muted fs-5 mb-4 lh-base">
-          Rainbow Recipes helps UH students find quick, affordable meals and
-          discover where to buy ingredients nearby. Start exploring and cook
-          up something delicious today!
-        </p>
+          <p className="text-white-50 fs-5 mb-4 lh-base">
+            Rainbow Recipes helps students find quick, affordable meals
+            and discover where to buy ingredients nearby. Start exploring and
+            cook up something delicious today!
+          </p>
 
-        <Link
-          href="/recipes"
-          className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
-        >
-          Browse Recipes
-        </Link>
-      </Container>
-
-      <hr className="my-5" />
-
+          <Link
+            href="/recipes"
+            className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
+          >
+            Browse Recipes
+          </Link>
+        </Container>
+      </div>
       {/* FEATURE SECTION */}
       <Container className="py-5">
-        <h3 className="display-6 fw-bold text-center mb-5">
-          What You Can Do With Rainbow Recipes
+        <h3 className="display-6 fw-bold text-center mt-4 mb-5">
+          What you can do with Rainbow Recipes
         </h3>
 
         <Row className="g-5 text-center">
@@ -56,7 +56,7 @@ function GuestLanding() {
                 style={{
                   width: '56px',
                   height: '56px',
-                  backgroundColor: 'rgba(0, 168, 107, 0.2)',
+                  backgroundColor: '#00a86b33',
                 }}
               >
                 <span className="fs-1">🍲</span>
@@ -98,7 +98,7 @@ function GuestLanding() {
                 style={{
                   width: '56px',
                   height: '56px',
-                  backgroundColor: 'rgba(0, 168, 107, 0.2)',
+                  backgroundColor: '#00a86b33',
                 }}
               >
                 <span className="fs-1">⭐</span>
@@ -148,35 +148,38 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
   return (
     <div className="w-100">
       {/* HERO SECTION */}
-      <Container className="text-center py-5" style={{ maxWidth: '800px' }}>
-        <h1 className="display-4 fw-bold text-dark mb-4">
-          Welcome back,
-          {userName}
-          !
-        </h1>
+      <div className="rr-hero">
+        <Container
+          className="d-flex flex-column justify-content-center text-center py-5 rr-hero-content"
+          style={{ maxWidth: '800px', height: '60vh' }}
+        >
+          <h1 className="display-4 fw-bold text-white mb-4">
+            Welcome back,
+            {userName}
+            !
+          </h1>
 
-        <h2 className="fs-3 text-muted mb-4">
-          Ready to discover your next favorite recipe?
-        </h2>
+          <h2 className="fs-3 text-white-50 mb-4">
+            Ready to discover your next favorite recipe?
+          </h2>
 
-        <div className="d-flex justify-content-center gap-3 mt-4">
-          <Link
-            href="/recipes"
-            className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
-          >
-            Browse Recipes
-          </Link>
+          <div className="d-flex justify-content-center gap-3 mt-4">
+            <Link
+              href="/recipes"
+              className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
+            >
+              Browse Recipes
+            </Link>
 
-          <Link
-            href="/favorites"
-            className="btn btn-outline-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
-          >
-            Favorite Recipes
-          </Link>
-        </div>
-      </Container>
-
-      <div className="py-5" />
+            <Link
+              href="/favorites"
+              className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
+            >
+              Favorite Recipes
+            </Link>
+          </div>
+        </Container>
+      </div>
     </div>
   );
 }

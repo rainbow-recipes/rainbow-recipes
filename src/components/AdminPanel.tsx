@@ -95,7 +95,7 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
           <input
             type="text"
             className="form-control form-control-lg rounded-pill px-4"
-            placeholder="Search users by email, name, role, or 'merchant'..."
+            placeholder="Search users"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -113,7 +113,7 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
                 <th>Email</th>
                 <th>Name</th>
                 <th>Role</th>
-                <th>Merchant</th>
+                <th>Vendor</th>
                 <th>Approved</th>
                 <th style={{ width: '220px' }}>Actions</th>
               </tr>
@@ -143,7 +143,7 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
                         className="btn btn-sm btn-outline-success me-2"
                         onClick={() => handleApproveMerchant(u.id, u.email)}
                       >
-                        Approve merchant
+                        Approve vendor
                       </button>
                     )}
                     <button

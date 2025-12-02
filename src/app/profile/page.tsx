@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
-import ProfileClient from '@/components/profile/ProfileClient';
+import ProfileClient from '@/components/ProfileClient';
 
 const prisma = new PrismaClient();
 

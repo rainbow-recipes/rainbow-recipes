@@ -1,0 +1,26 @@
+/* Hero background using the public/hero.png image */
+.rr-hero {
+  /* lighter overlay so the photo remains visible */
+  background-color: #ddd; /* fallback */
+  /* darker overlay for stronger contrast */
+  background-image: linear-gradient(rgba(0, 0, 0, 0.52), rgba(0, 0, 0, 0.52)), url('/hero.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 3.5rem 0; /* matches .py-5 spacing roughly */
+  min-height: 40vh; /* ensure enough area to show the image */
+}
+
+/* Ensure the hero content sits above the overlay and is readable */
+.rr-hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 700px) {
+  .rr-hero {
+    padding: 2.5rem 0;
+    background-position: center top;
+    min-height: 30vh;
+  }
+}

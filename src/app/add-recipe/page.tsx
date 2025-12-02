@@ -15,8 +15,6 @@ export default async function AddRecipePage() {
   const tags = await prisma.tag.findMany({ orderBy: { name: 'asc' } });
 
   return (
-    <div className="container my-4">
-      <AddRecipeForm allTags={tags} />
-    </div>
+    <AddRecipeForm allTags={tags} />
   );
 }

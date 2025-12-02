@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import VendorCard from '@/components/VendorCard';
+import VendorCard from '@/components/vendors/VendorCard';
 import { Col, Row } from 'react-bootstrap';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -22,7 +22,7 @@ export default async function VendorsPage() {
         <p>
           Interested in becoming a vendor? Fill out this
           {' '}
-          <a href="/merchant-signup">form</a>
+          <a href="/vendor-signup">form</a>
           {' '}
           to get started!
         </p>
@@ -37,15 +37,14 @@ export default async function VendorsPage() {
           page to get listed!
         </p>
       )}
-      <Row xs={1} sm={2} md={2} lg={3} xl={4} className="g-4">
+      <Row className="g-4">
         {stores.map((store) => (
-          <Col key={store.id}>
-            {(store.name !== 'My Store')
-              && (
+          <Col key={store.id} xs="auto">
+            {(store.name !== 'My Store') && (
               <Link href={`/vendors/${store.id}`} className="text-decoration-none text-dark">
                 <VendorCard store={store} />
               </Link>
-              )}
+            )}
           </Col>
         ))}
       </Row>

@@ -1,5 +1,7 @@
 import React from 'react';
 import './footer.css';
+import Link from 'next/link';
+import { CCircle, Github } from 'react-bootstrap-icons';
 
 const Footer: React.FC = () => {
   const year = new Date().getFullYear();
@@ -22,14 +24,33 @@ const Footer: React.FC = () => {
         </nav>
 
         <div className="rr-footer-meta">
-          <span>
-            ©
-            {year}
-            {' '}
-            Rainbow Recipes
+          <span className="d-flex align-items-center gap-1">
+            <CCircle />
+            <Link
+              href="https://github.com/rainbow-recipes"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-decoration-none"
+            >
+              {year}
+              {' '}
+              Rainbow Recipes
+            </Link>
           </span>
           <span className="rr-footer-separator">•</span>
-          <span>Made for UH Mānoa students</span>
+          <span className="d-flex align-items-center gap-1">
+            View this site on
+            {' '}
+            <Link
+              href="https://github.com/rainbow-recipes/rainbow-recipes"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </Link>
+            <Github />
+          </span>
+          <span className="rr-footer-made">Made for UH Mānoa students</span>
         </div>
       </div>
     </footer>

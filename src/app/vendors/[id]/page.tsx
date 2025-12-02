@@ -1,7 +1,7 @@
 import { Col, Container, Row, Image } from 'react-bootstrap';
 import { prisma } from '@/lib/prisma';
 import { Store } from '@prisma/client';
-import VendorItemsPanel from '@/components/VendorItemsPanel';
+import VendorItemsPanel from '@/components/vendors/VendorItemsPanel';
 import notFound from '@/app/not-found';
 import Link from 'next/link';
 import { ChevronLeft } from 'react-bootstrap-icons';
@@ -73,7 +73,7 @@ export default async function VendorsPage({ params }: { params: { id: string | s
             ) : null}
           </Col>
         </Row>
-        <Container className="pt-4 border rounded-5 p-4">
+        <Container className="pt-4 shadow-sm rounded-4 p-4">
           <Row>
             <Col className="pe-5" xs="auto">
               <h5>Location:</h5>

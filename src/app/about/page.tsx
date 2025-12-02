@@ -254,7 +254,7 @@ export default function AboutPage() {
               discover your products. All vendor applications are manually reviewed to ensure accuracy and authenticity.
             </p>
             <Link
-              href="/merchant-signup"
+              href="/vendor-signup"
               className="btn btn-success btn-lg rounded-pill px-4 text-decoration-none fw-semibold"
             >
               Apply to Become a Vendor
@@ -274,36 +274,64 @@ export default function AboutPage() {
           </h3>
           <Row className="justify-content-center">
             <Col xs={12} sm={6} lg={3} className="mb-4">
-              <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
-                <div className="mb-3">
-                  <i className="bi bi-person-circle fs-1 text-success" />
+              <Link
+                href="https://github.com/ievgen-maker"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+              >
+                <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
+                  <div className="mb-3">
+                    <i className="bi bi-person-circle fs-1 text-success" />
+                  </div>
+                  <h5 className="fw-semibold mb-0">Ievgen B.</h5>
                 </div>
-                <h5 className="fw-semibold mb-0">Ievgen B.</h5>
-              </div>
+              </Link>
             </Col>
             <Col xs={12} sm={6} lg={3} className="mb-4">
-              <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
-                <div className="mb-3">
-                  <i className="bi bi-person-circle fs-1 text-success" />
+              <Link
+                href="https://github.com/jasmineyschan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+              >
+                <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
+                  <div className="mb-3">
+                    <i className="bi bi-person-circle fs-1 text-success" />
+                  </div>
+                  <h5 className="fw-semibold mb-0">Jasmine C.</h5>
                 </div>
-                <h5 className="fw-semibold mb-0">Jasmine C.</h5>
-              </div>
+              </Link>
             </Col>
             <Col xs={12} sm={6} lg={3} className="mb-4">
-              <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
-                <div className="mb-3">
-                  <i className="bi bi-person-circle fs-1 text-success" />
+              <Link
+                href="https://github.com/mewong21"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+              >
+                <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
+                  <div className="mb-3">
+                    <i className="bi bi-person-circle fs-1 text-success" />
+                  </div>
+                  <h5 className="fw-semibold mb-0">Megan W.</h5>
                 </div>
-                <h5 className="fw-semibold mb-0">Megan W.</h5>
-              </div>
+              </Link>
             </Col>
             <Col xs={12} sm={6} lg={3} className="mb-4">
-              <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
-                <div className="mb-3">
-                  <i className="bi bi-person-circle fs-1 text-success" />
+              <Link
+                href="https://github.com/tylornb"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+              >
+                <div className="card shadow-sm rounded-4 p-4 text-center border-0 h-100">
+                  <div className="mb-3">
+                    <i className="bi bi-person-circle fs-1 text-success" />
+                  </div>
+                  <h5 className="fw-semibold mb-0">Tylor N.</h5>
                 </div>
-                <h5 className="fw-semibold mb-0">Tylor N.</h5>
-              </div>
+              </Link>
             </Col>
           </Row>
         </Container>

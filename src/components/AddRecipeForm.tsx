@@ -141,13 +141,16 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
   };
 
   return (
-    <Container className="py-3">
+    <Container className="py-4">
       <h2 className="mb-3">Add new recipe</h2>
       <Form onSubmit={handleSubmit(onSubmit)}>
         {error && <div className="alert alert-danger">{error}</div>}
 
         <Form.Group className="mb-3">
-          <Form.Label className="form-label">Recipe name</Form.Label>
+          <Form.Label>
+            Recipe name
+            <span className="text-danger ms-1">*</span>
+          </Form.Label>
           <input
             type="text"
             placeholder="e.g. Creamy Tomato Pasta"
@@ -163,7 +166,10 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label className="form-label">Cost ($)</Form.Label>
+          <Form.Label>
+            Cost ($)
+            <span className="text-danger ms-1">*</span>
+          </Form.Label>
           <input
             type="number"
             step="0.01"
@@ -180,7 +186,10 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label className="form-label">Prep time (minutes)</Form.Label>
+          <Form.Label>
+            Prep time (minutes)
+            <span className="text-danger ms-1">*</span>
+          </Form.Label>
           <input
             type="number"
             placeholder="e.g. 30"
@@ -196,7 +205,10 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label className="form-label">Ingredients</Form.Label>
+          <Form.Label>
+            Ingredients
+            <span className="text-danger ms-1">*</span>
+          </Form.Label>
           <Controller
             name="ingredients"
             control={control}
@@ -229,7 +241,10 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
         </Form.Group>
 
         <Form.Group className="mb-3">
-          <Form.Label className="form-label">Description / Instructions</Form.Label>
+          <Form.Label>
+            Description / Instructions
+            <span className="text-danger ms-1">*</span>
+          </Form.Label>
           <textarea
             className="form-control"
             rows={4}

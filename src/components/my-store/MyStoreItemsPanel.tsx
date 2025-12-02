@@ -27,7 +27,7 @@ export default function MyStoreItemsPanel({ items }: { items: ItemClient[] }) {
           <input
             type="text"
             className="form-control form-control-lg rounded-pill px-4"
-            placeholder="Search items by name, unit, or price"
+            placeholder="Search items"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />

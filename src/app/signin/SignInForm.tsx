@@ -66,7 +66,7 @@ export default function SignInForm({ callbackUrl, errorParam }: SignInFormProps)
 
               <Form onSubmit={handleSubmit}>
                 <Form.Group className="mb-3" controlId="email">
-                  <Form.Label>Email address</Form.Label>
+                  <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="email"
                     placeholder="you@example.com"

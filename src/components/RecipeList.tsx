@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import type { Recipe, Tag } from '@prisma/client';
+import { Button, Card } from 'react-bootstrap';
+import { Heart, HeartFill, Plus, SuitHeart, SuitHeartFill } from 'react-bootstrap-icons';
+import defaultRecipeImage from '../../public/default-recipe-image.png';
 
 type RecipeWithTags = Recipe & { tags: Tag[] };
 
@@ -233,6 +236,7 @@ function RecipeList({
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+
             {/* Sort and Add Recipe controls - centered on mobile, right-aligned on desktop */}
             <div className="col-12 col-md-auto">
               <div className="d-flex align-items-center justify-content-center justify-content-md-end gap-2">
@@ -499,39 +503,41 @@ function RecipeList({
                 const isFavorite = favoriteIds.includes(recipe.id);
                 return (
                   <div key={recipe.id} className="col-md-4 mb-4">
-                    <div className="card h-100 rounded-4 border-2">
+                    <Card className="h-100 border-0 shadow-sm">
                       {recipe.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Card.Img
                           src={recipe.image}
-                          className="card-img-top"
+                          variant="top"
                           alt={recipe.name}
                           style={{ objectFit: 'cover', maxHeight: '180px' }}
                         />
                       ) : (
-                        <div className="card-img-top bg-secondary text-light p-5 text-center rounded-top-4">
-                          No image
-                        </div>
+                        <Card.Img
+                          src={defaultRecipeImage.src}
+                          variant="top"
+                          alt={recipe.name}
+                          style={{ objectFit: 'cover', maxHeight: '180px' }}
+                        />
                       )}
-                      <div className="card-body d-flex flex-column">
+                      <Card.Body>
                         {/* Title + heart row */}
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                          <h5 className="card-title mb-0">{recipe.name}</h5>
-                          <button
-                            type="button"
-                            className="btn btn-link p-0 border-0"
+                        <div className="d-flex justify-content-between align-items-baseline mb-2">
+                          <Card.Title>{recipe.name}</Card.Title>
+                          <Button
+                            className="btn btn-link p-0 border-0 bg-transparent"
                             onClick={() => toggleFavorite(recipe.id)}
                             aria-label={
                               isFavorite ? 'Remove from favorites' : 'Add to favorites'
                             }
                           >
                             <span style={{ fontSize: '1.4rem' }}>
-                              {isFavorite ? '♥' : '♡'}
+                              {isFavorite ? <SuitHeartFill /> : <SuitHeart />}
                             </span>
-                          </button>
+                          </Button>
                         </div>
 
-                        <p className="card-text mb-2">
+                        <Card.Text className="mb-2">
                           Prep time:
                           {' '}
                           {recipe.prepTime}
@@ -540,7 +546,8 @@ function RecipeList({
                           <br />
                           Cost: $
                           {recipe.cost.toFixed(2)}
-                        </p>
+                        </Card.Text>
+
                         <div className="mt-auto d-flex justify-content-between align-items-end">
                           <div>
                             {recipe.tags.map((tag) => (
@@ -562,8 +569,8 @@ function RecipeList({
                             </button>
                           )}
                         </div>
-                      </div>
-                    </div>
+                      </Card.Body>
+                    </Card>
                   </div>
                 );
               })}
