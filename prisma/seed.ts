@@ -21,6 +21,8 @@ async function main() {
         email: account.email,
         password,
         role,
+        isMerchant: account.isMerchant || false,
+        merchantApproved: account.merchantApproved || false,
       },
     });
   }
