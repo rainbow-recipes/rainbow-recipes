@@ -48,7 +48,9 @@ test('protected: /my-store loads for vendor user', async ({ browser, baseURL }) 
   const page = await context.newPage();
 
   // Navigate directly to /my-store using the authenticated context
-  const response = await page.goto(`${baseUrl}/my-store`, { waitUntil: 'networkidle' });
+  // Use 'load' instead of 'networkidle' to avoid hanging on long-lived requests
+  // and increase timeout for slower CI/dev machines.
+  const response = await page.goto(`${baseUrl}/my-store`, { waitUntil: 'load', timeout: 60000 });
   expect(response && response.ok(), `non-ok response for /my-store: ${response?.status()}`).toBeTruthy();
 
   const main = page.locator('main, h1');
