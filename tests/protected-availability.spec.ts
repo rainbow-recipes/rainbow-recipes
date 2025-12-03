@@ -13,12 +13,12 @@ test.beforeAll(async () => {
 
   if (!fs.existsSync(sessionsDir)) fs.mkdirSync(sessionsDir, { recursive: true });
 
-  if (!fs.existsSync(storagePath)) {
-    console.log('Storage state not found; generating vendor storage state using Chromium...');
-    const authEmail = process.env.TEST_VENDOR_EMAIL || 'vendor@foo.com';
-    const authPassword = process.env.TEST_VENDOR_PASSWORD || 'changeme';
-    const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3000';
+  const authEmail = process.env.TEST_VENDOR_EMAIL || 'vendor@foo.com';
+  const authPassword = process.env.TEST_VENDOR_PASSWORD || 'changeme';
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3000';
 
+  async function generateStorage() {
+    console.log('Generating vendor storage state using Chromium...');
     const browser = await chromium.launch();
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -36,6 +36,40 @@ test.beforeAll(async () => {
     await context.close();
     await browser.close();
     console.log('Saved vendor storage state to', storagePath);
+  }
+
+  // If storage missing, generate. If present, validate the session server-side
+  // (to detect stale encrypted tokens) and regenerate if invalid.
+  if (!fs.existsSync(storagePath)) {
+    await generateStorage();
+  } else {
+    let valid = false;
+    try {
+      const browser = await chromium.launch();
+      const context = await browser.newContext({ storageState: storagePath });
+      const page = await context.newPage();
+      await page.goto(baseUrl);
+      const session = await page.evaluate(async () => {
+        try {
+          const res = await fetch('/api/auth/session');
+          if (!res.ok) return null;
+          const j = await res.json();
+          return j;
+        } catch (e) {
+          return null;
+        }
+      });
+      if (session && session.user && session.user.email === authEmail) valid = true;
+      await context.close();
+      await browser.close();
+    } catch (e) {
+      valid = false;
+    }
+    if (!valid) {
+      console.log('Existing storage invalid; regenerating.');
+      try { fs.unlinkSync(storagePath); } catch (e) { /* ignore */ }
+      await generateStorage();
+    }
   }
 });
 

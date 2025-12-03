@@ -52,3 +52,6 @@ settings.production.json
 # Playwright
 node_modules/
 /playwright/.auth/
+
+# Do not commit Playwright storage/session state
+tests/playwright-auth-sessions/*.json
