@@ -24,7 +24,7 @@ interface RecipeListProps {
   showSearch?: boolean;
 }
 
-function RecipeList({
+export default function RecipeList({
   initialRecipes,
   allTags,
   initialFavoriteIds,
@@ -512,88 +512,86 @@ function RecipeList({
 
                 return (
                   <div key={recipe.id} className="col-md-4 mb-4">
-                    <Card className="h-100 border-0 shadow-sm position-relative">
-                      {recipe.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <Card.Img
-                          src={recipe.image}
-                          variant="top"
-                          alt={recipe.name}
-                          style={{ objectFit: 'cover', maxHeight: '180px' }}
-                        />
-                      ) : (
-                        <Card.Img
-                          src={defaultRecipeImage.src}
-                          variant="top"
-                          alt={recipe.name}
-                          style={{ objectFit: 'cover', maxHeight: '180px' }}
-                        />
-                      )}
+                    <Link href={`recipes/${recipe.id}`} className="text-decoration-none" aria-label={`View ${recipe.name}`}>
+                      <Card className="h-100 border-0 shadow-sm position-relative">
+                        {recipe.image ? (
+                          <Card.Img
+                            src={recipe.image}
+                            variant="top"
+                            alt={recipe.name}
+                            style={{ objectFit: 'cover', height: '180px', width: '100%' }}
+                          />
+                        ) : (
+                          <Card.Img
+                            src={defaultRecipeImage.src}
+                            variant="top"
+                            alt={recipe.name}
+                            style={{ objectFit: 'cover', height: '180px', width: '100%' }}
+                          />
+                        )}
 
-                      <Card.Body>
-                        {/* Title + heart row */}
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                          <h5 className="card-title mb-0">{recipe.name}</h5>
-                          <button
-                            type="button"
-                            className="btn btn-link p-0 border-0"
-                            style={{ position: 'relative', zIndex: 2 }}
-                            onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe.id); }}
-                            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                          >
-                            <span style={{ fontSize: '1.4rem' }}>
-                              {isFavorite ? <SuitHeartFill /> : <SuitHeart />}
-                            </span>
-                          </button>
-                        </div>
-
-                        <Card.Text className="mb-2">
-                          Prep time:
-                          {' '}
-                          {recipe.prepTime}
-                          {' '}
-                          min
-                          <br />
-                          Cost: $
-                          {recipe.cost.toFixed(2)}
-                        </Card.Text>
-
-                        <div className="mt-auto d-flex justify-content-between align-items-end">
-                          <div>
-                            {recipe.tags.map((tag) => (
-                              <span key={tag.id} className="badge bg-light text-dark border me-1">{tag.name}</span>
-                            ))}
-                          </div>
-
-                          {(isAdmin || isOwner) && (
-                            <Link
-                              href={`/recipes/${recipe.id}/edit`}
-                              className="btn btn-sm btn-outline-primary ms-2"
-                              onClick={(e) => e.stopPropagation()}
-                              style={{ position: 'relative', zIndex: 2 }}
-                            >
-                              Edit
-                            </Link>
-                          )}
-
-                          {isAdmin && (
+                        <Card.Body className="d-flex flex-column">
+                          {/* Title + heart row */}
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <h5 className="card-title mb-0">{recipe.name}</h5>
                             <button
                               type="button"
-                              className="btn btn-sm btn-outline-danger ms-2"
+                              className="btn btn-link p-0 border-0"
                               style={{ position: 'relative', zIndex: 2 }}
-                              onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id); }}
+                              onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe.id); }}
+                              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                             >
-                              Delete
+                              <span style={{ fontSize: '1.4rem' }}>
+                                {isFavorite ? <SuitHeartFill /> : <SuitHeart />}
+                              </span>
                             </button>
-                          )}
-                        </div>
+                          </div>
 
-                        {/* full-card link (stretches over card) */}
-                        <Link href={`selected-recipe/${recipe.id}`} className="stretched-link text-decoration-none" aria-label={`View ${recipe.name}`}>
-                          <span aria-hidden />
-                        </Link>
-                      </Card.Body>
-                    </Card>
+                          <Card.Text className="mb-2">
+                            Prep time:
+                            {' '}
+                            {recipe.prepTime}
+                            {' '}
+                            min
+                            <br />
+                            Cost: $
+                            {recipe.cost.toFixed(2)}
+                          </Card.Text>
+
+                          <div className="mt-auto">
+                            <div>
+                              {recipe.tags.map((tag) => (
+                                <span key={tag.id} className="badge bg-light text-dark border me-1">{tag.name}</span>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="mt-3 d-flex justify-content-end">
+                            {(isAdmin || isOwner) && (
+                              <Link
+                                href={`/edit-recipe/${recipe.id}`}
+                                className="btn btn-sm btn-outline-primary ms-2"
+                                onClick={(e) => e.stopPropagation()}
+                                style={{ position: 'relative', zIndex: 2 }}
+                              >
+                                Edit
+                              </Link>
+                            )}
+
+                            {isAdmin && (
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-danger ms-2"
+                                style={{ position: 'relative', zIndex: 2 }}
+                                onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id); }}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </Link>
                   </div>
                 );
               })}
@@ -604,4 +602,3 @@ function RecipeList({
     </>
   );
 }
-export default RecipeList;

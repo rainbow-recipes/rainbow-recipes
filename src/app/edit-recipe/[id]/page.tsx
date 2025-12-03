@@ -1,11 +1,21 @@
-import EditRecipeForm from '@/components/EditRecipeForm';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { adminProtectedPage } from '@/lib/page-protection';
 import { prisma } from '@/lib/prisma';
+import EditRecipeForm from '@/components/EditRecipeForm';
 
 interface Props {
   params: { id: string };
 }
 
 export default async function EditRecipePage({ params }: Props) {
+  const session = await getServerSession(authOptions);
+  adminProtectedPage(
+    session as {
+      user: { email: string; id: string; randomKey: string };
+    } | null,
+  );
+
   const recipeId = Number(params.id);
   if (Number.isNaN(recipeId)) {
     return <div>Invalid recipe id</div>;

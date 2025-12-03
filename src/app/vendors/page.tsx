@@ -13,7 +13,7 @@ export default async function VendorsPage() {
   const stores = await prisma.store.findMany();
 
   return (
-    <div className="container my-4">
+    <div className="container py-4">
       <h2 className="mb-4">Vendors</h2>
       {(stores.length === 0) && (
         <p>Sorry, there are no vendors at the moment!</p>
@@ -38,15 +38,15 @@ export default async function VendorsPage() {
         </p>
       )}
       <Row className="g-4">
-        {stores.map((store) => (
-          <Col key={store.id} xs="auto">
-            {(store.name !== 'My Store') && (
+        {stores
+          .filter((store) => store.name !== 'My Store')
+          .map((store) => (
+            <Col key={store.id} xs="auto">
               <Link href={`/vendors/${store.id}`} className="text-decoration-none text-dark">
                 <VendorCard store={store} />
               </Link>
-            )}
-          </Col>
-        ))}
+            </Col>
+          ))}
       </Row>
     </div>
   );

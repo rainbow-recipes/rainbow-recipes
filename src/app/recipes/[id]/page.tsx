@@ -1,26 +1,20 @@
-/* eslint-disable react/jsx-one-expression-per-line */
-
-'use client';
-
-import { useEffect, useState } from 'react';
 import { Container, Image } from 'react-bootstrap';
-import type { Recipe, Tag } from '@prisma/client';
+import type { Recipe } from '@prisma/client';
+import { ChevronLeft } from 'react-bootstrap-icons';
+import Link from 'next/link';
+import notFound from '@/app/not-found';
+import { prisma } from '@/lib/prisma';
 
-export default function SelectedRecipe({ id }: { id: string }) {
-  const [recipe, setRecipe] = useState<(Recipe & { tags?: Tag[]; author?: { firstName?: string } }) | null>(null);
-
-  useEffect(() => {
-    async function load() {
-      const res = await fetch(`/api/recipes/${id}`);
-      const data = (await res.json()) as
-        | (Recipe & { tags?: Tag[]; author?: { firstName?: string }; ingredients?: string[] })
-        | null;
-      setRecipe(data);
-    }
-    load();
-  }, [id]);
-
-  if (!recipe) return <p>Loading...</p>;
+export default async function RecipesPage({ params }: { params: { id: string | string[] } }) {
+  const id = Number(String(Array.isArray(params?.id) ? params?.id[0] : params?.id));
+  // console.log(id);
+  const recipe: Recipe | null = await prisma.recipe.findUnique({
+    where: { id },
+  });
+  // console.log(recipe);
+  if (!recipe) {
+    return notFound();
+  }
 
   // appliances and ingredients intentionally removed — only instructions are shown
 
@@ -35,13 +29,28 @@ export default function SelectedRecipe({ id }: { id: string }) {
 
   return (
     <Container className="my-4">
+      <Link href="/recipes" className="d-inline-flex align-items-center mb-3 text-dark">
+        <ChevronLeft />
+        {' '}
+        Back to Recipes
+      </Link>
       <h1 className="text-center mb-2">{recipe.name}</h1>
 
       {authorFirstName ? (
-        <div className="text-center mb-1">Author: {authorFirstName}</div>
+        <div className="text-center mb-1">
+          Author:
+          {' '}
+          {authorFirstName}
+        </div>
       ) : null}
 
-      <div className="text-center mb-3">Preparation Time: {recipe.prepTime} minutes</div>
+      <div className="text-center mb-3">
+        Preparation Time:
+        {' '}
+        {recipe.prepTime}
+        {' '}
+        minutes
+      </div>
 
       <div className="d-flex justify-content-center mb-4">
         {recipe.image ? (
