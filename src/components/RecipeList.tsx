@@ -537,6 +537,7 @@ function RecipeList({
                           <button
                             type="button"
                             className="btn btn-link p-0 border-0"
+                            style={{ position: 'relative', zIndex: 2 }}
                             onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe.id); }}
                             aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                           >
@@ -569,6 +570,7 @@ function RecipeList({
                               href={`/recipes/${recipe.id}/edit`}
                               className="btn btn-sm btn-outline-primary ms-2"
                               onClick={(e) => e.stopPropagation()}
+                              style={{ position: 'relative', zIndex: 2 }}
                             >
                               Edit
                             </Link>
@@ -578,6 +580,7 @@ function RecipeList({
                             <button
                               type="button"
                               className="btn btn-sm btn-outline-danger ms-2"
+                              style={{ position: 'relative', zIndex: 2 }}
                               onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id); }}
                             >
                               Delete
