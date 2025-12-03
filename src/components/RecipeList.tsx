@@ -512,7 +512,7 @@ function RecipeList({
 
                 return (
                   <div key={recipe.id} className="col-md-4 mb-4">
-                    <Card className="h-100 border-0 shadow-sm">
+                    <Card className="h-100 border-0 shadow-sm position-relative">
                       {recipe.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <Card.Img
@@ -533,15 +533,11 @@ function RecipeList({
                       <Card.Body>
                         {/* Title + heart row */}
                         <div className="d-flex justify-content-between align-items-start mb-2">
-                          <h5 className="card-title mb-0">
-                            <Link href={`selected-recipe/${recipe.id}`}>
-                              <h5 className="card-title">{recipe.name}</h5>
-                            </Link>
-                          </h5>
+                          <h5 className="card-title mb-0">{recipe.name}</h5>
                           <button
                             type="button"
                             className="btn btn-link p-0 border-0"
-                            onClick={() => toggleFavorite(recipe.id)}
+                            onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe.id); }}
                             aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                           >
                             <span style={{ fontSize: '1.4rem' }}>
@@ -569,7 +565,11 @@ function RecipeList({
                           </div>
 
                           {(isAdmin || isOwner) && (
-                            <Link href={`/recipes/${recipe.id}/edit`} className="btn btn-sm btn-outline-primary ms-2">
+                            <Link
+                              href={`/recipes/${recipe.id}/edit`}
+                              className="btn btn-sm btn-outline-primary ms-2"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               Edit
                             </Link>
                           )}
@@ -578,12 +578,17 @@ function RecipeList({
                             <button
                               type="button"
                               className="btn btn-sm btn-outline-danger ms-2"
-                              onClick={() => handleDeleteRecipe(recipe.id)}
+                              onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id); }}
                             >
                               Delete
                             </button>
                           )}
                         </div>
+
+                        {/* full-card link (stretches over card) */}
+                        <Link href={`selected-recipe/${recipe.id}`} className="stretched-link text-decoration-none" aria-label={`View ${recipe.name}`}>
+                          <span aria-hidden />
+                        </Link>
                       </Card.Body>
                     </Card>
                   </div>
