@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import VendorCard from '@/components/vendors/VendorCard';
+import VendorCard from '@/components/VendorCard';
 import { Col, Row } from 'react-bootstrap';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';

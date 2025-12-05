@@ -6,7 +6,7 @@ import { vendorProtectedPage } from '@/lib/page-protection';
 import { authOptions } from '@/lib/auth';
 import notFound from '@/app/not-found';
 import Link from 'next/link';
-import MyStoreItemsPanel from '@/components/my-store/MyStoreItemsPanel';
+import MyStoreItemsPanel from '@/components/storeitem/StoreItemsPanel';
 
 export default async function MyStorePage() {
   const session = await getServerSession(authOptions);
@@ -54,7 +54,7 @@ export default async function MyStorePage() {
   return (
     <main>
       <Container id="list" className="py-3">
-        <Row className="d-flex justify-content-between align-items-center pb-3">
+        <Row className="d-flex justify-content-between align-items-center py-3">
           <Col>
             <div className="d-flex align-items-center gap-3">
               {image ? (
@@ -86,7 +86,7 @@ export default async function MyStorePage() {
             ) : null}
           </Col>
         </Row>
-        <Container className="pt-4 shadow-sm rounded-4 p-4">
+        <Container className="pt-4 shadow-sm rounded-4 p-4 mb-4">
           <Row>
             <Col className="pe-5" xs="auto">
               <h5>Location:</h5>
@@ -113,7 +113,7 @@ export default async function MyStorePage() {
             <Col>
               {/* Client-side panel handles search and rendering */}
               {/* @ts-ignore server->client prop */}
-              <MyStoreItemsPanel items={items} />
+              <MyStoreItemsPanel items={items} isMyStore />
             </Col>
           </Row>
           <Row>

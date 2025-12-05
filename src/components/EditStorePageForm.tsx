@@ -3,6 +3,7 @@
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import { useForm, useWatch } from 'react-hook-form';
 import { useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import swal from 'sweetalert';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Store } from '@prisma/client';
@@ -23,7 +24,7 @@ type EditStoreForm = {
   owner: string;
 };
 
-const EditStorePageForm = ({ store }: { store: Store }) => {
+export default function EditStorePageForm({ store }: { store: Store }) {
   // Normalize existing store.hours into an array of length 7
   const rawHours = (store.hours ?? []).slice(0, 7);
 
@@ -65,6 +66,7 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
     handleSubmit,
     reset,
     setValue,
+    getValues,
     control,
     formState: { errors, isSubmitted },
   } = useForm<EditStoreForm>({
@@ -130,10 +132,23 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
     // update the hidden/validated `hours` field so the resolver sees current values
     // do not validate on every change — only validate on submit to avoid showing
     // required warnings for hours before the user attempts to submit
-    setValue('hours', composed, { shouldValidate: false, shouldDirty: true });
-  }, [hoursStatus, hoursOpenWatch, hoursCloseWatch, setValue]);
+    // Avoid unnecessary setValue calls that can cause render loops by
+    // comparing the existing `hours` value first.
+    try {
+      const current = getValues('hours') as string[] | undefined;
+      const changed = !current || current.length !== composed.length || composed.some((v, i) => current[i] !== v);
+      if (changed) {
+        setValue('hours', composed, { shouldValidate: false, shouldDirty: true });
+      }
+    } catch (err) {
+      // If getValues fails for any reason, fall back to setting the value once.
+      setValue('hours', composed, { shouldValidate: false, shouldDirty: true });
+    }
+  }, [hoursStatus, hoursOpenWatch, hoursCloseWatch, setValue, getValues]);
 
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  const router = useRouter();
 
   const onSubmit = async (data: EditStoreForm) => {
     // Compose hours from hoursOpen and hoursClose arrays
@@ -162,7 +177,9 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
     };
 
     await editStore(payload);
-    swal('Success', 'Your store has been updated', 'success', { timer: 2000 });
+    // show success message and then navigate back to My Store
+    await swal('Success', 'Your store has been updated', 'success', { timer: 2000 });
+    router.push('/my-store');
   };
 
   return (
@@ -301,6 +318,4 @@ const EditStorePageForm = ({ store }: { store: Store }) => {
       </Row>
     </Container>
   );
-};
-
-export default EditStorePageForm;
+}

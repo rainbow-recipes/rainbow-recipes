@@ -1,8 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable no-continue */
 
-'use client';
-
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';

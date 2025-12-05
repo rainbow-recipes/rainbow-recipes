@@ -18,7 +18,6 @@ const Footer: React.FC = () => {
 
         <nav className="rr-footer-links" aria-label="Footer navigation">
           <a href="/recipes">Recipes</a>
-          <a href="/favorites">Favorites</a>
           <a href="/vendors">Vendors</a>
           <a href="/about">About</a>
         </nav>

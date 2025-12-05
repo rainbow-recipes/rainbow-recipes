@@ -76,7 +76,6 @@ enum ItemCategory {
 model Item {
   id           Int          @id @default(autoincrement())
   name         String
-  variety      String?
   price        Decimal      @db.Decimal(10, 2)
   unit         String
   availability Boolean

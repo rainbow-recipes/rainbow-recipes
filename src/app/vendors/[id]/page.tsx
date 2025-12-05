@@ -1,10 +1,10 @@
 import { Col, Container, Row, Image } from 'react-bootstrap';
 import { prisma } from '@/lib/prisma';
 import { Store } from '@prisma/client';
-import VendorItemsPanel from '@/components/vendors/VendorItemsPanel';
 import notFound from '@/app/not-found';
 import Link from 'next/link';
 import { ChevronLeft } from 'react-bootstrap-icons';
+import StoreItemsPanel from '@/components/storeitem/StoreItemsPanel';
 
 export default async function VendorsPage({ params }: { params: { id: string | string[] } }) {
   const id = String(Array.isArray(params?.id) ? params?.id[0] : params?.id);
@@ -41,7 +41,7 @@ export default async function VendorsPage({ params }: { params: { id: string | s
           {' '}
           Back to Vendors
         </Link>
-        <Row className="d-flex justify-content-between align-items-center pb-3">
+        <Row className="d-flex justify-content-between align-items-center py-3">
           <Col>
             <div className="d-flex align-items-center gap-3">
               {image ? (
@@ -73,7 +73,7 @@ export default async function VendorsPage({ params }: { params: { id: string | s
             ) : null}
           </Col>
         </Row>
-        <Container className="pt-4 shadow-sm rounded-4 p-4">
+        <Container className="pt-4 shadow-sm rounded-4 p-4 mb-4">
           <Row>
             <Col className="pe-5" xs="auto">
               <h5>Location:</h5>
@@ -100,7 +100,7 @@ export default async function VendorsPage({ params }: { params: { id: string | s
             <Col>
               {/* Client-side panel handles search and rendering */}
               {/* @ts-ignore server->client prop */}
-              <VendorItemsPanel items={items} />
+              <StoreItemsPanel items={items} isMyStore={false} />
             </Col>
           </Row>
         </Container>

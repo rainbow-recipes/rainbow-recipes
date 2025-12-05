@@ -153,18 +153,9 @@ export default function IngredientAutocomplete({ value, onChange, placeholder = 
 
   function addChoice(choice: IngredientChoice) {
     const cleaned = (choice.name || '').trim().replace(/\s+/g, ' ');
-    // keep normalized name available for potential future use
-    // (currently we allow duplicates so it's not used)
-    normalizeName(cleaned);
-
-    // allow duplicates: users may want the same ingredient multiple times
-    // (for example, "salt" in two separate steps). We no longer block
-    // additions by id or normalized name.
-
     const newChoice: IngredientChoice = {
       id: choice.id,
       name: cleaned,
-      // default new free-text items to 'other'; existing items carry their itemCategory
       itemCategory: choice.itemCategory ?? 'other',
       detail: choice.detail ?? '',
     };

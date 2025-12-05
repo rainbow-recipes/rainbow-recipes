@@ -82,6 +82,7 @@ async function main() {
 
   for (const item of config.defaultItems) {
     console.log(`  Adding item: ${JSON.stringify(item)}`);
+    const itemCategory = (item.itemCategory as ItemCategory) || ItemCategory.other;
     // eslint-disable-next-line no-await-in-loop
     await prisma.item.upsert({
       where: { id: config.defaultItems.indexOf(item) + 1 },
@@ -91,6 +92,7 @@ async function main() {
         price: item.price,
         unit: item.unit,
         availability: item.availability,
+        itemCategory,
         owner: item.owner,
       },
     });
