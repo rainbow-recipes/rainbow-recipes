@@ -36,7 +36,18 @@ function discoverRoutes(): string[] {
 const routes = discoverRoutes();
 
 // Default routes to skip because they require auth or DB fixtures.
-const defaultSkips = new Set(['/my-store', '/my-recipes', '/favorites', '/profile']);
+const defaultSkips = new Set(
+  [
+    '/my-store',
+    '/my-recipes',
+    '/favorites',
+    '/profile',
+    '/add-item',
+    '/edit-item',
+    '/edit-recipe',
+    '/admin',
+  ],
+);
 const envSkips = (process.env.AVAILABILITY_SKIP || '')
   .split(',')
   .map(s => s.trim())
