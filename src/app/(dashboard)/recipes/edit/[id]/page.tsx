@@ -40,7 +40,10 @@ export default async function EditRecipePage({ params }: Props) {
   // Only allow the recipe author or an admin to edit.
   const userId = (session?.user as any)?.id;
   const role = (session?.user as any)?.role;
-  if (!userId || (role !== Role.ADMIN && recipe.authorId !== userId)) {
+  // Admins can edit regardless of author; otherwise must match authorId.
+  if (role === Role.ADMIN) {
+    // allowed
+  } else if (!userId || recipe.authorId !== userId) {
     return notFound();
   }
 
