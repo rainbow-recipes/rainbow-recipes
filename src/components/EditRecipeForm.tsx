@@ -36,11 +36,19 @@ export default function EditRecipeForm({ allTags, recipe }: EditRecipeFormProps)
     tagDefaults[`tag_${t.id}`] = !!(recipe?.tags && recipe.tags.some((rt: any) => rt.id === t.id));
   }
 
+  // Rebuild ingredients with detail field from ingredientQuantities array
+  const ingredientsWithDetail = (recipe?.ingredients ?? []).map((ing: any, i: number) => ({
+    id: ing.id,
+    name: ing.name,
+    itemCategory: ing.itemCategory,
+    detail: recipe?.ingredientQuantities?.[i] ?? '',
+  }));
+
   const defaultValues: Partial<RecipeFormValues> = {
     name: recipe?.name ?? '',
     cost: recipe?.cost != null ? String(recipe.cost) : '',
     prepTime: recipe?.prepTime != null ? String(recipe.prepTime) : '',
-    ingredients: recipe?.ingredients ?? [],
+    ingredients: ingredientsWithDetail,
     description: recipe?.description ?? '',
     ...tagDefaults,
   };
@@ -68,28 +76,11 @@ export default function EditRecipeForm({ allTags, recipe }: EditRecipeFormProps)
         return;
       }
 
-      // If any ingredients include a detail (e.g. "1lb, frozen"), prepend them to the
-      // description as lines like: "chicken: 1lb, frozen"
-      let finalDescription = description || '';
-      try {
-        const detailLines = (ingredients || [])
-          .map((ing) => {
-            const d = (ing as IngredientChoice).detail;
-            if (!d) return null;
-            const trimmed = d.trim();
-            if (!trimmed) return null;
-            return `${ing.name}: ${trimmed}`;
-          })
-          .filter(Boolean) as string[];
-
-        if (detailLines.length > 0) {
-          const prefix = `${detailLines.join('\n')}\n\n`;
-          finalDescription = `${prefix}${finalDescription}`;
-        }
-      } catch (e) {
-        // best-effort only; don't block submission for formatting errors
-        console.warn('Failed to format ingredient details', e);
-      }
+      // Build ingredient quantities array aligned with ingredients array
+      const ingredientQuantities = (ingredients || []).map((ing) => {
+        const d = (ing as IngredientChoice).detail;
+        return d ? d.trim() : '';
+      });
 
       const costNum = cost ? Number(cost) : 0;
       const prepNum = prepTime ? Number(prepTime) : 0;
@@ -125,7 +116,7 @@ export default function EditRecipeForm({ allTags, recipe }: EditRecipeFormProps)
           name,
           cost: costNum,
           prepTime: prepNum,
-          description: finalDescription,
+          description: description || '',
           image: imageData,
           tagIds: selectedTagIds,
           ingredients: ingredients.map((ing) => ({
@@ -133,6 +124,7 @@ export default function EditRecipeForm({ allTags, recipe }: EditRecipeFormProps)
             name: ing.name,
             itemCategory: (ing as any).itemCategory,
           })),
+          ingredientQuantities,
         }),
       });
 

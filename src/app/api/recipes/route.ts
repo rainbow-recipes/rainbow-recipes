@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   const recipes = await prisma.recipe.findMany({
@@ -35,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, cost, prepTime, description, image, tagIds, ingredients } = body;
+    const { name, cost, prepTime, description, image, tagIds, ingredients, ingredientQuantities } = body;
 
     // prepare nested write payload for ingredients (connect existing by id or connectOrCreate by name)
     const ingredientConnect: Array<{ id: number }> = [];
@@ -64,6 +62,7 @@ export async function POST(request: Request) {
         prepTime: Number(prepTime) || 0,
         description: description || '',
         image: image || null,
+        ingredientQuantities: Array.isArray(ingredientQuantities) ? ingredientQuantities : [],
         // set relation via nested connect so Prisma accepts it
         author: { connect: { id: user.id } },
         tags:

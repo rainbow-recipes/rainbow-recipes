@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { adminProtectedPage } from '@/lib/page-protection';
+import { Role } from '@prisma/client';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import EditRecipeForm from '@/components/EditRecipeForm';
 
@@ -10,11 +11,17 @@ interface Props {
 
 export default async function EditRecipePage({ params }: Props) {
   const session = await getServerSession(authOptions);
-  adminProtectedPage(
-    session as {
-      user: { email: string; id: string; randomKey: string };
-    } | null,
-  );
+  if (!session?.user?.email) {
+    redirect('/signin');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email! },
+  });
+
+  if (!user || user.role !== Role.ADMIN) {
+    redirect('/recipes');
+  }
 
   const recipeId = Number(params.id);
   if (Number.isNaN(recipeId)) {
@@ -25,7 +32,7 @@ export default async function EditRecipePage({ params }: Props) {
   const [recipe, allTags] = await Promise.all([
     prisma.recipe.findUnique({
       where: { id: recipeId },
-      include: { tags: true, author: true },
+      include: { tags: true, author: true, ingredients: true },
     }),
     prisma.tag.findMany(),
   ]);

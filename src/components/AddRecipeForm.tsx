@@ -52,28 +52,11 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
         return;
       }
 
-      // If any ingredients include a detail (e.g. "1lb, frozen"), prepend them to the
-      // description as lines like: "chicken: 1lb, frozen"
-      let finalDescription = description || '';
-      try {
-        const detailLines = (ingredients || [])
-          .map((ing) => {
-            const d = (ing as IngredientChoice).detail;
-            if (!d) return null;
-            const trimmed = d.trim();
-            if (!trimmed) return null;
-            return `${ing.name}: ${trimmed}`;
-          })
-          .filter(Boolean) as string[];
-
-        if (detailLines.length > 0) {
-          const prefix = `${detailLines.join('\n')}\n\n`;
-          finalDescription = `${prefix}${finalDescription}`;
-        }
-      } catch (e) {
-        // best-effort only; don't block submission for formatting errors
-        console.warn('Failed to format ingredient details', e);
-      }
+      // Build ingredient quantities array aligned with ingredients array
+      const ingredientQuantities = (ingredients || []).map((ing) => {
+        const d = (ing as IngredientChoice).detail;
+        return d ? d.trim() : '';
+      });
 
       const costNum = cost ? Number(cost) : 0;
       const prepNum = prepTime ? Number(prepTime) : 0;
@@ -109,7 +92,7 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
           name,
           cost: costNum,
           prepTime: prepNum,
-          description: finalDescription,
+          description: description || '',
           image: imageData,
           tagIds: selectedTagIds,
           ingredients: ingredients.map((ing) => ({
@@ -117,6 +100,7 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
             name: ing.name,
             itemCategory: (ing as any).itemCategory,
           })),
+          ingredientQuantities,
         }),
       });
 

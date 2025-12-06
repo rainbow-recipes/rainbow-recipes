@@ -2,11 +2,9 @@
 // src/app/api/recipes/[id]/route.ts
 
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const recipeId = Number(params.id);
@@ -39,7 +37,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Invalid recipe id' }, { status: 400 });
   }
 
-  const existing = await prisma.recipe.findUnique({ where: { id: recipeId } });
+  const existing = await prisma.recipe.findUnique({ 
+    where: { id: recipeId },
+    include: { ingredients: true },
+  });
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const role = (session?.user as any)?.role;
@@ -49,7 +50,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
   try {
     const body = await request.json();
-    const { name, cost, prepTime, description, image, tagIds, ingredients } = body;
+    const { name, cost, prepTime, description, image, tagIds, ingredients, ingredientQuantities } = body;
 
     // prepare nested write payload for ingredients
     const ingredientConnect: Array<{ id: number }> = [];
@@ -77,24 +78,28 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       prepTime: Number(prepTime) || existing.prepTime,
       description: typeof description === 'string' ? description : existing.description,
       image: image ?? existing.image,
+      ingredientQuantities: Array.isArray(ingredientQuantities) ? ingredientQuantities : existing.ingredientQuantities,
     };
 
     if (Array.isArray(tagIds)) {
       data.tags = { set: tagIds.map((id: number) => ({ id: Number(id) })) };
     }
 
-    if (ingredientConnect.length || ingredientConnectOrCreate.length) {
-      data.ingredients = {
-        ...(ingredientConnect.length ? { connect: ingredientConnect } : {}),
-        ...(ingredientConnectOrCreate.length ? { connectOrCreate: ingredientConnectOrCreate } : {}),
-      };
-    }
+    // Always disconnect all existing ingredients, then connect new ones (two-step update)
+    const existingIngredients = existing.ingredients || [];
+    const disconnectArray = existingIngredients.map((ing: any) => ({ id: ing.id }));
+    data.ingredients = {
+      ...(disconnectArray.length ? { disconnect: disconnectArray } : {}),
+      ...(ingredientConnect.length ? { connect: ingredientConnect } : {}),
+      ...(ingredientConnectOrCreate.length ? { connectOrCreate: ingredientConnectOrCreate } : {}),
+    };
 
     await prisma.recipe.update({ where: { id: recipeId }, data });
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Error updating recipe:', err);
-    return NextResponse.json({ error: 'Failed to update recipe' }, { status: 500 });
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: 'Failed to update recipe', details: errorMsg }, { status: 500 });
   }
 }
 

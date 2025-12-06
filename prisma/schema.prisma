@@ -44,22 +44,22 @@ model User {
   merchantApproved Boolean    @default(false)
 
   // NextAuth relations
-  accounts Account[]
-  sessions Session[]
+  accounts         Account[]
+  sessions         Session[]
 
-  // App-specific relations
-  favorites Favorite[]
-  recipes   Recipe[]   @relation("UserRecipes")
+  // App-specific  relations
+  favorites        Favorite[]
+  recipes          Recipe[]   @relation("UserRecipes")
 }
 
 model Store {
-  id        String    @id @default(cuid())
-  name      String
-  website   String?
-  location  String
-  hours     String[]
-  image     String?
-  owner     String
+  id       String   @id @default(cuid())
+  name     String
+  website  String?
+  location String
+  hours    String[]
+  image    String?
+  owner    String
 }
 
 enum ItemCategory {
@@ -91,19 +91,20 @@ model DatabaseItem {
 }
 
 model Recipe {
-  id          Int             @id @default(autoincrement())
-  name        String
-  cost        Float
-  prepTime    Int
-  ingredients DatabaseItem[]  @relation("RecipeIngredients")
-  description String
-  image       String?
-  tags        Tag[]           @relation("RecipeTags")
+  id                   Int            @id @default(autoincrement())
+  name                 String
+  cost                 Float
+  prepTime             Int
+  ingredients          DatabaseItem[] @relation("RecipeIngredients")
+  ingredientQuantities String[]
+  description          String
+  image                String?
+  tags                 Tag[]          @relation("RecipeTags")
 
-  authorId String?
-  author   User?              @relation("UserRecipes", fields: [authorId], references: [id], onDelete: Cascade)
+  authorId             String?
+  author               User?          @relation("UserRecipes", fields: [authorId], references: [id], onDelete: Cascade)
 
-  favorites Favorite[]
+  favorites            Favorite[]
 }
 
 model Tag {
@@ -118,8 +119,8 @@ model Favorite {
   userId   String
   recipeId Int
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, recipeId])
 }
@@ -146,7 +147,7 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -156,8 +157,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -167,5 +167,3 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
-
-
