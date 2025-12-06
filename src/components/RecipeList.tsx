@@ -372,7 +372,7 @@ export default function RecipeList({
 
                 {/* Add Recipe button - only on /recipes page */}
                 {pathname === '/recipes' && (
-                  <Link href="/add-recipe" className="btn btn-outline-dark btn-lg rounded-pill">
+                  <Link href="/recipes/add" className="btn btn-outline-dark btn-lg rounded-pill">
                     Add Recipe
                   </Link>
                 )}
@@ -512,7 +512,7 @@ export default function RecipeList({
 
                 return (
                   <div key={recipe.id} className="col-md-4 mb-4">
-                    <Link href={`recipes/${recipe.id}`} className="text-decoration-none" aria-label={`View ${recipe.name}`}>
+                    <Link href={`/recipes/${recipe.id}`} className="text-decoration-none" aria-label={`View ${recipe.name}`}>
                       <Card className="h-100 border-0 shadow-sm position-relative">
                         {recipe.image ? (
                           <Card.Img
@@ -569,7 +569,7 @@ export default function RecipeList({
                           <div className="mt-3 d-flex justify-content-end">
                             {(isAdmin || isOwner) && (
                               <Link
-                                href={`/edit-recipe/${recipe.id}`}
+                                href={`/recipes/edit/${recipe.id}`}
                                 className="btn btn-sm btn-outline-primary ms-2"
                                 onClick={(e) => e.stopPropagation()}
                                 style={{ position: 'relative', zIndex: 2 }}

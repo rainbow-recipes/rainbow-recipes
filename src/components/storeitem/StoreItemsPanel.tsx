@@ -34,7 +34,7 @@ export default function StoreItemsPanel({ items, isMyStore }: { items: ItemClien
         </div>
         {(isMyStore) && (
           <div>
-            <Link href="/add-item" className="btn btn-outline-dark btn-lg rounded-pill">
+            <Link href="/my-store/add-item" className="btn btn-outline-dark btn-lg rounded-pill">
               Add Item
             </Link>
           </div>

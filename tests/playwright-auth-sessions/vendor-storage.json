@@ -2,7 +2,7 @@
   "cookies": [
     {
       "name": "next-auth.csrf-token",
-      "value": "d7487f1614aa31247faac27bb186501132ed0adff7cf43aef2da123107097fb3%7Cc5e40cf7fb965485274b3930b9c881af2d171d91073db3a5ce954f37ac7c9dc7",
+      "value": "72a72078785044c801a2bc375596b29d33d1ece3b33b354739df85930783bc09%7Cf92bb19339670e5c5e2853bab7a5077de9065b1357286ce6ff3671b63325f8af",
       "domain": "127.0.0.1",
       "path": "/",
       "expires": -1,
@@ -22,10 +22,10 @@
     },
     {
       "name": "next-auth.session-token",
-      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..XZ3zOojQeverLV0m.Z9tLXX4PAUr9rhQ8tjzdza3DqRk9lyWZyG6kRr2AwwXOFzv6IV7fL-x4boD00t-HIoqUnduYIIwZNQFziNZN1n7tAlVpBfd5LuQ_0tM34PgD8mEh2GCaNt3mCfKA7Wvh9FvU-z-idng0NDvnbFeol5aPRZozFgVCbJOSUQ9d12sdWzYn-re8cNhPHYZdIL5uyVL2qj33rMZ122euZLWZ6M-bgQqLpPeBqQnDsfPwp9V-mdxDX5qc_w09wTcPiuQAPNilE66Gu_1syT5oWQ.rQF-cVXELBa6OFn5t537eQ",
+      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..TpKNYv4u5Vl9fTYP.L4mpzZI4tOmlSQ3N_073bwhgwl9WE97Lib_eGR9tu1JoUzqC-1BFyjexLMFzTtytzttpuiuOpZv-N9Y2QnX0y55UB8T0TQGbiIfaN5q3Z7UIFuoB7TmkYZfNp2_0MmbqKlZNJwo00w8HyppFfzA-8I8vXuaobjSe0MX73G58qboQsCBR5-AxvYEL-pFopf8d34y0t_SjY3oA0zmvl54Ql8Bl0iDHHNDRt_4AsjyWWZV8XKrUsJptkAbNfTjuJ5vV3_H4Vw5P53zn-KGJgaGi3QLJ-8UvHw.Y4LZOINUS6zyShegfHZekw",
       "domain": "127.0.0.1",
       "path": "/",
-      "expires": 1767312873.777501,
+      "expires": 1767601816.482199,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"
@@ -37,7 +37,7 @@
       "localStorage": [
         {
           "name": "nextauth.message",
-          "value": "{\"event\":\"session\",\"data\":{\"trigger\":\"getSession\"},\"timestamp\":1764720872}"
+          "value": "{\"event\":\"session\",\"data\":{\"trigger\":\"getSession\"},\"timestamp\":1765009814}"
         }
       ]
     }

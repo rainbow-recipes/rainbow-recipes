@@ -187,7 +187,7 @@ export default function Navbar() {
 
                 <NavDropdown.Item
                   as={Link}
-                  href="/my-recipes"
+                  href="/recipes/my-recipes"
                   className="text-decoration-none d-flex align-items-center gap-2"
                 >
                   <JournalText />
@@ -195,7 +195,7 @@ export default function Navbar() {
                 </NavDropdown.Item>
                 <NavDropdown.Item
                   as={Link}
-                  href="/add-recipe"
+                  href="/recipes/add"
                   className="text-decoration-none d-flex align-items-center gap-2"
                 >
                   <PlusLg />

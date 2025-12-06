@@ -26,7 +26,7 @@ export default function StoreItem({
       {isMyStore ? (
         <td>
           <a
-            href={`/edit-item/${id}`}
+            href={`/my-store/edit-item/${id}`}
             className="btn btn-sm btn-outline-primary ms-2"
           >
             Edit
