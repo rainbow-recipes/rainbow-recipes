@@ -37,7 +37,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Invalid recipe id' }, { status: 400 });
   }
 
-  const existing = await prisma.recipe.findUnique({ 
+  const existing = await prisma.recipe.findUnique({
     where: { id: recipeId },
     include: { ingredients: true },
   });
