@@ -1,12 +1,12 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Alert, Button, Card, Col, Container, Form, Row } from 'react-bootstrap';
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -101,5 +101,19 @@ export default function SignInPage() {
         </Col>
       </Row>
     </Container>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={(
+        <div className="d-flex justify-content-center align-items-center py-5">
+          <span>Loading…</span>
+        </div>
+      )}
+    >
+      <SignInForm />
+    </Suspense>
   );
 }
