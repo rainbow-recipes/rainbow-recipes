@@ -25,10 +25,10 @@ export default async function EditStorePage({ params }: { params: { id: string |
     return notFound();
   }
 
-  const userId = (session?.user as any)?.id;
+  const userEmail = (session?.user as any)?.email;
 
   // Only allow the owner of the store to edit it.
-  if (!userId || store.owner !== userId) {
+  if (!userEmail || store.owner !== userEmail) {
     return notFound();
   }
 
