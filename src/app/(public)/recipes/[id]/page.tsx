@@ -23,7 +23,6 @@ export default async function RecipesPage({ params }: { params: { id: string | s
     }).then(user => user?.firstName || null)
     : null;
 
-  const imageStyle = { maxWidth: '100%', maxHeight: '500px', objectFit: 'cover' } as const;
   return (
     <Container className="my-4">
       <Link href="/recipes" className="d-inline-flex align-items-center mb-3 text-dark">
@@ -49,35 +48,38 @@ export default async function RecipesPage({ params }: { params: { id: string | s
         minutes
       </div>
       {(recipe.image) && (
-        <div className="d-flex justify-content-center mb-4">
-          <Image src={recipe.image} alt={recipe.name} style={imageStyle} rounded />
-        </div>
+        <Row className="g-3 justify-content-center mb-4">
+          <Col xs={11} lg={3}>
+            <Image src={recipe.image} alt={recipe.name} rounded className="w-100" />
+          </Col>
+        </Row>
       )}
-      <Row>
-        <Col className="bg-light rounded p-4 me-3" xs={3}>
+      <Row className="g-3 justify-content-center">
+        <Col className="bg-light rounded p-3 p-md-4" xs={11} lg={3}>
           <h5 className="mb-2">Ingredients</h5>
-          <ul>
+          <ul className="mb-3">
             {recipe.ingredients.map((ingredient, i) => (
               <li key={ingredient.id}>
-                {ingredient.name}
-                :
-                {' '}
                 {recipe.ingredientQuantities?.[i]}
+                {' '}
+                <strong>{ingredient.name}</strong>
               </li>
             ))}
           </ul>
           {(recipe.tags.length > 0) && (
             <>
               <h5 className="mt-4 mb-2">Recipe Tags</h5>
-              {recipe.tags.map((tag) => (
-                <span key={tag.id} className="badge bg-white text-dark me-1">{tag.name}</span>
-              ))}
+              <div>
+                {recipe.tags.map((tag) => (
+                  <span key={tag.id} className="badge bg-white text-dark me-1 mb-1">{tag.name}</span>
+                ))}
+              </div>
             </>
           )}
         </Col>
-        <Col className="p-4">
+        <Col className="p-3 p-md-4" xs={12} lg={9}>
           <h5 className="mb-2">Instructions</h5>
-          <p>
+          <p style={{ whiteSpace: 'pre-wrap' }}>
             {recipe.description}
           </p>
         </Col>

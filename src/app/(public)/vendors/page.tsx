@@ -41,7 +41,7 @@ export default async function VendorsPage() {
         {stores
           .filter((store) => store.name !== 'My Store')
           .map((store) => (
-            <Col key={store.id} xs="auto">
+            <Col key={store.id} xs={6} md="auto">
               <Link href={`/vendors/${store.id}`} className="text-decoration-none text-dark">
                 <VendorCard store={store} />
               </Link>
