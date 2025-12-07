@@ -63,23 +63,6 @@ async function main() {
     });
   }
 
-  // ----- Original Stuff data (optional, you can remove this if you don't need Stuff any more) -----
-  for (const data of config.defaultData) {
-    const condition = (data.condition as Condition) || Condition.good;
-    console.log(`  Adding stuff: ${JSON.stringify(data)}`);
-    // eslint-disable-next-line no-await-in-loop
-    await prisma.stuff.upsert({
-      where: { id: config.defaultData.indexOf(data) + 1 },
-      update: {},
-      create: {
-        name: data.name,
-        quantity: data.quantity,
-        owner: data.owner,
-        condition,
-      },
-    });
-  }
-
   for (const item of config.defaultItems) {
     console.log(`  Adding item: ${JSON.stringify(item)}`);
     const itemCategory = (item.itemCategory as ItemCategory) || ItemCategory.other;
@@ -116,29 +99,65 @@ async function main() {
   }
 
   // ----- New: recipe tags -----
-  const dietTags = [
-    { name: 'Vegan', category: 'Diet' },
-    { name: 'Vegetarian', category: 'Diet' },
-    { name: 'Gluten-free', category: 'Diet' },
-    { name: 'Dairy-free', category: 'Diet' },
-  ];
-
-  const applianceTags = [
-    { name: 'Oven', category: 'Appliance' },
-    { name: 'Stovetop', category: 'Appliance' },
-    { name: 'Blender', category: 'Appliance' },
-    { name: 'Microwave', category: 'Appliance' },
-    { name: 'Instant Pot', category: 'Appliance' },
-  ];
+  const { defaultDietTags = [], defaultApplianceTags = [] } = config;
 
   console.log('  Seeding tags');
-  for (const tag of [...dietTags, ...applianceTags]) {
+  for (const tag of [...defaultDietTags, ...defaultApplianceTags]) {
     // eslint-disable-next-line no-await-in-loop
     await prisma.tag.upsert({
       where: { name: tag.name }, // name is unique
       update: { category: tag.category },
       create: tag,
     });
+  }
+
+  // ----- Default recipe -----
+  const { defaultRecipe } = config;
+
+  if (defaultRecipe) {
+    console.log('  Seeding default recipe');
+
+    const ingredientRecords = await prisma.databaseItem.findMany({
+      where: { name: { in: defaultRecipe.ingredientNames } },
+    });
+
+    if (ingredientRecords.length !== defaultRecipe.ingredientNames.length) {
+      console.warn('  Warning: Some default recipe ingredients were not found in database items.');
+    }
+
+    const matchedIngredients = defaultRecipe.ingredientNames
+      .map((name, index) => {
+        const record = ingredientRecords.find((item) => item.name === name);
+        return record ? { record, quantity: defaultRecipe.ingredientQuantities[index] } : null;
+      })
+      .filter((entry): entry is { record: typeof ingredientRecords[number]; quantity: string } => Boolean(entry));
+
+    const authorId = emailToId[defaultRecipe.authorEmail];
+
+    const existingRecipe = await prisma.recipe.findFirst({ where: { name: defaultRecipe.name } });
+
+    if (existingRecipe) {
+      console.log(`  Recipe "${defaultRecipe.name}" already exists, skipping create.`);
+    } else {
+      await prisma.recipe.create({
+        data: {
+          name: defaultRecipe.name,
+          cost: defaultRecipe.cost,
+          prepTime: defaultRecipe.prepTime,
+          ingredientQuantities: matchedIngredients.map((entry) => entry.quantity),
+          description: defaultRecipe.description,
+          authorId,
+          ingredients: {
+            connect: matchedIngredients.map(({ record }) => ({ id: record.id })),
+          },
+          tags: {
+            connect: defaultRecipe.tagNames.map((name) => ({ name })),
+          },
+        },
+      });
+    }
+  } else {
+    console.log('  No default recipe configured, skipping.');
   }
 
   console.log('Seeding complete.');

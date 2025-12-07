@@ -21,7 +21,7 @@ interface AdminPanelProps {
   initialUsers: AdminUser[];
 }
 
-const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
+const AdminUserPanel = ({ initialUsers }: AdminPanelProps) => {
   const [users, setUsers] = useState<AdminUser[]>(initialUsers);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -89,8 +89,9 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
 
   return (
     <>
+      <h4 className="mb-3">User Management</h4>
       {/* Search bar */}
-      <div className="d-flex align-items-center gap-3 mb-4">
+      <div className="d-flex align-items-center gap-3 mb-3">
         <div className="flex-grow-1">
           <input
             type="text"
@@ -164,4 +165,4 @@ const AdminPanel = ({ initialUsers }: AdminPanelProps) => {
   );
 };
 
-export default AdminPanel;
+export default AdminUserPanel;

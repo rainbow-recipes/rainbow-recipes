@@ -1,19 +1,12 @@
 import { ItemCategory } from '@prisma/client';
 import * as Yup from 'yup';
 
-export const AddStuffSchema = Yup.object({
+export const AddDatabaseItemSchema = Yup.object({
   name: Yup.string().required(),
-  quantity: Yup.number().positive().required(),
-  condition: Yup.string().oneOf(['excellent', 'good', 'fair', 'poor']).required(),
-  owner: Yup.string().required(),
-});
-
-export const EditStuffSchema = Yup.object({
-  id: Yup.number().required(),
-  name: Yup.string().required(),
-  quantity: Yup.number().positive().required(),
-  condition: Yup.string().oneOf(['excellent', 'good', 'fair', 'poor']).required(),
-  owner: Yup.string().required(),
+  ItemCategory: Yup.string()
+    .oneOf(Object.values(ItemCategory), 'Item Category is required')
+    .required('Item Category is required'),
+  approved: Yup.boolean().required(),
 });
 
 export const EditStoreSchema = Yup.object({

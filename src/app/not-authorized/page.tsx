@@ -10,8 +10,8 @@ export default function NotAuthorized() {
         style={{ minHeight: '70vh' }}
       >
         <h3 className="text-center">
-          <ExclamationTriangle className="mb-2" size="2em" />
-          <p>Not Authorized</p>
+          <ExclamationTriangle className="mb-3" size="2em" />
+          <p>Not authorized.</p>
         </h3>
       </Container>
     </main>

@@ -9,6 +9,7 @@ import swal from 'sweetalert';
 import { redirect } from 'next/navigation';
 import { addItem } from '@/lib/dbActions';
 import { AddItemSchema } from '@/lib/validationSchemas';
+import { prettyCategory } from '@/lib/categoryUtils';
 
 export default function AddItemForm() {
   const { data: session, status } = useSession();
@@ -83,27 +84,6 @@ export default function AddItemForm() {
       timer: 2000,
     });
   };
-
-  function prettyCategory(c?: string) {
-    switch (c) {
-      case 'produce':
-        return 'Produce';
-      case 'meat_seafood':
-        return 'Meat / Seafood';
-      case 'dairy_eggs':
-        return 'Dairy & Eggs';
-      case 'frozen':
-        return 'Frozen';
-      case 'canned':
-        return 'Canned';
-      case 'dry':
-        return 'Dry Goods';
-      case 'condiments_spices':
-        return 'Condiments & Spices';
-      default:
-        return 'Other';
-    }
-  }
 
   const capitalizeName = (s?: string) => {
     if (!s) return '';

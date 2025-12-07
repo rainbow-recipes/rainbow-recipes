@@ -113,6 +113,40 @@ export async function deleteItem(id: number) {
   redirect('/my-store');
 }
 
+export async function addDatabaseItem(item: {
+  name: string;
+  ItemCategory: string;
+  approved: boolean;
+}) {
+  let itemCategory: ItemCategory;
+  if (item.ItemCategory === 'produce') {
+    itemCategory = 'produce';
+  } else if (item.ItemCategory === 'meat_seafood') {
+    itemCategory = 'meat_seafood';
+  } else if (item.ItemCategory === 'dairy_eggs') {
+    itemCategory = 'dairy_eggs';
+  } else if (item.ItemCategory === 'frozen') {
+    itemCategory = 'frozen';
+  } else if (item.ItemCategory === 'canned') {
+    itemCategory = 'canned';
+  } else if (item.ItemCategory === 'dry') {
+    itemCategory = 'dry';
+  } else if (item.ItemCategory === 'condiments_spices') {
+    itemCategory = 'condiments_spices';
+  } else {
+    itemCategory = 'other';
+  }
+
+  await prisma.databaseItem.create({
+    data: {
+      name: item.name,
+      itemCategory,
+      approved: item.approved,
+    },
+  });
+  redirect('/admin?tab=items');
+}
+
 /**
  * Adds a new stuff to the database.
  * @param stuff, an object with the following properties: name, quantity, owner, condition.
@@ -199,4 +233,16 @@ export async function changePassword(credentials: { email: string; password: str
       password,
     },
   });
+}
+
+export async function getDatabaseItems() {
+  const databaseItems = await prisma.databaseItem.findMany({
+    orderBy: { name: 'asc' },
+  });
+  return databaseItems.map((item) => ({
+    id: item.id,
+    name: item.name,
+    itemCategory: item.itemCategory,
+    approved: item.approved,
+  }));
 }

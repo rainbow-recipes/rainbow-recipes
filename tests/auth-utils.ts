@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { chromium } from 'playwright';
-import type { Browser } from '@playwright/test';
+import type { Browser, Page } from '@playwright/test';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { expect } from '@playwright/test';
 
 const defaultBaseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3000';
 const sessionsDir = path.join(__dirname, 'playwright-auth-sessions');
@@ -113,4 +115,93 @@ export function createAuthContext(browser: Browser, storagePath: string) {
 
 export function getBaseUrl(fallback?: string) {
   return fallback || defaultBaseUrl;
+}
+
+export async function checkPageLoads(
+  browser: Browser,
+  url: string,
+  options?: {
+    storagePath?: string;
+    timeout?: number;
+    selector?: string;
+    contentCheck?: string;
+  },
+) {
+  let page: Page;
+  let context;
+
+  if (options?.storagePath) {
+    context = await createAuthContext(browser, options.storagePath);
+    page = await context.newPage();
+  } else {
+    page = await browser.newPage();
+  }
+
+  const response = await page.goto(url, {
+    waitUntil: options?.storagePath ? 'load' : 'networkidle',
+    timeout: options?.timeout || 60000,
+  });
+  expect(response && response.ok(), `non-ok response for ${url}: ${response?.status()}`).toBeTruthy();
+
+  // Ensure common error copy is not present on the rendered page
+  const bodyText = (await page.innerText('body')).toLowerCase();
+  expect(bodyText, 'Page contains "Page not found" text').not.toContain('page not found');
+  expect(bodyText, 'Page contains "Not authorized" text').not.toContain('not authorized');
+
+  const selector = options?.selector || 'main, h1, [data-testid="page-root"]';
+  const element = page.locator(selector);
+  await expect(element.first(), `no element visible for ${url}`).toBeVisible({
+    timeout: options?.timeout || 5000,
+  });
+
+  if (options?.contentCheck) {
+    await expect(element.first()).toContainText(options.contentCheck, {
+      timeout: options?.timeout || 5000,
+    });
+  }
+
+  await page.close();
+  if (context) await context.close();
+}
+
+export async function checkProtectedEditPage(options: {
+  browser: Browser;
+  storagePath: string;
+  baseUrl?: string;
+  listPath: string;
+  editHrefContains: string;
+  editPathPrefix: string;
+  timeout?: number;
+}) {
+  const {
+    browser,
+    storagePath,
+    baseUrl = defaultBaseUrl,
+    listPath,
+    editHrefContains,
+    editPathPrefix,
+    timeout = 60000,
+  } = options;
+
+  const context = await createAuthContext(browser, storagePath);
+  const page = await context.newPage();
+
+  await page.goto(`${baseUrl}${listPath}`, { waitUntil: 'load', timeout });
+
+  const editLink = page.locator(`a[href*="${editHrefContains}"]`).first();
+  const href = await editLink.getAttribute('href');
+
+  expect(href, `Edit link not found on ${listPath}`).toBeTruthy();
+
+  if (href) {
+    const id = href.split(editPathPrefix)[1];
+    expect(id, 'Failed to extract edit id from href').toBeTruthy();
+
+    await checkPageLoads(browser, `${baseUrl}${editPathPrefix}${id}`, {
+      storagePath,
+      timeout,
+    });
+  }
+
+  await context.close();
 }

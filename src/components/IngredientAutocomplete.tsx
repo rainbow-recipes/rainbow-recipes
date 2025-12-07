@@ -3,6 +3,7 @@
 /* eslint-disable react/require-default-props */
 import { useEffect, useRef, useState } from 'react';
 import { CaretRight } from 'react-bootstrap-icons';
+import { prettyCategory } from '@/lib/categoryUtils';
 
 type ItemCategory =
   | 'produce'
@@ -26,27 +27,6 @@ type Props = {
 export default function IngredientAutocomplete({ value, onChange, placeholder = '', detailErrors = [] }: Props) {
   function normalizeName(s: string) {
     return s.trim().replace(/\s+/g, ' ').toLowerCase();
-  }
-
-  function prettyCategory(c?: ItemCategory) {
-    switch (c) {
-      case 'produce':
-        return 'Produce';
-      case 'meat_seafood':
-        return 'Meat / Seafood';
-      case 'dairy_eggs':
-        return 'Dairy & Eggs';
-      case 'frozen':
-        return 'Frozen';
-      case 'canned':
-        return 'Canned';
-      case 'dry':
-        return 'Dry Goods';
-      case 'condiments_spices':
-        return 'Condiments & Spices';
-      default:
-        return 'Other';
-    }
   }
 
   const [query, setQuery] = useState('');

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Table } from 'react-bootstrap';
 import type { Item } from '@prisma/client';
 import Link from 'next/link';
+import { prettyCategory } from '@/lib/categoryUtils';
 import StoreItem from './StoreItem';
 
 type ItemClient = Omit<Item, 'price'> & { price: number };
@@ -63,27 +64,6 @@ export default function StoreItemsPanel({ items, isMyStore }: { items: ItemClien
             'condiments_spices',
             'other',
           ];
-
-          const prettyCategory = (c?: string) => {
-            switch (c) {
-              case 'produce':
-                return 'Produce';
-              case 'meat_seafood':
-                return 'Meat / Seafood';
-              case 'dairy_eggs':
-                return 'Dairy & Eggs';
-              case 'frozen':
-                return 'Frozen';
-              case 'canned':
-                return 'Canned Goods';
-              case 'dry':
-                return 'Dry Goods';
-              case 'condiments_spices':
-                return 'Condiments & Spices';
-              default:
-                return 'Other';
-            }
-          };
 
           // build group map
           const groups: Record<string, ItemClient[]> = {};

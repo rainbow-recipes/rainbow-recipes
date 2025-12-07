@@ -103,7 +103,7 @@ export default function VendorSignUpPage() {
           className="btn btn-success w-100"
           disabled={loading}
         >
-          {loading ? 'Submitting…' : 'Submit merchant application'}
+          {loading ? 'Submitting…' : 'Submit vendor application'}
         </button>
       </form>
 

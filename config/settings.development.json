@@ -133,5 +133,31 @@
     { "name": "coffee", "itemCategory": "other" },
     { "name": "tea", "itemCategory": "other" },
     { "name": "water", "itemCategory": "other" }
-  ]
+  ],
+
+  "defaultDietTags": [
+    { "name": "Vegan", "category": "Diet" },
+    { "name": "Vegetarian", "category": "Diet" },
+    { "name": "Gluten-free", "category": "Diet" },
+    { "name": "Dairy-free", "category": "Diet" }
+  ],
+
+  "defaultApplianceTags": [
+    { "name": "Oven", "category": "Appliance" },
+    { "name": "Stovetop", "category": "Appliance" },
+    { "name": "Blender", "category": "Appliance" },
+    { "name": "Microwave", "category": "Appliance" },
+    { "name": "Instant Pot", "category": "Appliance" }
+  ],
+
+  "defaultRecipe": {
+    "name": "Simple Fried Rice",
+    "cost": 5,
+    "prepTime": 20,
+    "ingredientNames": ["rice", "egg", "soy sauce", "green onion"],
+    "ingredientQuantities": ["2 cups cooked", "2", "2 tbsp", "2 stalks"],
+    "description": "Quick fried rice with egg, soy sauce, and green onion.",
+    "tagNames": ["Stovetop"],
+    "authorEmail": "john@foo.com"
+  }
 }
