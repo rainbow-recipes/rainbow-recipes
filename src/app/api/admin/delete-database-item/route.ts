@@ -17,9 +17,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'itemId is required' }, { status: 400 });
   }
 
-  await prisma.databaseItem.delete({
-    where: { id: Number(itemId) },
-  });
+  try {
+    // Remove any StoreItems referencing this DatabaseItem to avoid FK violations
+    await prisma.$transaction([
+      prisma.storeItem.deleteMany({ where: { databaseItemId: Number(itemId) } }),
+      prisma.databaseItem.delete({ where: { id: Number(itemId) } }),
+    ]);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Error deleting database item', err);
+    return NextResponse.json({ error: 'Failed to delete database item' }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }

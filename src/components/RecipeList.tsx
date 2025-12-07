@@ -370,8 +370,8 @@ export default function RecipeList({
                   )}
                 </div>
 
-                {/* Add Recipe button - only on /recipes page */}
-                {pathname === '/recipes' && (
+                {/* Add Recipe button - only on /recipes page and for logged-in users or admin */}
+                {pathname === '/recipes' && (currentUserId || isAdmin) && (
                   <Link href="/recipes/add" className="btn btn-outline-dark btn-lg rounded-pill">
                     Add Recipe
                   </Link>

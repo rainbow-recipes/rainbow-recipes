@@ -3,13 +3,19 @@ import { ChevronLeft } from 'react-bootstrap-icons';
 import Link from 'next/link';
 import notFound from '@/app/not-found';
 import { prisma } from '@/lib/prisma';
+import { IngredientAvailabilityList } from '@/components/IngredientAvailabilityList';
 
 export default async function RecipesPage({ params }: { params: { id: string | string[] } }) {
   const id = Number(String(Array.isArray(params?.id) ? params?.id[0] : params?.id));
   // console.log(id);
   const recipe = await prisma.recipe.findUnique({
     where: { id },
-    include: { ingredients: true, tags: true },
+    include: {
+      ingredients: {
+        include: { storeItems: true },
+      },
+      tags: true,
+    },
   });
   // console.log(recipe);
   if (!recipe) {
@@ -22,6 +28,36 @@ export default async function RecipesPage({ params }: { params: { id: string | s
       select: { firstName: true },
     }).then(user => user?.firstName || null)
     : null;
+
+  // Fetch store names for any store items tied to these ingredients
+  const ownerEmails = Array.from(new Set(
+    recipe.ingredients.flatMap((ing) => ing.storeItems?.map((s) => s.owner).filter(Boolean) || []),
+  ));
+  const stores = ownerEmails.length
+    ? await prisma.store.findMany({
+      where: { owner: { in: ownerEmails as string[] } },
+      select: { id: true, name: true, owner: true },
+    })
+    : [];
+  const storeByOwner = new Map(stores.map((s) => [s.owner, { id: s.id, name: s.name }]));
+
+  const ingredientAvailability = recipe.ingredients.map((ing) => ({
+    id: ing.id,
+    name: ing.name,
+    entries: (ing.storeItems || []).map((s) => {
+      const price = typeof s.price === 'object' && s.price !== null && 'toNumber' in (s.price as any)
+        ? (s.price as any).toNumber()
+        : Number(s.price as any);
+      return {
+        id: s.id,
+        store: storeByOwner.get(s.owner)?.name || 'Local store',
+        storeId: storeByOwner.get(s.owner)?.id,
+        availability: s.availability,
+        price,
+        unit: s.unit,
+      };
+    }),
+  }));
 
   return (
     <Container className="my-4">
@@ -63,6 +99,10 @@ export default async function RecipesPage({ params }: { params: { id: string | s
                 {recipe.ingredientQuantities?.[i]}
                 {' '}
                 <strong>{ingredient.name}</strong>
+                {' '}
+                {ingredient.storeItems?.some((s) => s.availability) && (
+                  <span className="badge bg-success ms-1">available locally</span>
+                )}
               </li>
             ))}
           </ul>
@@ -77,11 +117,13 @@ export default async function RecipesPage({ params }: { params: { id: string | s
             </>
           )}
         </Col>
-        <Col className="p-3 p-md-4" xs={12} lg={9}>
+        <Col className="p-3 p-md-4 ms-lg-3" xs={12} lg={6}>
           <h5 className="mb-2">Instructions</h5>
           <p style={{ whiteSpace: 'pre-wrap' }}>
             {recipe.description}
           </p>
+          <hr />
+          <IngredientAvailabilityList items={ingredientAvailability} />
         </Col>
       </Row>
     </Container>

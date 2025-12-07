@@ -20,8 +20,9 @@ export default async function VendorsPage({ params }: { params: { id: string | s
   const { name: storeName, website, image } = store;
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  const itemsRaw = await prisma.item.findMany({
+  const itemsRaw = await prisma.storeItem.findMany({
     where: { owner: store.owner ?? '' },
+    include: { databaseItem: true },
   });
 
   // Make sure items are serializable for the client (numbers/strings/booleans)

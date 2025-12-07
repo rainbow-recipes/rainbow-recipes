@@ -95,6 +95,37 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     };
 
     await prisma.recipe.update({ where: { id: recipeId }, data });
+
+    // Re-fetch to ensure we have ingredients in consistent order
+    const updatedRecipe = await prisma.recipe.findUnique({
+      where: { id: recipeId },
+      include: { ingredients: true },
+    });
+
+    // Rebuild ingredientQuantities to match ingredient order from the original submission
+    if (updatedRecipe && Array.isArray(ingredients)) {
+      const ingredientIdMap = new Map<number, number>();
+      ingredients.forEach((ing: any, idx: number) => {
+        if (ing.id) {
+          ingredientIdMap.set(ing.id, idx);
+        }
+      });
+
+      // Create sorted quantities array matching the server-stored ingredient order
+      const reorderedQuantities = (updatedRecipe.ingredients || []).map((ing: any) => {
+        const originalIdx = ingredientIdMap.get(ing.id);
+        return originalIdx !== undefined && ingredientQuantities[originalIdx]
+          ? ingredientQuantities[originalIdx]
+          : '';
+      });
+
+      // Update with reordered quantities
+      await prisma.recipe.update({
+        where: { id: recipeId },
+        data: { ingredientQuantities: reorderedQuantities },
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Error updating recipe:', err);

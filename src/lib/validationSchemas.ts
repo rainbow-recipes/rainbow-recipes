@@ -19,7 +19,7 @@ export const EditStoreSchema = Yup.object({
   owner: Yup.string().required(),
 });
 
-export const AddItemSchema = Yup.object({
+export const AddStoreItemSchema = Yup.object({
   name: Yup.string().required('Item name is required'),
   price: Yup.number().typeError('Price is required').positive().required('Price is required'),
   unit: Yup.string().required('Size is required'),
@@ -30,7 +30,7 @@ export const AddItemSchema = Yup.object({
   owner: Yup.string().required(),
 });
 
-export const EditItemSchema = Yup.object({
+export const EditStoreItemSchema = Yup.object({
   id: Yup.number().required(),
   name: Yup.string().required('Item name is required'),
   price: Yup.number().typeError('Price is required').positive().required('Price is required'),

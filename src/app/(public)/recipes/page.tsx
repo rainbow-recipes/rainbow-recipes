@@ -18,6 +18,7 @@ export default async function RecipesPage() {
 
   let favoriteIds: number[] = [];
   let isAdmin = false;
+  let currentUserId: string | number | undefined;
 
   if (session?.user?.email) {
     const user = await prisma.user.findUnique({
@@ -25,6 +26,7 @@ export default async function RecipesPage() {
     });
 
     if (user) {
+      currentUserId = user.id;
       const favorites = await prisma.favorite.findMany({
         where: { userId: user.id },
         select: { recipeId: true },
@@ -45,6 +47,7 @@ export default async function RecipesPage() {
         allTags={tags}
         initialFavoriteIds={favoriteIds}
         isAdmin={isAdmin}
+        currentUserId={currentUserId}
       />
     </div>
   );

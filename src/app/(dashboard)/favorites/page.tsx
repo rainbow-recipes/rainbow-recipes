@@ -31,6 +31,7 @@ export default async function MyRecipesPage() {
   const favoriteRecipes = favorites.map(f => f.recipe);
   const favoriteIds = favoriteRecipes.map(recipe => recipe.id);
   const isAdmin = (session?.user as any)?.role === 'ADMIN';
+  const currentUserId = (session?.user as any)?.id;
 
   return (
     <div className="container my-4">
@@ -40,6 +41,7 @@ export default async function MyRecipesPage() {
         allTags={tags}
         initialFavoriteIds={favoriteIds}
         isAdmin={isAdmin}
+        currentUserId={currentUserId}
       />
     </div>
   );

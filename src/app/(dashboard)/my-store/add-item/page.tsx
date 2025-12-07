@@ -1,4 +1,4 @@
-import AddItemForm from '@/components/AddItemForm';
+import AddStoreItemForm from '@/components/AddStoreItemForm';
 import { vendorProtectedPage } from '@/lib/page-protection';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -14,7 +14,7 @@ export default async function AddItemPage() {
 
   return (
     <main>
-      <AddItemForm />
+      <AddStoreItemForm />
     </main>
   );
 }

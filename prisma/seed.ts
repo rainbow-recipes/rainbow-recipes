@@ -1,4 +1,4 @@
-import { PrismaClient, Role, Condition, ItemCategory } from '@prisma/client';
+import { PrismaClient, Role, ItemCategory } from '@prisma/client';
 import { hash } from 'bcrypt';
 import * as config from '../config/settings.development.json';
 
@@ -63,24 +63,6 @@ async function main() {
     });
   }
 
-  for (const item of config.defaultItems) {
-    console.log(`  Adding item: ${JSON.stringify(item)}`);
-    const itemCategory = (item.itemCategory as ItemCategory) || ItemCategory.other;
-    // eslint-disable-next-line no-await-in-loop
-    await prisma.item.upsert({
-      where: { id: config.defaultItems.indexOf(item) + 1 },
-      update: {},
-      create: {
-        name: item.name,
-        price: item.price,
-        unit: item.unit,
-        availability: item.availability,
-        itemCategory,
-        owner: item.owner,
-      },
-    });
-  }
-
   // ----- Database items (produce, meat, dairy, etc.) -----
   for (const databaseItem of config.defaultDatabaseItems) {
     const itemCategory = (databaseItem.itemCategory as ItemCategory) || ItemCategory.other;
@@ -98,11 +80,43 @@ async function main() {
     });
   }
 
-  // ----- New: recipe tags -----
-  const { defaultDietTags = [], defaultApplianceTags = [] } = config;
+  for (let i = 0; i < config.defaultStoreItems.length; i += 1) {
+    const storeItem = config.defaultStoreItems[i];
+    console.log(`  Adding store item: ${JSON.stringify(storeItem)}`);
+
+    // Find the corresponding DatabaseItem by name (case-insensitive)
+    // eslint-disable-next-line no-await-in-loop
+    const databaseItem = await prisma.databaseItem.findFirst({
+      where: {
+        name: {
+          equals: storeItem.name,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    if (!databaseItem) {
+      console.warn(`  Skipping store item '${storeItem.name}': corresponding database item not found`);
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    // eslint-disable-next-line no-await-in-loop
+    await prisma.storeItem.upsert({
+      where: { id: i + 1 },
+      update: {},
+      create: {
+        databaseItemId: databaseItem.id,
+        price: storeItem.price,
+        unit: storeItem.unit,
+        availability: storeItem.availability,
+        owner: storeItem.owner,
+      },
+    });
+  }
 
   console.log('  Seeding tags');
-  for (const tag of [...defaultDietTags, ...defaultApplianceTags]) {
+  for (const tag of [...config.defaultDietTags, ...config.defaultApplianceTags]) {
     // eslint-disable-next-line no-await-in-loop
     await prisma.tag.upsert({
       where: { name: tag.name }, // name is unique

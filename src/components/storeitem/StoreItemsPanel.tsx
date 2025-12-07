@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import { Table } from 'react-bootstrap';
-import type { Item } from '@prisma/client';
+import type { StoreItem, DatabaseItem } from '@prisma/client';
 import Link from 'next/link';
 import { prettyCategory } from '@/lib/categoryUtils';
-import StoreItem from './StoreItem';
+import StoreItemRow from './StoreItemRow';
 
-type ItemClient = Omit<Item, 'price'> & { price: number };
+type ItemClient = StoreItem & { databaseItem: DatabaseItem; price: number | string };
 
 export default function StoreItemsPanel({ items, isMyStore }: { items: ItemClient[], isMyStore: boolean }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,7 +16,7 @@ export default function StoreItemsPanel({ items, isMyStore }: { items: ItemClien
     const term = searchTerm.trim().toLowerCase();
     if (!term) return items;
 
-    return items.filter((it) => it.name.toLowerCase().includes(term)
+    return items.filter((it) => it.databaseItem.name.toLowerCase().includes(term)
       || it.unit.toLowerCase().includes(term)
       || String(it.price).toLowerCase().includes(term));
   }, [items, searchTerm]);
@@ -52,7 +52,7 @@ export default function StoreItemsPanel({ items, isMyStore }: { items: ItemClien
             {(isMyStore) && (<th>Actions</th>)}
           </tr>
         </thead>
-        {/** Group items by ItemCategory and render a category header row followed by its items */}
+        {/** Group items by itemCategory and render a category header row followed by its items */}
         {(() => {
           const categories = [
             'produce',
@@ -68,7 +68,7 @@ export default function StoreItemsPanel({ items, isMyStore }: { items: ItemClien
           // build group map
           const groups: Record<string, ItemClient[]> = {};
           for (const it of filtered) {
-            const key = (it as any).itemCategory ?? 'other';
+            const key = it.databaseItem.itemCategory ?? 'other';
             if (!groups[key]) groups[key] = [];
             groups[key].push(it);
           }
@@ -83,7 +83,7 @@ export default function StoreItemsPanel({ items, isMyStore }: { items: ItemClien
                   <td colSpan={5}><strong>{prettyCategory(cat)}</strong></td>
                 </tr>
                 {group.map((item) => (
-                  <StoreItem key={item.id} {...(item as any)} isMyStore={isMyStore} />
+                  <StoreItemRow key={item.id} {...(item as any)} isMyStore={isMyStore} />
                 ))}
               </tbody>
             );

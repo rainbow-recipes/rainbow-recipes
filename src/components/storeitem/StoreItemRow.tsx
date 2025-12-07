@@ -1,12 +1,12 @@
 'use client';
 
 import swal from 'sweetalert';
-import type { Item } from '@prisma/client';
-import { deleteItem } from '@/lib/dbActions';
+import type { StoreItem, DatabaseItem } from '@prisma/client';
+import { deleteStoreItem } from '@/lib/dbActions';
 
-export default function StoreItem({
-  name, price, unit, availability, id, isMyStore = false,
-}: Item & { isMyStore: boolean }) {
+export default function StoreItemRow({
+  price, unit, availability, id, isMyStore = false, databaseItem,
+}: StoreItem & { isMyStore: boolean; databaseItem: DatabaseItem }) {
   const num = typeof price === 'number' ? price : Number(price as any);
   const priceDisplay = Number.isFinite(num) ? `$${num.toFixed(2)}` : '';
   const capitalizeName = (s?: string) => {
@@ -19,7 +19,7 @@ export default function StoreItem({
 
   return (
     <tr>
-      <td>{capitalizeName(name)}</td>
+      <td>{capitalizeName(databaseItem.name)}</td>
       <td>{priceDisplay}</td>
       <td>{unit}</td>
       <td>{availability ? 'in stock' : 'out of stock'}</td>
@@ -40,7 +40,7 @@ export default function StoreItem({
                 // eslint-disable-next-line @typescript-eslint/no-floating-promises
                 swal({
                   title: 'Delete item?',
-                  text: `Are you sure you want to delete ${name}?`,
+                  text: `Are you sure you want to delete ${databaseItem.name}?`,
                   icon: 'warning',
                   buttons: ['Cancel', 'Delete'],
                   dangerMode: true,
@@ -48,7 +48,7 @@ export default function StoreItem({
               });
               if (!ok) return;
               try {
-                await deleteItem(id as number);
+                await deleteStoreItem(id as number);
               } catch (err) {
                 // show error if delete fails
                 // eslint-disable-next-line no-console

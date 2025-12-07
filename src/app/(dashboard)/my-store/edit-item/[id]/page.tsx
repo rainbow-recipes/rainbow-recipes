@@ -2,9 +2,8 @@ import { getServerSession } from 'next-auth/next';
 import { vendorProtectedPage } from '@/lib/page-protection';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Item } from '@prisma/client';
 import notFound from '@/app/not-found';
-import EditItemForm from '@/components/EditItemForm';
+import EditStoreItemForm from '@/components/EditStoreItemForm';
 
 export default async function EditItemPage({ params }: { params: { id: string | string[] } }) {
   const session = await getServerSession(authOptions);
@@ -15,8 +14,9 @@ export default async function EditItemPage({ params }: { params: { id: string | 
   );
 
   const id = Number(Array.isArray(params?.id) ? params?.id[0] : params?.id);
-  const item: Item | null = await prisma.item.findUnique({
+  const item = await prisma.storeItem.findUnique({
     where: { id },
+    include: { databaseItem: true },
   });
   if (!item) {
     return notFound();
@@ -29,7 +29,7 @@ export default async function EditItemPage({ params }: { params: { id: string | 
 
   return (
     <main>
-      <EditItemForm item={item} />
+      <EditStoreItemForm item={item} />
     </main>
   );
 }

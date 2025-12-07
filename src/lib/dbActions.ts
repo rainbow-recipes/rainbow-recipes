@@ -37,47 +37,56 @@ export async function editStore(store: Store) {
   redirect('/my-store');
 }
 
-export async function addItem(item: {
+export async function addStoreItem(item: {
   name: string;
   price: number;
   unit: string;
   availability: string;
-  itemCategory: string;
-  owner: string
+  owner: string;
+  itemCategory?: string;
 }) {
-  let itemCategory: ItemCategory;
-  if (item.itemCategory === 'produce') {
-    itemCategory = 'produce';
-  } else if (item.itemCategory === 'meat_seafood') {
-    itemCategory = 'meat_seafood';
-  } else if (item.itemCategory === 'dairy_eggs') {
-    itemCategory = 'dairy_eggs';
-  } else if (item.itemCategory === 'frozen') {
-    itemCategory = 'frozen';
-  } else if (item.itemCategory === 'canned') {
-    itemCategory = 'canned';
-  } else if (item.itemCategory === 'dry') {
-    itemCategory = 'dry';
-  } else if (item.itemCategory === 'condiments_spices') {
-    itemCategory = 'condiments_spices';
-  } else {
-    itemCategory = 'other';
-  }
   // Interpret availability string from form: 'in_stock' -> true, otherwise false
   const availability = item.availability === 'in_stock';
 
-  // Ensure price is a Prisma Decimal on the server side to satisfy typing/runtime
+  const name = String(item.name || '').trim();
+  const category = item.itemCategory;
+
+  // Find or create DatabaseItem, updating category if it changed
+  let databaseItem = await prisma.databaseItem.findFirst({
+    where: {
+      name: {
+        equals: name,
+        mode: 'insensitive',
+      },
+    },
+  });
+
+  if (!databaseItem) {
+    databaseItem = await prisma.databaseItem.create({
+      data: {
+        name,
+        itemCategory: (category ?? 'other') as ItemCategory,
+        approved: false,
+      },
+    });
+  } else if (category && databaseItem.itemCategory !== category) {
+    databaseItem = await prisma.databaseItem.update({
+      where: { id: databaseItem.id },
+      data: { itemCategory: category as ItemCategory },
+    });
+  }
+
+  // Ensure price is a Prisma Decimal on the server side
   const createPrice = (typeof item.price === 'object' && item.price !== null && 'toNumber' in (item.price as any))
     ? (item.price as any)
     : new Prisma.Decimal(item.price as any);
 
-  await prisma.item.create({
+  await prisma.storeItem.create({
     data: {
-      name: item.name,
+      databaseItemId: databaseItem.id,
       price: createPrice,
       unit: item.unit,
       availability,
-      itemCategory,
       owner: item.owner,
     },
   });
@@ -85,28 +94,56 @@ export async function addItem(item: {
 }
 
 // Accept a permissive shape so callers can pass numeric `price` from forms
-export async function editItem(item: any) {
+export async function editStoreItem(item: any) {
+  const name = String(item.name || '').trim();
+  const category = item.itemCategory;
+
+  // Find DatabaseItem by name (unique). If not found, create. If found and category differs, update category.
+  let databaseItem = await prisma.databaseItem.findFirst({
+    where: {
+      name: {
+        equals: name,
+        mode: 'insensitive',
+      },
+    },
+  });
+
+  if (!databaseItem) {
+    databaseItem = await prisma.databaseItem.create({
+      data: {
+        name,
+        itemCategory: category ?? 'other',
+        approved: false,
+      },
+    });
+  } else if (category && databaseItem.itemCategory !== category) {
+    // Update the catalog category to reflect the edited value
+    databaseItem = await prisma.databaseItem.update({
+      where: { id: databaseItem.id },
+      data: { itemCategory: category },
+    });
+  }
+
   const updatePrice = (typeof item.price === 'object' && item.price !== null && 'toNumber' in (item.price as any))
     ? (item.price as any)
     : new Prisma.Decimal(item.price as any);
 
-  await prisma.item.update({
+  await prisma.storeItem.update({
     where: { id: item.id },
     data: {
-      name: item.name,
+      databaseItemId: databaseItem.id,
       price: updatePrice,
       unit: item.unit,
       availability: item.availability,
-      itemCategory: item.itemCategory,
       owner: item.owner,
     },
   });
   redirect('/my-store');
 }
 
-export async function deleteItem(id: number) {
+export async function deleteStoreItem(id: number) {
   // console.log(`deleteItem id: ${id}`);
-  await prisma.item.delete({
+  await prisma.storeItem.delete({
     where: { id },
   });
   // After deleting, redirect to the list page

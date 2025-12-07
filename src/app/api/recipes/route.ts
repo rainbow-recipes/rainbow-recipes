@@ -73,13 +73,41 @@ export async function POST(request: Request) {
           (ingredientConnect.length || ingredientConnectOrCreate.length)
             ? {
               ...(ingredientConnect.length ? { connect: ingredientConnect } : {}),
-              ...(ingredientConnectOrCreate.length
-                ? { connectOrCreate: ingredientConnectOrCreate }
-                : {}),
+              ...(ingredientConnectOrCreate.length ? { connectOrCreate: ingredientConnectOrCreate } : {}),
             }
             : undefined,
       },
     });
+
+    // Re-fetch to ensure we have ingredients in consistent order
+    const createdRecipe = await prisma.recipe.findUnique({
+      where: { id: recipe.id },
+      include: { ingredients: true },
+    });
+
+    // Rebuild ingredientQuantities to match ingredient order from the original submission
+    if (createdRecipe && Array.isArray(ingredients)) {
+      const ingredientIdMap = new Map<number, number>();
+      ingredients.forEach((ing: any, idx: number) => {
+        if (ing.id) {
+          ingredientIdMap.set(ing.id, idx);
+        }
+      });
+
+      // Create sorted quantities array matching the server-stored ingredient order
+      const reorderedQuantities = (createdRecipe.ingredients || []).map((ing: any) => {
+        const originalIdx = ingredientIdMap.get(ing.id);
+        return originalIdx !== undefined && ingredientQuantities[originalIdx]
+          ? ingredientQuantities[originalIdx]
+          : '';
+      });
+
+      // Update with reordered quantities
+      await prisma.recipe.update({
+        where: { id: recipe.id },
+        data: { ingredientQuantities: reorderedQuantities },
+      });
+    }
 
     return NextResponse.json({ success: true, id: recipe.id }, { status: 200 });
   } catch (err) {

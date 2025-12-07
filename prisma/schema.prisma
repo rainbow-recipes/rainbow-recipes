@@ -73,22 +73,23 @@ enum ItemCategory {
   other
 }
 
-model Item {
-  id           Int          @id @default(autoincrement())
-  name         String
-  price        Decimal      @db.Decimal(10, 2)
-  unit         String
-  availability Boolean
-  itemCategory ItemCategory @default(other)
-  owner        String
+model StoreItem {
+  id               Int          @id @default(autoincrement())
+  databaseItemId   Int
+  databaseItem     DatabaseItem @relation("StoreItemDatabaseItem", fields: [databaseItemId], references: [id])
+  price            Decimal      @db.Decimal(10, 2)
+  unit             String
+  availability     Boolean
+  owner            String
 }
 
 model DatabaseItem {
   id           Int          @id @default(autoincrement())
   name         String       @unique
-  itemCategory ItemCategory
+  itemCategory ItemCategory @default(other)
   approved     Boolean      @default(false)
   recipes      Recipe[]     @relation("RecipeIngredients")
+  storeItems   StoreItem[]  @relation("StoreItemDatabaseItem")
 }
 
 model Recipe {
