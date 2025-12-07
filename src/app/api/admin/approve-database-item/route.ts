@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 
+// eslint-disable-next-line import/prefer-default-export
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const userRole = (session?.user as any)?.role;

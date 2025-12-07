@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/prefer-default-export
 export function prettyCategory(c?: string) {
   switch (c) {
     case 'produce':
