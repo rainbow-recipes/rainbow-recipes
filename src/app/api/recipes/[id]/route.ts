@@ -52,6 +52,24 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const body = await request.json();
     const { name, cost, prepTime, description, image, tagIds, ingredients, ingredientQuantities } = body;
 
+    // Validate positive numbers
+    const costNum = cost !== undefined ? Number(cost) : existing.cost;
+    const prepNum = prepTime !== undefined ? Number(prepTime) : existing.prepTime;
+    
+    if (costNum < 0) {
+      return NextResponse.json(
+        { error: 'Cost must be a positive number' },
+        { status: 400 },
+      );
+    }
+    
+    if (prepNum < 0) {
+      return NextResponse.json(
+        { error: 'Prep time must be a positive number' },
+        { status: 400 },
+      );
+    }
+
     // prepare nested write payload for ingredients
     const ingredientConnect: Array<{ id: number }> = [];
     const ingredientConnectOrCreate: Array<any> = [];
@@ -74,8 +92,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
     const data: any = {
       name: name || existing.name,
-      cost: Number(cost) || existing.cost,
-      prepTime: Number(prepTime) || existing.prepTime,
+      cost: costNum,
+      prepTime: prepNum,
       description: typeof description === 'string' ? description : existing.description,
       image: image ?? existing.image,
       ingredientQuantities: Array.isArray(ingredientQuantities) ? ingredientQuantities : existing.ingredientQuantities,

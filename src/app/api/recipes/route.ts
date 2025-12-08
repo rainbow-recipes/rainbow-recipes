@@ -35,6 +35,24 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, cost, prepTime, description, image, tagIds, ingredients, ingredientQuantities } = body;
 
+    // Validate positive numbers
+    const costNum = Number(cost) || 0;
+    const prepNum = Number(prepTime) || 0;
+    
+    if (costNum < 0) {
+      return NextResponse.json(
+        { success: false, error: 'Cost must be a positive number' },
+        { status: 400 },
+      );
+    }
+    
+    if (prepNum < 0) {
+      return NextResponse.json(
+        { success: false, error: 'Prep time must be a positive number' },
+        { status: 400 },
+      );
+    }
+
     // prepare nested write payload for ingredients (connect existing by id or connectOrCreate by name)
     const ingredientConnect: Array<{ id: number }> = [];
     const ingredientConnectOrCreate: Array<any> = [];
@@ -58,8 +76,8 @@ export async function POST(request: Request) {
     const recipe = await prisma.recipe.create({
       data: {
         name: name || '(Untitled)',
-        cost: Number(cost) || 0,
-        prepTime: Number(prepTime) || 0,
+        cost: costNum,
+        prepTime: prepNum,
         description: description || '',
         image: image || null,
         ingredientQuantities: Array.isArray(ingredientQuantities) ? ingredientQuantities : [],

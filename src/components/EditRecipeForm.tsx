@@ -181,8 +181,12 @@ export default function EditRecipeForm({ allTags, recipe }: EditRecipeFormProps)
           <input
             type="number"
             step="0.01"
+            min="0"
             placeholder="e.g. 12.50"
-            {...register('cost', { required: 'Cost is required' })}
+            {...register('cost', { 
+              required: 'Cost is required',
+              min: { value: 0, message: 'Cost must be a positive number' }
+            })}
             aria-invalid={errors.cost ? 'true' : 'false'}
             aria-required="true"
             required
@@ -200,8 +204,12 @@ export default function EditRecipeForm({ allTags, recipe }: EditRecipeFormProps)
           </Form.Label>
           <input
             type="number"
+            min="0"
             placeholder="e.g. 30"
-            {...register('prepTime', { required: 'Prep time is required' })}
+            {...register('prepTime', { 
+              required: 'Prep time is required',
+              min: { value: 0, message: 'Prep time must be a positive number' }
+            })}
             aria-invalid={errors.prepTime ? 'true' : 'false'}
             aria-required="true"
             required
