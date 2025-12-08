@@ -22,11 +22,11 @@ export default async function RecipesPage({ params }: { params: { id: string | s
     return notFound();
   }
 
-  const authorFirstName: String | null = recipe.authorId
+  const author = recipe.authorId
     ? await prisma.user.findUnique({
       where: { id: recipe.authorId },
-      select: { firstName: true },
-    }).then(user => user?.firstName || null)
+      select: { id: true, firstName: true, lastName: true, name: true },
+    })
     : null;
 
   // Fetch store names for any store items tied to these ingredients
@@ -68,11 +68,13 @@ export default async function RecipesPage({ params }: { params: { id: string | s
       </Link>
       <h1 className="text-center mb-2">{recipe.name}</h1>
 
-      {authorFirstName ? (
+      {author ? (
         <div className="text-center mb-1">
-          Author:
-          {' '}
-          {authorFirstName}
+          <Link href={`/profiles/${author.id}`} className="text-decoration-none">
+            {author.firstName && author.lastName
+              ? `${author.firstName} ${author.lastName}`
+              : author.firstName || author.name || 'Anonymous User'}
+          </Link>
         </div>
       ) : null}
 
