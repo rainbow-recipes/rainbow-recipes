@@ -609,7 +609,7 @@ export default function RecipeList({
                                 </Link>
                               )}
 
-                              {isAdmin && (
+                              {(isAdmin || isOwner) && (
                                 <button
                                   type="button"
                                   className="btn btn-sm btn-outline-danger ms-2"
