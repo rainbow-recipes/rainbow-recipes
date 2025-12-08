@@ -55,14 +55,14 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     // Validate positive numbers
     const costNum = cost !== undefined ? Number(cost) : existing.cost;
     const prepNum = prepTime !== undefined ? Number(prepTime) : existing.prepTime;
-    
+
     if (costNum < 0) {
       return NextResponse.json(
         { error: 'Cost must be a positive number' },
         { status: 400 },
       );
     }
-    
+
     if (prepNum < 0) {
       return NextResponse.json(
         { error: 'Prep time must be a positive number' },

@@ -38,14 +38,14 @@ export async function POST(request: Request) {
     // Validate positive numbers
     const costNum = Number(cost) || 0;
     const prepNum = Number(prepTime) || 0;
-    
+
     if (costNum < 0) {
       return NextResponse.json(
         { success: false, error: 'Cost must be a positive number' },
         { status: 400 },
       );
     }
-    
+
     if (prepNum < 0) {
       return NextResponse.json(
         { success: false, error: 'Prep time must be a positive number' },
