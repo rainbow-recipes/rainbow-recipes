@@ -19,6 +19,17 @@ enum Role {
   ADMIN
 }
 
+enum ItemCategory {
+  produce
+  meat_seafood
+  dairy_eggs
+  frozen
+  canned
+  dry
+  condiments_spices
+  other
+}
+
 enum Condition {
   poor
   fair
@@ -53,24 +64,14 @@ model User {
 }
 
 model Store {
-  id       String   @id @default(cuid())
+  id       String         @id @default(cuid())
   name     String
   website  String?
   location String
   hours    String[]
   image    String?
   owner    String
-}
-
-enum ItemCategory {
-  produce
-  meat_seafood
-  dairy_eggs
-  frozen
-  canned
-  dry
-  condiments_spices
-  other
+  reviews  VendorReview[]
 }
 
 model StoreItem {
@@ -107,6 +108,7 @@ model Recipe {
   author               User?          @relation("UserRecipes", fields: [authorId], references: [id], onDelete: Cascade)
 
   favorites            Favorite[]
+  reviews              RecipeReview[]
 }
 
 model Tag {
@@ -125,6 +127,24 @@ model Favorite {
   recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, recipeId])
+}
+
+model RecipeReview {
+  id       Int    @id @default(autoincrement())
+  rating   Int
+  review   String
+  owner    String
+  recipeId Int
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+}
+
+model VendorReview {
+  id      Int    @id @default(autoincrement())
+  rating  Int
+  review  String
+  owner   String
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
 model Stuff {

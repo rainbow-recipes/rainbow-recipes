@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { loggedInProtectedPage } from '@/lib/page-protection';
-import RecipeList from '@/components/RecipeList';
+import RecipeList from '@/components/recipes/RecipeList';
 
 const prisma = new PrismaClient();
 

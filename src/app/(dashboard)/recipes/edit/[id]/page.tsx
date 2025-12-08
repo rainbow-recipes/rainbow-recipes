@@ -4,7 +4,7 @@ import { Role } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { loggedInProtectedPage } from '@/lib/page-protection';
 import { prisma } from '@/lib/prisma';
-import EditRecipeForm from '@/components/EditRecipeForm';
+import EditRecipeForm from '@/components/recipes/EditRecipeForm';
 
 interface Props {
   params: { id: string };

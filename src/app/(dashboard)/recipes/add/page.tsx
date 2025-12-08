@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import AddRecipeForm from '@/components/AddRecipeForm';
+import AddRecipeForm from '@/components/recipes/AddRecipeForm';
 import { getServerSession } from 'next-auth';
 import { loggedInProtectedPage } from '@/lib/page-protection';
 import { authOptions } from '@/lib/auth';

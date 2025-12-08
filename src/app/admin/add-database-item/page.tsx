@@ -1,4 +1,4 @@
-import AddDatabaseItemForm from '@/components/AddDatabaseItemForm';
+import AddDatabaseItemForm from '@/components/admin/AddDatabaseItemForm';
 import { adminProtectedPage } from '@/lib/page-protection';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';

@@ -1,11 +1,21 @@
 import { Col, Container, Image, Row } from 'react-bootstrap';
-import { ChevronLeft } from 'react-bootstrap-icons';
+import { ChevronLeft, Basket2 } from 'react-bootstrap-icons';
 import Link from 'next/link';
 import notFound from '@/app/not-found';
 import { prisma } from '@/lib/prisma';
-import { IngredientAvailabilityList } from '@/components/IngredientAvailabilityList';
+import { IngredientAvailabilityList } from '@/components/recipes/IngredientAvailabilityList';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import RecipeReviewsList from '@/components/recipes/reviews/RecipeReviewsList';
 
 export default async function RecipesPage({ params }: { params: { id: string | string[] } }) {
+  const session = await getServerSession(authOptions);
+  const userEmail = session?.user?.email || null;
+  const currentUser = userEmail
+    ? await prisma.user.findUnique({
+      where: { email: userEmail },
+    })
+    : null;
   const id = Number(String(Array.isArray(params?.id) ? params?.id[0] : params?.id));
   // console.log(id);
   const recipe = await prisma.recipe.findUnique({
@@ -15,6 +25,12 @@ export default async function RecipesPage({ params }: { params: { id: string | s
         include: { storeItems: true },
       },
       tags: true,
+      reviews: {
+        orderBy: { id: 'desc' },
+        include: {
+          recipe: false,
+        },
+      },
     },
   });
   // console.log(recipe);
@@ -59,6 +75,30 @@ export default async function RecipesPage({ params }: { params: { id: string | s
     }),
   }));
 
+  // Fetch user info for each review
+  const reviewOwnerEmails = Array.from(new Set(recipe.reviews.map((r) => r.owner)));
+  const reviewOwners = await prisma.user.findMany({
+    where: { email: { in: reviewOwnerEmails } },
+    select: { id: true, email: true, firstName: true, lastName: true, name: true },
+  });
+  const ownerMap = new Map(reviewOwners.map((u) => [u.email, u]));
+
+  const reviewsWithUserInfo = recipe.reviews.map((review) => {
+    const user = ownerMap.get(review.owner);
+    return {
+      ...review,
+      ownerUserId: user?.id,
+      ownerFirstName: user?.firstName,
+      ownerLastName: user?.lastName,
+      ownerName: user?.name,
+    };
+  });
+
+  // Calculate average rating
+  const averageRating = reviewsWithUserInfo.length > 0
+    ? (reviewsWithUserInfo.reduce((sum, r) => sum + r.rating, 0) / reviewsWithUserInfo.length)
+    : null;
+
   return (
     <Container className="my-4">
       <Link href="/recipes" className="d-inline-flex align-items-center mb-3 text-dark">
@@ -70,7 +110,7 @@ export default async function RecipesPage({ params }: { params: { id: string | s
 
       {author ? (
         <div className="text-center mb-1">
-          <Link href={`/profiles/${author.id}`} className="text-decoration-none">
+          <Link href={`/profile/${author.id}`} className="text-decoration-none">
             {author.firstName && author.lastName
               ? `${author.firstName} ${author.lastName}`
               : author.firstName || author.name || 'Anonymous User'}
@@ -85,6 +125,23 @@ export default async function RecipesPage({ params }: { params: { id: string | s
         {' '}
         minutes
       </div>
+      {averageRating !== null && (
+        <div className="text-center mb-3">
+          <div className="text-warning" style={{ fontSize: '1.5rem', letterSpacing: '0.1em' }}>
+            {Array.from({ length: 5 }, (_, i) => (
+              <span key={i}>{i < Math.round(averageRating) ? '★' : '☆'}</span>
+            ))}
+          </div>
+          <div className="text-muted small">
+            {averageRating.toFixed(1)}
+            /5 (
+            {reviewsWithUserInfo.length}
+            {' '}
+            {reviewsWithUserInfo.length === 1 ? 'review' : 'reviews'}
+            )
+          </div>
+        </div>
+      )}
       {(recipe.image) && (
         <Row className="g-3 justify-content-center mb-4">
           <Col xs={11} lg={3}>
@@ -92,40 +149,57 @@ export default async function RecipesPage({ params }: { params: { id: string | s
           </Col>
         </Row>
       )}
-      <Row className="g-3 justify-content-center">
-        <Col className="bg-light rounded p-3 p-md-4" xs={11} lg={3}>
-          <h5 className="mb-2">Ingredients</h5>
-          <ul className="mb-3">
-            {recipe.ingredients.map((ingredient, i) => (
-              <li key={ingredient.id}>
-                {recipe.ingredientQuantities?.[i]}
-                {' '}
-                <strong>{ingredient.name}</strong>
-                {' '}
-                {ingredient.storeItems?.some((s) => s.availability) && (
-                  <span className="badge bg-success ms-1">available locally</span>
-                )}
-              </li>
-            ))}
-          </ul>
-          {(recipe.tags.length > 0) && (
-            <>
-              <h5 className="mt-4 mb-2">Recipe Tags</h5>
-              <div>
-                {recipe.tags.map((tag) => (
-                  <span key={tag.id} className="badge bg-white text-dark me-1 mb-1">{tag.name}</span>
-                ))}
-              </div>
-            </>
-          )}
+      <Row className="justify-content-center">
+        <Col className="bg-light rounded p-3 p-md-4" xs={11} lg={4}>
+          <Row>
+            {(recipe.tags.length > 0) && (
+              <>
+                <h5 className="mb-2">Recipe Tags</h5>
+                <div>
+                  {recipe.tags.map((tag) => (
+                    <span key={tag.id} className="badge bg-white text-dark me-1 mb-1">{tag.name}</span>
+                  ))}
+                </div>
+              </>
+            )}
+            <h5 className="mt-3 mb-2">Ingredients</h5>
+            <ul className="mb-1">
+              {recipe.ingredients.map((ingredient, i) => (
+                <li key={ingredient.id} className="ms-4">
+                  {recipe.ingredientQuantities?.[i]}
+                  {' '}
+                  <strong>{ingredient.name}</strong>
+                  {' '}
+                  {ingredient.storeItems?.some((s) => s.availability) && (
+                    <span className="badge bg-success ms-1">available locally</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Row>
+          <Row>
+            <div className="d-flex align-items-center gap-2 mt-3 mb-2">
+              <h5 className="mb-0">Get the Ingredients</h5>
+              <Basket2 size={22} />
+            </div>
+            <IngredientAvailabilityList items={ingredientAvailability} />
+          </Row>
         </Col>
-        <Col className="p-3 p-md-4 ms-lg-3" xs={12} lg={6}>
+        <Col className="p-3 p-md-4 ms-lg-3" xs={12} lg={7}>
           <h5 className="mb-2">Instructions</h5>
           <p style={{ whiteSpace: 'pre-wrap' }}>
             {recipe.description}
           </p>
-          <hr />
-          <IngredientAvailabilityList items={ingredientAvailability} />
+          <hr className="my-4" />
+          <RecipeReviewsList
+            reviews={reviewsWithUserInfo}
+            recipeId={id}
+            isLoggedIn={!!session?.user}
+            currentUserEmail={userEmail}
+            userRole={currentUser?.role}
+            recipeAuthorId={recipe.authorId}
+            currentUserId={currentUser?.id}
+          />
         </Col>
       </Row>
     </Container>

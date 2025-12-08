@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import notFound from '@/app/not-found';
 import { prisma } from '@/lib/prisma';
-import RecipeList from '@/components/RecipeList';
+import RecipeList from '@/components/recipes/RecipeList';
 
 export default async function PublicProfilePage({ params }: { params: { id: string } }) {
   const userId = String(params.id);
@@ -40,12 +40,6 @@ export default async function PublicProfilePage({ params }: { params: { id: stri
 
   return (
     <Container className="py-4">
-      {/* Back navigation */}
-      <Link href="/recipes" className="text-decoration-none text-dark mb-3 d-inline-flex align-items-center">
-        <ChevronLeft className="me-1" />
-        Back to Recipes
-      </Link>
-
       {/* Profile Header */}
       <div className="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded">
         {user.image ? (

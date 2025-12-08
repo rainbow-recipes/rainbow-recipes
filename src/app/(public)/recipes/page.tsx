@@ -3,7 +3,7 @@
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import RecipeList from '@/components/RecipeList';
+import RecipeList from '@/components/recipes/RecipeList';
 import { Row } from 'react-bootstrap';
 
 const prisma = new PrismaClient();
