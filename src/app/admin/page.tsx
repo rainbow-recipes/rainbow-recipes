@@ -40,10 +40,24 @@ export default async function AdminPage() {
     approved: item.approved,
   }));
 
+  const tags = await prisma.tag.findMany({
+    orderBy: { name: 'asc' },
+    include: {
+      recipes: true,
+    },
+  });
+
+  const plainTags = tags.map((tag) => ({
+    id: tag.id,
+    name: tag.name,
+    category: tag.category,
+    recipeCount: tag.recipes.length,
+  }));
+
   return (
     <div className="container my-4">
       <h2 className="mb-3">Admin Dashboard</h2>
-      <AdminPageClient initialUsers={plainUsers} initialItems={plainItems} />
+      <AdminPageClient initialUsers={plainUsers} initialItems={plainItems} initialTags={plainTags} />
     </div>
   );
 }
