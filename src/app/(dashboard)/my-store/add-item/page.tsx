@@ -1,4 +1,4 @@
-import AddStoreItemForm from '@/components/AddStoreItemForm';
+import AddStoreItemForm from '@/components/store-items/AddStoreItemForm';
 import { vendorProtectedPage } from '@/lib/page-protection';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';

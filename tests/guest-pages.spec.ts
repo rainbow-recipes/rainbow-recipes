@@ -30,3 +30,22 @@ test('guest loads /recipes/[id]', async ({ browser, baseURL }) => {
 
   await page.close();
 });
+
+test('guest loads /vendors/[id]', async ({ browser, baseURL }) => {
+  const urlBase = baseURL ?? getBaseUrl();
+
+  const page = await browser.newPage();
+  await page.goto(`${urlBase}/vendors`, { waitUntil: 'load', timeout: 60000 });
+  const vendorLink = page.locator('a[href*="/vendors/"]').first();
+  const href = await vendorLink.getAttribute('href');
+
+  expect(href, 'Vendor link not found on /vendors page').toBeTruthy();
+  if (href) {
+    const vendorId = href.split('/vendors/')[1];
+    expect(vendorId, 'Failed to extract vendor id from href').toBeTruthy();
+
+    await checkPageLoads(browser, `${urlBase}/vendors/${vendorId}`);
+  }
+
+  await page.close();
+});

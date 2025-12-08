@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { vendorProtectedPage } from '@/lib/page-protection';
 import { prisma } from '@/lib/prisma';
-import EditStorePageForm from '@/components/EditStorePageForm';
+import EditStorePageForm from '@/components/vendors/EditStorePageForm';
 import { Store } from '@prisma/client';
 import notFound from '@/app/not-found';
 

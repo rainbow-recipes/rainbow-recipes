@@ -8,7 +8,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import type { Tag, ItemCategory } from '@prisma/client';
 import { Form, Button, Container } from 'react-bootstrap';
-import IngredientAutocomplete from '@/components/IngredientAutocomplete';
+import IngredientAutocomplete from '@/components/recipes/IngredientAutocomplete';
 
 interface EditRecipeFormProps {
   allTags: Tag[];

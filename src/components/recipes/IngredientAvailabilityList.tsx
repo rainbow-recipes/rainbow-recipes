@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Basket2 } from 'react-bootstrap-icons';
 
 export type IngredientAvailabilityEntry = {
   id?: number | string;
@@ -36,11 +35,7 @@ export function IngredientAvailabilityList({ items }: Props) {
   }
 
   return (
-    <div className="mt-4">
-      <div className="d-flex align-items-center gap-2 mb-2">
-        <h5 className="mb-0">Get the Ingredients</h5>
-        <Basket2 size={22} />
-      </div>
+    <div>
       <div className="list-group">
         {items.map((ing) => (
           <div key={ing.id} className="list-group-item">

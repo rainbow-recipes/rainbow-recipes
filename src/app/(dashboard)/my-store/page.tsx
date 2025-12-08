@@ -5,7 +5,7 @@ import { Store } from '@prisma/client';
 import { vendorProtectedPage } from '@/lib/page-protection';
 import { authOptions } from '@/lib/auth';
 import Link from 'next/link';
-import MyStoreItemsPanel from '@/components/storeitem/StoreItemsPanel';
+import MyStoreItemsPanel from '@/components/store-items/StoreItemsPanel';
 
 export default async function MyStorePage() {
   // Protect the page, only logged in vendors can access it.
