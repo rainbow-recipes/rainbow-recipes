@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ItemCategory } from '@prisma/client';
 import { prettyCategory } from '@/lib/categoryUtils';
+import { DatabaseFillGear, Intersect } from 'react-bootstrap-icons';
 
 interface DatabaseItem {
   id: number;
@@ -28,6 +29,20 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
   const [editId, setEditId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editCategory, setEditCategory] = useState<ItemCategory>('other');
+  const [mergeSourceId, setMergeSourceId] = useState<number | null>(null);
+  const [mergeTargetId, setMergeTargetId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (items.length >= 2) {
+      const first = items[0];
+      const next = items.find((it) => it.id !== first.id) ?? null;
+      setMergeSourceId(first.id);
+      setMergeTargetId(next?.id ?? null);
+    } else {
+      setMergeSourceId(null);
+      setMergeTargetId(null);
+    }
+  }, [items]);
 
   const categories: ItemCategory[] = [
     'produce',
@@ -144,6 +159,42 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
     }
   };
 
+  const handleConfirmMerge = async () => {
+    if (!mergeSourceId || !mergeTargetId || mergeTargetId === mergeSourceId) return;
+
+    // eslint-disable-next-line no-alert
+    const confirmed = window.confirm(
+      'Merge this item into the selected target? This moves all references and deletes the source item.',
+    );
+    if (!confirmed) return;
+
+    const previous = items;
+    // Optimistically remove the source item
+    setItems((prev) => prev.filter((it) => it.id !== mergeSourceId));
+    setMergeSourceId(null);
+    setMergeTargetId(null);
+
+    try {
+      const res = await fetch('/api/admin/merge-database-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceId: mergeSourceId, targetId: mergeTargetId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        const message = data?.error || 'Failed to merge';
+        throw new Error(message);
+      }
+
+      if (onRefresh) await onRefresh();
+    } catch (err) {
+      setItems(previous);
+      // eslint-disable-next-line no-alert
+      alert(err instanceof Error ? err.message : 'Failed to merge');
+    }
+  };
+
   return (
     <>
       <div className="d-flex align-items-center justify-content-between mb-3">
@@ -154,7 +205,73 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
           </button>
         </Link>
       </div>
+
+      <hr className="my-4" />
+
+      {/* Merge controls */}
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <Intersect size={24} />
+        <h5 className="mb-0">Merge Items</h5>
+      </div>
+      <div className="d-flex align-items-center gap-2 mb-3 flex-wrap flex-md-nowrap" style={{ overflowX: 'auto' }}>
+        <select
+          className="form-select form-select-sm"
+          style={{ minWidth: '150px' }}
+          value={mergeSourceId ?? ''}
+          onChange={(e) => setMergeSourceId(Number(e.target.value))}
+          disabled={items.length < 2}
+        >
+          <option value="" disabled>Select source</option>
+          {items.map((it) => (
+            <option key={it.id} value={it.id}>
+              {it.name}
+              {' '}
+              (ID
+              {' '}
+              {it.id}
+              )
+            </option>
+          ))}
+        </select>
+        <span className="mx-1">→</span>
+        <select
+          className="form-select form-select-sm"
+          style={{ minWidth: '150px' }}
+          value={mergeTargetId ?? ''}
+          onChange={(e) => setMergeTargetId(Number(e.target.value))}
+          disabled={items.length < 2}
+        >
+          <option value="" disabled>Select target</option>
+          {items
+            .filter((it) => it.id !== mergeSourceId)
+            .map((it) => (
+              <option key={it.id} value={it.id}>
+                {it.name}
+                {' '}
+                (ID
+                {' '}
+                {it.id}
+                )
+              </option>
+            ))}
+        </select>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-warning"
+          onClick={handleConfirmMerge}
+          disabled={!mergeSourceId || !mergeTargetId || mergeSourceId === mergeTargetId}
+        >
+          Merge
+        </button>
+      </div>
+
+      <hr className="my-4" />
+
       {/* Search bar and filters */}
+      <div className="d-flex align-items-center gap-2 mb-3">
+        <DatabaseFillGear size={24} />
+        <h5 className="mb-0">Database Items</h5>
+      </div>
       <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
         <div className="flex-grow-1">
           <input
