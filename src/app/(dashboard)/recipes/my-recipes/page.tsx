@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { loggedInProtectedPage } from '@/lib/page-protection';
 import RecipeList from '@/components/RecipeList';
-
-const prisma = new PrismaClient();
 
 export default async function MyRecipesPage() {
   // Protect the page, only logged in users can access it.
@@ -15,23 +13,30 @@ export default async function MyRecipesPage() {
     } | null,
   );
 
+  const owner = (session && session.user && session.user.email) || '';
+  const currentUser = await prisma.user.findUnique({
+    where: {
+      email: owner,
+    },
+  });
+  const currentUserId = currentUser?.id;
+  const isAdmin = currentUser?.role === 'ADMIN';
+
   // Load data in parallel
   const [myRecipes, tags, favorites] = await Promise.all([
     prisma.recipe.findMany({
-      where: { authorId: (session?.user as any)?.id },
+      where: { authorId: currentUserId },
       include: { tags: true },
       orderBy: { name: 'asc' },
     }),
     prisma.tag.findMany(),
     prisma.favorite.findMany({
-      where: { userId: (session?.user as any)?.id },
+      where: { userId: currentUserId },
       select: { recipeId: true },
     }),
   ]);
 
   const favoriteIds = favorites.map(f => f.recipeId);
-  const isAdmin = (session?.user as any)?.role === 'ADMIN';
-  const currentUserId = (session?.user as any)?.id;
 
   return (
     <div className="container my-4">

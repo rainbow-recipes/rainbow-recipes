@@ -38,15 +38,17 @@ export default async function EditRecipePage({ params }: Props) {
   }
 
   // Only allow the recipe author or an admin to edit.
-  const userId = (session?.user as any)?.id;
-  const role = (session?.user as any)?.role;
-  // Admins can edit regardless of author; otherwise must match authorId.
-  if (role === Role.ADMIN) {
-    // allowed
-  } else if (!userId || recipe.authorId !== userId) {
+  const owner = (session && session.user && session.user.email) || '';
+  const currentUser = await prisma.user.findUnique({
+    where: {
+      email: owner,
+    },
+  });
+  const userId = currentUser?.id;
+  const role = currentUser?.role;
+  if (!userId || (recipe.authorId !== userId && role !== Role.ADMIN)) {
     return notFound();
   }
 
-  // Render client-side form with fetched data
   return <EditRecipeForm allTags={allTags} recipe={recipe} />;
 }
