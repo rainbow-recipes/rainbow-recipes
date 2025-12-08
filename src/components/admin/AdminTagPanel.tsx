@@ -159,6 +159,7 @@ const AdminTagPanel = ({ initialTags, onRefresh }: AdminTagPanelProps) => {
         const data = await res.json().catch(() => null);
         throw new Error(data?.error || 'Failed to delete tag');
       }
+      if (onRefresh) await onRefresh();
     } catch (err) {
       setTags(previous);
       // eslint-disable-next-line no-alert
