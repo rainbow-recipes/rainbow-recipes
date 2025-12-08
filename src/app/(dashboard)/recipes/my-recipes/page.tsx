@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { loggedInProtectedPage } from '@/lib/page-protection';
-import RecipeList from '@/components/RecipeList';
+import RecipeList from '@/components/recipes/RecipeList';
 
 export default async function MyRecipesPage() {
   // Protect the page, only logged in users can access it.

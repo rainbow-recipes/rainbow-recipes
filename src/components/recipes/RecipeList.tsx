@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import type { Recipe, Tag } from '@prisma/client';
 import { Card } from 'react-bootstrap';
 import { SuitHeart, SuitHeartFill } from 'react-bootstrap-icons';
-import defaultRecipeImage from '../../public/default-recipe-image.png';
+import defaultRecipeImage from '../../../public/default-recipe-image.png';
 
 type RecipeWithTags = Recipe & {
   tags: Tag[];

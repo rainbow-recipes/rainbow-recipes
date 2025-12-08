@@ -1,16 +1,30 @@
 import { Col, Container, Row, Image } from 'react-bootstrap';
 import { prisma } from '@/lib/prisma';
-import { Store } from '@prisma/client';
 import notFound from '@/app/not-found';
 import Link from 'next/link';
 import { ChevronLeft } from 'react-bootstrap-icons';
-import StoreItemsPanel from '@/components/storeitem/StoreItemsPanel';
+import StoreItemsPanel from '@/components/store-items/StoreItemsPanel';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import VendorReviewsList from '@/components/vendors/reviews/VendorReviewsList';
 
 export default async function VendorsPage({ params }: { params: { id: string | string[] } }) {
+  const session = await getServerSession(authOptions);
+  const userEmail = session?.user?.email || null;
+  const currentUser = userEmail
+    ? await prisma.user.findUnique({
+      where: { email: userEmail },
+    })
+    : null;
   const id = String(Array.isArray(params?.id) ? params?.id[0] : params?.id);
   // console.log(id);
-  const store: Store | null = await prisma.store.findUnique({
+  const store = await prisma.store.findUnique({
     where: { id },
+    include: {
+      reviews: {
+        orderBy: { id: 'desc' },
+      },
+    },
   });
   // console.log(store);
   if (!store) {
@@ -34,6 +48,30 @@ export default async function VendorsPage({ params }: { params: { id: string | s
       : (it.price as any),
   }));
 
+  // Fetch user info for each review
+  const reviewOwnerEmails = Array.from(new Set(store.reviews.map((r) => r.owner)));
+  const reviewOwners = await prisma.user.findMany({
+    where: { email: { in: reviewOwnerEmails } },
+    select: { id: true, email: true, firstName: true, lastName: true, name: true },
+  });
+  const ownerMap = new Map(reviewOwners.map((u) => [u.email, u]));
+
+  const reviewsWithUserInfo = store.reviews.map((review) => {
+    const user = ownerMap.get(review.owner);
+    return {
+      ...review,
+      ownerUserId: user?.id,
+      ownerFirstName: user?.firstName,
+      ownerLastName: user?.lastName,
+      ownerName: user?.name,
+    };
+  });
+
+  // Calculate average rating
+  const averageRating = reviewsWithUserInfo.length > 0
+    ? (reviewsWithUserInfo.reduce((sum, r) => sum + r.rating, 0) / reviewsWithUserInfo.length)
+    : null;
+
   return (
     <main>
       <Container id="list" className="py-3">
@@ -55,6 +93,23 @@ export default async function VendorsPage({ params }: { params: { id: string | s
               ) : null}
               <h1 className="mb-0">{storeName}</h1>
             </div>
+            {averageRating !== null && (
+              <div className="mt-2 ms-3">
+                <div className="text-warning" style={{ fontSize: '1.2rem', letterSpacing: '0.1em' }}>
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <span key={i}>{i < Math.round(averageRating) ? '★' : '☆'}</span>
+                  ))}
+                </div>
+                <div className="text-muted small">
+                  {averageRating.toFixed(1)}
+                  /5 (
+                  {reviewsWithUserInfo.length}
+                  {' '}
+                  {reviewsWithUserInfo.length === 1 ? 'review' : 'reviews'}
+                  )
+                </div>
+              </div>
+            )}
           </Col>
           <Col>
             {website ? (
@@ -104,6 +159,16 @@ export default async function VendorsPage({ params }: { params: { id: string | s
               <StoreItemsPanel items={items} isMyStore={false} />
             </Col>
           </Row>
+        </Container>
+        <Container className="pt-4 shadow-sm rounded-4 p-4 mb-4">
+          <VendorReviewsList
+            reviews={reviewsWithUserInfo}
+            storeId={id}
+            isLoggedIn={!!session?.user}
+            currentUserEmail={userEmail}
+            userRole={currentUser?.role}
+            storeOwnerEmail={store.owner}
+          />
         </Container>
       </Container>
     </main>

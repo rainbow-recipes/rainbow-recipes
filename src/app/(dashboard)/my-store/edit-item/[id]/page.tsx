@@ -3,7 +3,7 @@ import { vendorProtectedPage } from '@/lib/page-protection';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import notFound from '@/app/not-found';
-import EditStoreItemForm from '@/components/EditStoreItemForm';
+import EditStoreItemForm from '@/components/store-items/EditStoreItemForm';
 
 export default async function EditItemPage({ params }: { params: { id: string | string[] } }) {
   const session = await getServerSession(authOptions);
