@@ -21,10 +21,18 @@ test('test access to guest pages', async ({ page }) => {
   await page.waitForLoadState('networkidle');
   await expect(page.getByRole('heading', { name: 'Recipes', level: 2 })).toBeVisible({ timeout: headingTimeout });
 
-  // Check Vendors page
-  await page.goto('http://localhost:3000/vendors');
+  // Check Vendors page (retry via direct goto if soft navigation stalls)
+  await page.getByRole('link', { name: 'Vendors', exact: true }).click();
+  await page.waitForURL('**/vendors', { timeout: headingTimeout });
   await page.waitForLoadState('networkidle');
-  await expect(page.locator('h2', { hasText: 'Vendors' })).toBeVisible({ timeout: headingTimeout });
+  try {
+    await expect(page.locator('h2', { hasText: 'Vendors' })).toBeVisible({ timeout: headingTimeout });
+  } catch (error) {
+    // Fallback: hard navigate then retry
+    await page.goto('http://localhost:3000/vendors', { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('h2', { hasText: 'Vendors' })).toBeVisible({ timeout: headingTimeout });
+  }
 
   // Check About page
   await page.getByRole('link', { name: 'About', exact: true }).click();

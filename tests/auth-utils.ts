@@ -57,6 +57,26 @@ async function authenticateWithUI(
   password: string,
   sessionName: string,
 ): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const safeGoto = async (url: string, label: string): Promise<void> => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
+        await page.waitForLoadState('networkidle');
+        return;
+      } catch (error: any) {
+        const msg = error?.message || '';
+        const interrupted = msg.includes('interrupted by another navigation');
+        if (!interrupted || attempt === 1) {
+          throw error;
+        }
+        // Give the ongoing navigation a moment to settle, then retry
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(300);
+      }
+    }
+  };
+
   const sessionPath = path.join(SESSION_STORAGE_PATH, `${sessionName}.json`);
 
   // Try to restore session from storage if available
@@ -95,8 +115,7 @@ async function authenticateWithUI(
     console.log(`→ Authenticating ${email} via UI...`);
 
     // Navigate to login page
-    await page.goto(`${BASE_URL}/signin`);
-    await page.waitForLoadState('networkidle');
+    await safeGoto(`${BASE_URL}/signin`, 'signin');
 
     // Fill in credentials with retry logic
     await fillFormWithRetry(page, [

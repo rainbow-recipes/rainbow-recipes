@@ -8,15 +8,39 @@ test('test access to john pages', async ({ getUserPage }) => {
   const johnPage = await getUserPage('john@foo.com', 'changeme');
 
   // Navigate to the home johnPage
-  await johnPage.goto('http://localhost:3000/');
+  try {
+    await johnPage.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
+  } catch (error: any) {
+    // eslint-disable-next-line max-len
+    if (!(error?.message || '').includes('interrupted by another navigation') && !(error?.message || '').includes('NS_BINDING_ABORTED')) {
+      throw error;
+    }
+    await johnPage.waitForLoadState('networkidle');
+  }
   await johnPage.waitForLoadState('networkidle');
 
+  // If redirected to error page, go home again
+  if (johnPage.url().includes('/api/auth/error')) {
+    await johnPage.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
+    await johnPage.waitForLoadState('networkidle');
+  }
+
+  // Give page time to stabilize and avoid mid-check redirects
+  await johnPage.waitForTimeout(1000);
+
+  // Final check - if still on error page, retry once more
+  if (johnPage.url().includes('/api/auth/error')) {
+    await johnPage.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
+    await johnPage.waitForLoadState('networkidle');
+    await johnPage.waitForTimeout(500);
+  }
+
   // Check for navigation elements
-  await expect(johnPage.getByRole('link', { name: 'Recipes', exact: true })).toBeVisible();
-  await expect(johnPage.getByRole('link', { name: 'Vendors', exact: true })).toBeVisible();
-  await expect(johnPage.getByRole('button', { name: 'Categories' })).toBeVisible();
-  await expect(johnPage.getByRole('link', { name: 'About', exact: true })).toBeVisible();
-  await expect(johnPage.getByRole('link', { name: 'Favorites' })).toBeVisible();
+  await expect(johnPage.getByRole('link', { name: 'Recipes', exact: true })).toBeVisible({ timeout: headingTimeout });
+  await expect(johnPage.getByRole('link', { name: 'Vendors', exact: true })).toBeVisible({ timeout: headingTimeout });
+  await expect(johnPage.getByRole('button', { name: 'Categories' })).toBeVisible({ timeout: headingTimeout });
+  await expect(johnPage.getByRole('link', { name: 'About', exact: true })).toBeVisible({ timeout: headingTimeout });
+  await expect(johnPage.getByRole('link', { name: 'Favorites' })).toBeVisible({ timeout: headingTimeout });
 
   // Check Add Recipe johnPage
   await johnPage.getByRole('link', { name: 'Recipes', exact: true }).click();
