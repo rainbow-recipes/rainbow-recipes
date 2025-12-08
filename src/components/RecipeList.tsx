@@ -10,7 +10,15 @@ import { Card } from 'react-bootstrap';
 import { SuitHeart, SuitHeartFill } from 'react-bootstrap-icons';
 import defaultRecipeImage from '../../public/default-recipe-image.png';
 
-type RecipeWithTags = Recipe & { tags: Tag[] };
+type RecipeWithTags = Recipe & {
+  tags: Tag[];
+  author?: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    name: string | null;
+  } | null;
+};
 
 interface RecipeListProps {
   initialRecipes: RecipeWithTags[];
@@ -22,6 +30,8 @@ interface RecipeListProps {
   currentUserId?: string | number;
   // eslint-disable-next-line react/require-default-props
   showSearch?: boolean;
+  // eslint-disable-next-line react/require-default-props
+  mode?: 'default' | 'publicProfile';
 }
 
 export default function RecipeList({
@@ -31,12 +41,13 @@ export default function RecipeList({
   isAdmin,
   currentUserId,
   showSearch = true,
+  mode = 'default',
 }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeWithTags[]>(initialRecipes);
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const urlFoodType = searchParams.get('foodType');
-  const urlAppliance = searchParams.get('appliance');
+  const urlFoodType = mode === 'publicProfile' ? null : searchParams.get('foodType');
+  const urlAppliance = mode === 'publicProfile' ? null : searchParams.get('appliance');
 
   const dietTags = useMemo(() => allTags.filter((t) => t.category === 'Diet'), [allTags]);
   const applianceTags = useMemo(() => allTags.filter((t) => t.category === 'Appliance'), [allTags]);
@@ -228,7 +239,7 @@ export default function RecipeList({
 
   return (
     <>
-      {showSearch && (
+      {showSearch && mode !== 'publicProfile' && (
         <>
           {/* Top bar: search + sort + add recipe */}
           <div className="row align-items-center mb-4 g-3">
@@ -385,122 +396,124 @@ export default function RecipeList({
       {/* Main layout: left filter column + right cards */}
       <div className="row">
         {/* Filter column */}
-        <div className="col-md-3 mb-4">
-          <div className="card h-100">
-            <div className="card-body">
-              <div className="d-flex align-items-center mb-3">
-                <h4 className="mb-0 me-2">Filter</h4>
-                <span className="ms-auto">
-                  <span className="d-block" style={{ width: 18, borderTop: '2px solid #000' }} />
-                  <span
-                    className="d-block mt-1"
-                    style={{ width: 12, borderTop: '2px solid #000', marginLeft: 6 }}
-                  />
-                </span>
-              </div>
+        {mode !== 'publicProfile' && (
+          <div className="col-md-3 mb-4">
+            <div className="card h-100">
+              <div className="card-body">
+                <div className="d-flex align-items-center mb-3">
+                  <h4 className="mb-0 me-2">Filter</h4>
+                  <span className="ms-auto">
+                    <span className="d-block" style={{ width: 18, borderTop: '2px solid #000' }} />
+                    <span
+                      className="d-block mt-1"
+                      style={{ width: 12, borderTop: '2px solid #000', marginLeft: 6 }}
+                    />
+                  </span>
+                </div>
 
-              {/* Food Type */}
-              <details open={foodTypeOpen} className="mb-2">
-                <summary
-                  className="fw-semibold mb-1"
-                  style={{ cursor: 'pointer' }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setFoodTypeOpen(!foodTypeOpen);
-                  }}
-                >
-                  Food Type
-                </summary>
-                {dietTags.length === 0 && (
+                {/* Food Type */}
+                <details open={foodTypeOpen} className="mb-2">
+                  <summary
+                    className="fw-semibold mb-1"
+                    style={{ cursor: 'pointer' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setFoodTypeOpen(!foodTypeOpen);
+                    }}
+                  >
+                    Food Type
+                  </summary>
+                  {dietTags.length === 0 && (
                   <div className="text-muted small">(no diet tags yet)</div>
-                )}
-                {dietTags.map((tag) => (
-                  <div key={tag.id} className="form-check">
-                    <input
-                      id={`diet-${tag.id}`}
-                      type="checkbox"
-                      className="form-check-input"
-                      checked={selectedDietTags.includes(tag.id)}
-                      onChange={() => toggleDiet(tag.id)}
-                    />
-                    <label htmlFor={`diet-${tag.id}`} className="form-check-label">
-                      {tag.name}
-                    </label>
-                  </div>
-                ))}
-              </details>
+                  )}
+                  {dietTags.map((tag) => (
+                    <div key={tag.id} className="form-check">
+                      <input
+                        id={`diet-${tag.id}`}
+                        type="checkbox"
+                        className="form-check-input"
+                        checked={selectedDietTags.includes(tag.id)}
+                        onChange={() => toggleDiet(tag.id)}
+                      />
+                      <label htmlFor={`diet-${tag.id}`} className="form-check-label">
+                        {tag.name}
+                      </label>
+                    </div>
+                  ))}
+                </details>
 
-              {/* Appliances */}
-              <details open={applianceOpen} className="mb-2">
-                <summary
-                  className="fw-semibold mb-1"
-                  style={{ cursor: 'pointer' }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setApplianceOpen(!applianceOpen);
-                  }}
-                >
-                  Appliances
-                </summary>
-                {applianceTags.length === 0 && (
+                {/* Appliances */}
+                <details open={applianceOpen} className="mb-2">
+                  <summary
+                    className="fw-semibold mb-1"
+                    style={{ cursor: 'pointer' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setApplianceOpen(!applianceOpen);
+                    }}
+                  >
+                    Appliances
+                  </summary>
+                  {applianceTags.length === 0 && (
                   <div className="text-muted small">(no appliance tags yet)</div>
-                )}
-                {applianceTags.map((tag) => (
-                  <div key={tag.id} className="form-check">
+                  )}
+                  {applianceTags.map((tag) => (
+                    <div key={tag.id} className="form-check">
+                      <input
+                        id={`app-${tag.id}`}
+                        type="checkbox"
+                        className="form-check-input"
+                        checked={selectedApplianceTags.includes(tag.id)}
+                        onChange={() => toggleAppliance(tag.id)}
+                      />
+                      <label htmlFor={`app-${tag.id}`} className="form-check-label">
+                        {tag.name}
+                      </label>
+                    </div>
+                  ))}
+                </details>
+
+                {/* Cost */}
+                <details className="mb-2">
+                  <summary className="fw-semibold mb-1" style={{ cursor: 'pointer' }}>
+                    Cost
+                  </summary>
+                  <div className="d-flex align-items-center">
+                    <span className="me-2 small text-muted">Max</span>
                     <input
-                      id={`app-${tag.id}`}
-                      type="checkbox"
-                      className="form-check-input"
-                      checked={selectedApplianceTags.includes(tag.id)}
-                      onChange={() => toggleAppliance(tag.id)}
+                      type="number"
+                      step="0.01"
+                      className="form-control"
+                      value={maxCost ?? ''}
+                      onChange={(e) => setMaxCost(e.target.value ? Number(e.target.value) : undefined)}
+                      placeholder="$"
                     />
-                    <label htmlFor={`app-${tag.id}`} className="form-check-label">
-                      {tag.name}
-                    </label>
                   </div>
-                ))}
-              </details>
+                </details>
 
-              {/* Cost */}
-              <details className="mb-2">
-                <summary className="fw-semibold mb-1" style={{ cursor: 'pointer' }}>
-                  Cost
-                </summary>
-                <div className="d-flex align-items-center">
-                  <span className="me-2 small text-muted">Max</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="form-control"
-                    value={maxCost ?? ''}
-                    onChange={(e) => setMaxCost(e.target.value ? Number(e.target.value) : undefined)}
-                    placeholder="$"
-                  />
-                </div>
-              </details>
-
-              {/* Prep time */}
-              <details className="mb-2">
-                <summary className="fw-semibold mb-1" style={{ cursor: 'pointer' }}>
-                  Prep Time
-                </summary>
-                <div className="d-flex align-items-center">
-                  <span className="me-2 small text-muted">Max (min)</span>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={maxPrepTime ?? ''}
-                    onChange={(e) => setMaxPrepTime(e.target.value ? Number(e.target.value) : undefined)}
-                    placeholder="minutes"
-                  />
-                </div>
-              </details>
+                {/* Prep time */}
+                <details className="mb-2">
+                  <summary className="fw-semibold mb-1" style={{ cursor: 'pointer' }}>
+                    Prep Time
+                  </summary>
+                  <div className="d-flex align-items-center">
+                    <span className="me-2 small text-muted">Max (min)</span>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={maxPrepTime ?? ''}
+                      onChange={(e) => setMaxPrepTime(e.target.value ? Number(e.target.value) : undefined)}
+                      placeholder="minutes"
+                    />
+                  </div>
+                </details>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Cards column */}
-        <div className="col-md-9">
+        <div className={mode === 'publicProfile' ? 'col-12' : 'col-md-9'}>
           {filteredRecipes.length === 0 ? (
             <p>No recipes match these filters.</p>
           ) : (
@@ -534,18 +547,35 @@ export default function RecipeList({
                           {/* Title + heart row */}
                           <div className="d-flex justify-content-between align-items-center mb-2">
                             <h5 className="card-title mb-0">{recipe.name}</h5>
-                            <button
-                              type="button"
-                              className="btn btn-link p-0 border-0"
-                              style={{ position: 'relative', zIndex: 2 }}
-                              onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe.id); }}
-                              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                            >
-                              <span style={{ fontSize: '1.4rem' }}>
-                                {isFavorite ? <SuitHeartFill /> : <SuitHeart />}
-                              </span>
-                            </button>
+                            {mode !== 'publicProfile' && (
+                              <button
+                                type="button"
+                                className="btn btn-link p-0 border-0"
+                                style={{ position: 'relative', zIndex: 2 }}
+                                onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe.id); }}
+                                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                              >
+                                <span style={{ fontSize: '1.4rem' }}>
+                                  {isFavorite ? <SuitHeartFill /> : <SuitHeart />}
+                                </span>
+                              </button>
+                            )}
                           </div>
+
+                          {recipe.author && (
+                            <Card.Text className="text-muted small mb-2">
+                              <Link
+                                href={`/profiles/${recipe.author.id}`}
+                                className="text-decoration-none"
+                                onClick={(e) => e.stopPropagation()}
+                                style={{ position: 'relative', zIndex: 2 }}
+                              >
+                                {recipe.author.firstName && recipe.author.lastName
+                                  ? `${recipe.author.firstName} ${recipe.author.lastName}`
+                                  : recipe.author.firstName || recipe.author.name || 'Anonymous User'}
+                              </Link>
+                            </Card.Text>
+                          )}
 
                           <Card.Text className="mb-2">
                             Prep time:
@@ -566,29 +596,31 @@ export default function RecipeList({
                             </div>
                           </div>
 
-                          <div className="mt-3 d-flex justify-content-end">
-                            {(isAdmin || isOwner) && (
-                              <Link
-                                href={`/recipes/edit/${recipe.id}`}
-                                className="btn btn-sm btn-outline-primary ms-2"
-                                onClick={(e) => e.stopPropagation()}
-                                style={{ position: 'relative', zIndex: 2 }}
-                              >
-                                Edit
-                              </Link>
-                            )}
+                          {mode !== 'publicProfile' && (
+                            <div className="mt-3 d-flex justify-content-end">
+                              {(isAdmin || isOwner) && (
+                                <Link
+                                  href={`/recipes/edit/${recipe.id}`}
+                                  className="btn btn-sm btn-outline-primary ms-2"
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{ position: 'relative', zIndex: 2 }}
+                                >
+                                  Edit
+                                </Link>
+                              )}
 
-                            {isAdmin && (
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-outline-danger ms-2"
-                                style={{ position: 'relative', zIndex: 2 }}
-                                onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id); }}
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </div>
+                              {isAdmin && (
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-danger ms-2"
+                                  style={{ position: 'relative', zIndex: 2 }}
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id); }}
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </Card.Body>
                       </Card>
                     </Link>

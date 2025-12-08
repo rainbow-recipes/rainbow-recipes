@@ -12,7 +12,14 @@ export default async function RecipesPage() {
   const session = await getServerSession(authOptions);
 
   const [recipes, tags] = await Promise.all([
-    prisma.recipe.findMany({ include: { tags: true } }),
+    prisma.recipe.findMany({
+      include: {
+        tags: true,
+        author: {
+          select: { id: true, firstName: true, lastName: true, name: true },
+        },
+      },
+    }),
     prisma.tag.findMany(),
   ]);
 
