@@ -2,7 +2,7 @@
 
 import { Card } from 'react-bootstrap';
 import { Store } from '@prisma/client';
-import defaultImage from '../../public/default-store-image.png';
+import defaultImage from '../../../public/default-store-image.png';
 
 export default function VendorCard({ store }: { store: Store }) {
   return (

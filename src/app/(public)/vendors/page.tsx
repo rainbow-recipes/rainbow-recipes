@@ -1,9 +1,7 @@
 import { PrismaClient } from '@prisma/client';
-import VendorCard from '@/components/VendorCard';
-import { Col, Row } from 'react-bootstrap';
+import VendorList from '@/components/vendors/VendorList';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import Link from 'next/link';
 
 const prisma = new PrismaClient();
 
@@ -37,17 +35,7 @@ export default async function VendorsPage() {
           page to get listed!
         </p>
       )}
-      <Row className="g-4">
-        {stores
-          .filter((store) => store.name !== 'My Store')
-          .map((store) => (
-            <Col key={store.id} xs={6} md="auto">
-              <Link href={`/vendors/${store.id}`} className="text-decoration-none text-dark">
-                <VendorCard store={store} />
-              </Link>
-            </Col>
-          ))}
-      </Row>
+      <VendorList stores={stores} />
     </div>
   );
 }
