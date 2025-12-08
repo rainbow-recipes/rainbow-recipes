@@ -283,3 +283,18 @@ export async function getDatabaseItems() {
     approved: item.approved,
   }));
 }
+
+export async function getTags() {
+  const tags = await prisma.tag.findMany({
+    orderBy: { name: 'asc' },
+    include: {
+      recipes: true,
+    },
+  });
+  return tags.map((tag) => ({
+    id: tag.id,
+    name: tag.name,
+    category: tag.category,
+    recipeCount: tag.recipes.length,
+  }));
+}
