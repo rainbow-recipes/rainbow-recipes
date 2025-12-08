@@ -60,7 +60,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         { error: 'Cost must be a positive number' },
         { status: 400 },
       );
-    }s
+    }
     if (prepNum < 0) {
       return NextResponse.json(
         { error: 'Prep time must be a positive number' },
