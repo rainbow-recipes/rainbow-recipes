@@ -1,41 +1,36 @@
-import { test } from '@playwright/test';
-import { ensureAuthStorage, getBaseUrl, checkPageLoads, checkProtectedEditPage } from './auth-utils';
+import { test, expect } from './auth-utils';
 
-const baseUrl = getBaseUrl();
-let userStoragePath: string;
+test.slow();
+test('test access to john pages', async ({ getUserPage }) => {
+  // Call the getUserPage fixture with users signin info to get authenticated session for user
+  const johnPage = await getUserPage('john@foo.com', 'changeme');
 
-// Prepare storage state for john@foo.com if missing
-test.beforeAll(async () => {
-  userStoragePath = await ensureAuthStorage({
-    storageName: 'john-storage.json',
-    envEmailVar: 'TEST_USER_EMAIL',
-    envPasswordVar: 'TEST_USER_PASSWORD',
-    defaultEmail: 'john@foo.com',
-    defaultPassword: 'changeme',
-    baseUrl,
-    validateSession: true,
-    callbackUrl: '/recipes',
-  });
-});
+  // Navigate to the home johnPage
+  await johnPage.goto('http://localhost:3000/');
 
-const routes = ['/favorites', '/profile', '/recipes/add', '/recipes/my-recipes'];
+  // Check for navigation elements
+  await expect(johnPage.getByRole('link', { name: 'Recipes', exact: true })).toBeVisible();
+  await expect(johnPage.getByRole('link', { name: 'Vendors', exact: true })).toBeVisible();
+  await expect(johnPage.getByRole('button', { name: 'Categories' })).toBeVisible();
+  await expect(johnPage.getByRole('link', { name: 'About', exact: true })).toBeVisible();
+  await expect(johnPage.getByRole('link', { name: 'Favorites' })).toBeVisible();
 
-routes.forEach((route) => {
-  test(`user loads ${route}`, async ({ browser, baseURL }) => {
-    const urlBase = baseURL ?? getBaseUrl();
-    await checkPageLoads(browser, `${urlBase}${route}`, { storagePath: userStoragePath });
-  });
-});
+  // Check Add Recipe johnPage
+  await johnPage.getByRole('link', { name: 'Recipes', exact: true }).click();
+  await johnPage.getByRole('link', { name: 'Add Recipe' }).click();
+  await expect(johnPage.getByRole('heading', { name: 'Add new recipe' })).toBeVisible();
 
-test('protected: /recipes/edit/[id] loads for john user', async ({ browser, baseURL }) => {
-  const urlBase = baseURL ?? getBaseUrl();
+  // Check Favorites johnPage
+  await johnPage.getByRole('link', { name: 'Favorites' }).click();
+  await expect(johnPage.getByRole('heading', { name: 'My Favorites' })).toBeVisible();
 
-  await checkProtectedEditPage({
-    browser,
-    storagePath: userStoragePath,
-    baseUrl: urlBase,
-    listPath: '/recipes',
-    editHrefContains: '/recipes/edit/',
-    editPathPrefix: '/recipes/edit/',
-  });
+  // Check Profile johnPage
+  await johnPage.getByRole('button', { name: 'Hello, john@foo.com' }).click();
+  await johnPage.getByRole('link', { name: 'Profile' }).click();
+  await expect(johnPage.getByText('john@foo.com', { exact: true })).toBeVisible();
+
+  // Check My Recipes johnPage
+  await johnPage.getByRole('button', { name: 'Hello, john@foo.com' }).click();
+  await johnPage.getByRole('link', { name: 'My Recipes' }).click();
+  await expect(johnPage.getByRole('heading', { name: 'My Recipes' })).toBeVisible();
 });

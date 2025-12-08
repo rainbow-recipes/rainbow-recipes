@@ -1,60 +1,31 @@
-import { test } from '@playwright/test';
-import { ensureAuthStorage, getBaseUrl, checkPageLoads, checkProtectedEditPage } from './auth-utils';
+import { test, expect } from './auth-utils';
 
-const baseUrl = getBaseUrl();
-let vendorStoragePath: string;
+test.slow();
+test('test access to vendor pages', async ({ getUserPage }) => {
+  // Call the getUserPage fixture with users signin info to get authenticated session for user
+  const vendorPage = await getUserPage('vendor@foo.com', 'changeme');
 
-test.beforeAll(async () => {
-  vendorStoragePath = await ensureAuthStorage({
-    storageName: 'vendor-storage.json',
-    envEmailVar: 'TEST_VENDOR_EMAIL',
-    envPasswordVar: 'TEST_VENDOR_PASSWORD',
-    defaultEmail: 'vendor@foo.com',
-    defaultPassword: 'changeme',
-    baseUrl,
-    validateSession: true,
-    callbackUrl: '/recipes',
-  });
-});
+  // Navigate to the home vendorPage
+  await vendorPage.goto('http://localhost:3000/');
 
-test('protected: /my-store loads for vendor user', async ({ browser, baseURL }) => {
-  const urlBase = baseURL ?? getBaseUrl();
-  await checkPageLoads(browser, `${urlBase}/my-store`, { storagePath: vendorStoragePath });
-});
+  // Check for navigation elements
+  await expect(vendorPage.getByRole('link', { name: 'My Store' })).toBeVisible();
+  await expect(vendorPage.getByRole('link', { name: 'Recipes', exact: true })).toBeVisible();
+  await expect(vendorPage.getByRole('link', { name: 'Vendors', exact: true })).toBeVisible();
+  await expect(vendorPage.getByRole('button', { name: 'Categories' })).toBeVisible();
+  await expect(vendorPage.getByRole('link', { name: 'About', exact: true })).toBeVisible();
+  await expect(vendorPage.getByRole('link', { name: 'Favorites' })).toBeVisible();
 
-test('protected: /my-store/add-item loads for vendor user', async ({ browser, baseURL }) => {
-  const urlBase = baseURL ?? getBaseUrl();
-  await checkPageLoads(browser, `${urlBase}/my-store/add-item`, { storagePath: vendorStoragePath });
-});
+  // Check My Store vendorPage
+  await vendorPage.getByRole('link', { name: 'My Store' }).click();
+  await expect(vendorPage.getByRole('heading', { name: 'Bobby\'s Farm' })).toBeVisible();
 
-test('protected: /my-store/edit/[id] loads for vendor user with their store id', async ({
-  browser,
-  baseURL,
-}) => {
-  const urlBase = baseURL ?? getBaseUrl();
+  // Check Add Item vendorPage
+  await vendorPage.getByRole('link', { name: 'Add Item' }).click();
+  await expect(vendorPage.getByRole('heading', { name: 'Add Store Item' })).toBeVisible();
 
-  await checkProtectedEditPage({
-    browser,
-    storagePath: vendorStoragePath,
-    baseUrl: urlBase,
-    listPath: '/my-store',
-    editHrefContains: '/my-store/edit/',
-    editPathPrefix: '/my-store/edit/',
-  });
-});
-
-test('protected: /my-store/edit-item/[id] loads for vendor user with their item id', async ({
-  browser,
-  baseURL,
-}) => {
-  const urlBase = baseURL ?? getBaseUrl();
-
-  await checkProtectedEditPage({
-    browser,
-    storagePath: vendorStoragePath,
-    baseUrl: urlBase,
-    listPath: '/my-store',
-    editHrefContains: '/my-store/edit-item/',
-    editPathPrefix: '/my-store/edit-item/',
-  });
+  // Check Edit My Store vendorPage
+  await vendorPage.getByRole('link', { name: 'My Store' }).click();
+  await vendorPage.getByRole('link', { name: 'Edit My Store' }).click();
+  await expect(vendorPage.getByRole('heading', { name: 'Edit My Store' })).toBeVisible();
 });

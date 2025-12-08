@@ -1,207 +1,159 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable import/no-extraneous-dependencies */
+import { test as base, expect, Page } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
-import { chromium } from 'playwright';
-import type { Browser, Page } from '@playwright/test';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { expect } from '@playwright/test';
 
-const defaultBaseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3000';
-const sessionsDir = path.join(__dirname, 'playwright-auth-sessions');
+// Base configuration
+const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
+const SESSION_STORAGE_PATH = path.join(__dirname, 'playwright-auth-sessions');
 
-export type AuthConfig = {
-  storageName: string;
-  envEmailVar: string;
-  envPasswordVar: string;
-  defaultEmail: string;
-  defaultPassword: string;
-  baseUrl?: string;
-  validateSession?: boolean;
-  callbackUrl?: string;
-};
-
-async function signInAndSave({
-  storagePath,
-  email,
-  password,
-  baseUrl,
-  callbackUrl = '/recipes',
-}: {
-  storagePath: string;
-  email: string;
-  password: string;
-  baseUrl: string;
-  callbackUrl?: string;
-}) {
-  const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
-  await page.goto(`${baseUrl}/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`);
-  await page.fill('input[type="email"]', email);
-  await page.fill('input[type="password"]', password);
-  await Promise.all([
-    page.waitForNavigation({ waitUntil: 'networkidle', timeout: 30000 }),
-    page.click('button:has-text("Sign in")'),
-  ]);
-
-  await context.storageState({ path: storagePath });
-  await context.close();
-  await browser.close();
+// Ensure session directory exists
+if (!fs.existsSync(SESSION_STORAGE_PATH)) {
+  fs.mkdirSync(SESSION_STORAGE_PATH, { recursive: true });
 }
 
-async function validateStorage({
-  storagePath,
-  email,
-  baseUrl,
-}: {
-  storagePath: string;
-  email: string;
-  baseUrl: string;
-}) {
-  try {
-    const browser = await chromium.launch();
-    const context = await browser.newContext({ storageState: storagePath });
-    const page = await context.newPage();
-    await page.goto(baseUrl);
-    const session = await page.evaluate(async () => {
+// Define our custom fixtures
+interface AuthFixtures {
+  getUserPage: (email: string, password: string) => Promise<Page>;
+}
+
+/**
+ * Helper to fill form fields with retry logic
+ */
+async function fillFormWithRetry(
+  page: Page,
+  fields: Array<{ selector: string; value: string }>,
+): Promise<void> {
+  for (const field of fields) {
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
       try {
-        const res = await fetch('/api/auth/session');
-        if (!res.ok) return null;
-        return await res.json();
-      } catch (e) {
-        return null;
+        const element = page.locator(field.selector);
+        await element.waitFor({ state: 'visible', timeout: 2000 });
+        await element.clear();
+        await element.fill(field.value);
+        await element.evaluate((el) => el.blur()); // Trigger blur event
+        break;
+      } catch (error) {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          throw new Error(`Failed to fill field ${field.selector} after ${maxAttempts} attempts`);
+        }
+        await page.waitForTimeout(500);
       }
-    });
-    await context.close();
-    await browser.close();
-    return !!(session && (session as any).user && (session as any).user.email === email);
-  } catch (e) {
-    return false;
+    }
   }
 }
 
-export async function ensureAuthStorage(config: AuthConfig): Promise<string> {
-  const baseUrl = config.baseUrl || defaultBaseUrl;
-  const storagePath = path.join(sessionsDir, config.storageName);
+/**
+ * Authenticate using the UI with robust waiting and error handling
+ */
+async function authenticateWithUI(
+  page: Page,
+  email: string,
+  password: string,
+  sessionName: string,
+): Promise<void> {
+  const sessionPath = path.join(SESSION_STORAGE_PATH, `${sessionName}.json`);
 
-  if (!fs.existsSync(sessionsDir)) {
-    fs.mkdirSync(sessionsDir, { recursive: true });
-  }
+  // Try to restore session from storage if available
+  if (fs.existsSync(sessionPath)) {
+    try {
+      const sessionData = JSON.parse(fs.readFileSync(sessionPath, 'utf8'));
+      await page.context().addCookies(sessionData.cookies);
 
-  const email = process.env[config.envEmailVar] || config.defaultEmail;
-  const password = process.env[config.envPasswordVar] || config.defaultPassword;
+      // Navigate to homepage to verify session
+      await page.goto(BASE_URL);
+      await page.waitForLoadState('networkidle');
 
-  const needsGenerate = !fs.existsSync(storagePath);
+      // Check if we're authenticated by looking for a sign-out option or user email
+      const isAuthenticated = await Promise.race([
+        page.getByText(email).isVisible().then((visible) => visible),
+        page.getByRole('button', { name: email }).isVisible().then((visible) => visible),
+        page.getByText('Sign out').isVisible().then((visible) => visible),
+        page.getByRole('button', { name: 'Sign out' }).isVisible().then((visible) => visible),
+        // eslint-disable-next-line no-promise-executor-return
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000)),
+      ]);
 
-  if (needsGenerate) {
-    await signInAndSave({ storagePath, email, password, baseUrl, callbackUrl: config.callbackUrl });
-    return storagePath;
-  }
+      if (isAuthenticated) {
+        console.log(`✓ Restored session for ${email}`);
+        return;
+      }
 
-  if (config.validateSession) {
-    const valid = await validateStorage({ storagePath, email, baseUrl });
-    if (!valid) {
-      try { fs.unlinkSync(storagePath); } catch (e) { /* ignore */ }
-      await signInAndSave({ storagePath, email, password, baseUrl, callbackUrl: config.callbackUrl });
+      console.log(`× Saved session for ${email} expired, re-authenticating...`);
+    } catch (error) {
+      console.log(`× Error restoring session: ${error}`);
     }
   }
 
-  return storagePath;
+  // If session restoration fails, authenticate via UI
+  try {
+    console.log(`→ Authenticating ${email} via UI...`);
+
+    // Navigate to login page
+    await page.goto(`${BASE_URL}/signin`);
+    await page.waitForLoadState('networkidle');
+
+    // Fill in credentials with retry logic
+    await fillFormWithRetry(page, [
+      { selector: '#email', value: email },
+      { selector: '#password', value: password },
+    ]);
+
+    // Click submit button and wait for navigation
+    const submitButton = page.getByRole('button', { name: /sign[ -]?in/i });
+    if (!await submitButton.isVisible({ timeout: 1000 })) {
+      // Try alternative selector if the first one doesn't work
+      await page.getByRole('button', { name: /log[ -]?in/i }).click();
+    } else {
+      await submitButton.click();
+    }
+
+    // Wait for navigation to complete
+    await page.waitForLoadState('networkidle');
+
+    // Verify authentication was successful
+    await expect(async () => {
+      const authState = await Promise.race([
+        page.getByText(email).isVisible().then((visible) => ({ success: visible })),
+        page.getByRole('button', { name: email }).isVisible().then((visible) => ({ success: visible })),
+        page.getByText('Sign out').isVisible().then((visible) => ({ success: visible })),
+        page.getByRole('button', { name: 'Sign out' }).isVisible().then((visible) => ({ success: visible })),
+        // eslint-disable-next-line no-promise-executor-return
+        new Promise<{ success: boolean }>((resolve) => setTimeout(() => resolve({ success: false }), 5000)),
+      ]);
+
+      expect(authState.success).toBeTruthy();
+    }).toPass({ timeout: 10000 });
+
+    // Save session for future tests
+    const cookies = await page.context().cookies();
+    fs.writeFileSync(sessionPath, JSON.stringify({ cookies }));
+    console.log(`✓ Successfully authenticated ${email} and saved session`);
+  } catch (error) {
+    console.error(`× Authentication failed for ${email}:`, error);
+
+    throw new Error(`Authentication failed: ${error}`);
+  }
 }
 
-export function createAuthContext(browser: Browser, storagePath: string) {
-  return browser.newContext({ storageState: storagePath });
-}
+// Create custom test with authenticated fixtures
+export const test = base.extend<AuthFixtures>({
+  getUserPage: async ({ browser }, use) => {
+    const createUserPage = async (email: string, password: string) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
 
-export function getBaseUrl(fallback?: string) {
-  return fallback || defaultBaseUrl;
-}
+      await authenticateWithUI(page, email, password, `session-${email}`);
+      return page;
+    };
 
-export async function checkPageLoads(
-  browser: Browser,
-  url: string,
-  options?: {
-    storagePath?: string;
-    timeout?: number;
-    selector?: string;
-    contentCheck?: string;
+    await use(createUserPage);
   },
-) {
-  let page: Page;
-  let context;
+});
 
-  if (options?.storagePath) {
-    context = await createAuthContext(browser, options.storagePath);
-    page = await context.newPage();
-  } else {
-    page = await browser.newPage();
-  }
-
-  const response = await page.goto(url, {
-    waitUntil: options?.storagePath ? 'load' : 'networkidle',
-    timeout: options?.timeout || 60000,
-  });
-  expect(response && response.ok(), `non-ok response for ${url}: ${response?.status()}`).toBeTruthy();
-
-  // Ensure common error copy is not present on the rendered page
-  const bodyText = (await page.innerText('body')).toLowerCase();
-  expect(bodyText, 'Page contains "Page not found" text').not.toContain('page not found');
-  expect(bodyText, 'Page contains "Not authorized" text').not.toContain('not authorized');
-
-  const selector = options?.selector || 'main, h1, [data-testid="page-root"]';
-  const element = page.locator(selector);
-  await expect(element.first(), `no element visible for ${url}`).toBeVisible({
-    timeout: options?.timeout || 5000,
-  });
-
-  if (options?.contentCheck) {
-    await expect(element.first()).toContainText(options.contentCheck, {
-      timeout: options?.timeout || 5000,
-    });
-  }
-
-  await page.close();
-  if (context) await context.close();
-}
-
-export async function checkProtectedEditPage(options: {
-  browser: Browser;
-  storagePath: string;
-  baseUrl?: string;
-  listPath: string;
-  editHrefContains: string;
-  editPathPrefix: string;
-  timeout?: number;
-}) {
-  const {
-    browser,
-    storagePath,
-    baseUrl = defaultBaseUrl,
-    listPath,
-    editHrefContains,
-    editPathPrefix,
-    timeout = 60000,
-  } = options;
-
-  const context = await createAuthContext(browser, storagePath);
-  const page = await context.newPage();
-
-  await page.goto(`${baseUrl}${listPath}`, { waitUntil: 'load', timeout });
-
-  const editLink = page.locator(`a[href*="${editHrefContains}"]`).first();
-  const href = await editLink.getAttribute('href');
-
-  expect(href, `Edit link not found on ${listPath}`).toBeTruthy();
-
-  if (href) {
-    const id = href.split(editPathPrefix)[1];
-    expect(id, 'Failed to extract edit id from href').toBeTruthy();
-
-    await checkPageLoads(browser, `${baseUrl}${editPathPrefix}${id}`, {
-      storagePath,
-      timeout,
-    });
-  }
-
-  await context.close();
-}
+export { expect } from '@playwright/test';

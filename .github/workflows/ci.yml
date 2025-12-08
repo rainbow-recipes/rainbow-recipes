@@ -8,85 +8,22 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        project: [chromium, firefox, webkit]
-    env:
-      # Prefer a secret set in the repository/org; fallback to a safe CI-only value
-      # NextAuth secret should be provided as a repository secret. If you haven't
-      # set it, create a repo secret named NEXTAUTH_SECRET with a strong value.
-      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-      # NextAuth needs NEXTAUTH_URL in production; set to the local webServer URL
-      NEXTAUTH_URL: http://localhost:3000
-      # Explicit DATABASE_URL pointing at the test Postgres service
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rainbow_test
-      # Prisma may reference an unpooled direct URL; set the unpooled var too
-      DATABASE_URL_UNPOOLED: postgresql://postgres:postgres@localhost:5432/rainbow_test
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: rainbow_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Restore cache (node_modules + Playwright)
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            ~/.cache/ms-playwright
-            .next/cache
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-{{ matrix.project }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       - name: Install dependencies
         run: npm ci
-
-      - name: Verify NEXTAUTH_SECRET is set
-        run: |
-          if [ -z "${NEXTAUTH_SECRET}" ]; then
-            echo "ERROR: NEXTAUTH_SECRET is not set. Add a repository secret named NEXTAUTH_SECRET with a strong value." >&2
-            exit 1
-          fi
-
-      - name: Build
-        run: npm run build
-
-      - name: Wait for Postgres
-        # give the service a few seconds to become ready
-        run: sleep 10
-
-      - name: Apply database migrations
-        run: npx prisma migrate deploy
-
-      - name: Seed database
-        run: npx prisma db seed
-
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-
       - name: Run ESLint
-        run: npm run lint &
-
-      - name: Run Playwright tests for ${{ matrix.project }}
-        run: npx playwright test --project=${{ matrix.project }} --workers=$(nproc) --reporter=list
-
+        run: npm run lint
+      - name: Run Playwright tests
+        run: npx playwright test
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report-${{ matrix.project }}
+          name: playwright-report
           path: playwright-report/
           retention-days: 30

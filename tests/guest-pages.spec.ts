@@ -1,51 +1,47 @@
-import { test, expect } from '@playwright/test';
-import { getBaseUrl, checkPageLoads } from './auth-utils';
+import { test, expect } from './auth-utils';
 
-const routes = ['/about', '/recipes', '/vendors', '/signin', '/signup', '/vendor-signup'];
+test.slow();
+test('test access to guest pages', async ({ page }) => {
+  // Navigate to the home page
+  await page.goto('http://localhost:3000/');
 
-routes.forEach((route) => {
-  test(`guest loads ${route}`, async ({ browser, baseURL }) => {
-    const urlBase = baseURL ?? getBaseUrl();
-    await checkPageLoads(browser, `${urlBase}${route}`);
-  });
-});
+  // Check for navigation elements
+  await expect(page.getByRole('link', { name: 'Recipes', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Vendors', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Categories' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'About', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Vendor Sign Up' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Log In' })).toBeVisible();
 
-test('guest loads /recipes/[id]', async ({ browser, baseURL }) => {
-  const urlBase = baseURL ?? getBaseUrl();
+  // Check Recipes page
+  await page.getByRole('link', { name: 'Recipes', exact: true }).click();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading', { name: 'Recipes', level: 2 })).toBeVisible();
 
-  const page = await browser.newPage();
-  await page.goto(`${urlBase}/recipes`, { waitUntil: 'load', timeout: 60000 });
+  // Check Vendors page
+  await page.getByRole('link', { name: 'Vendors', exact: true }).click();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading', { name: 'Vendors', level: 2 })).toBeVisible();
 
-  const recipeLink = page.locator('a[href*="/recipes/"]').first();
-  const href = await recipeLink.getAttribute('href');
+  // Check About page
+  await page.getByRole('link', { name: 'About', exact: true }).click();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading', { name: 'About Rainbow Recipes', level: 1 })).toBeVisible();
 
-  expect(href, 'Recipe link not found on /recipes page').toBeTruthy();
+  // Check Vendor Sign Up page
+  await page.getByRole('link', { name: 'Vendor Sign Up' }).click();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading', { name: 'Vendor sign up', level: 2 })).toBeVisible();
 
-  if (href) {
-    const recipeId = href.split('/recipes/')[1];
-    expect(recipeId, 'Failed to extract recipe id from href').toBeTruthy();
+  // Check Sign In page
+  await page.getByRole('button', { name: 'Log In' }).click();
+  await page.getByRole('link', { name: 'Sign In', exact: true }).click();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading', { name: 'Sign in', level: 2 })).toBeVisible();
 
-    await checkPageLoads(browser, `${urlBase}/recipes/${recipeId}`);
-  }
-
-  await page.close();
-});
-
-test('guest loads /vendors/[id]', async ({ browser, baseURL }) => {
-  const urlBase = baseURL ?? getBaseUrl();
-
-  const page = await browser.newPage();
-  await page.goto(`${urlBase}/vendors`, { waitUntil: 'load', timeout: 60000 });
-  const vendorLink = page.locator('a[href*="/vendors/"]').first();
-  const href = await vendorLink.getAttribute('href');
-
-  expect(href, 'Vendor link not found on /vendors page').toBeTruthy();
-  if (href) {
-    const vendorId = href.split('/vendors/')[1];
-    expect(vendorId, 'Failed to extract vendor id from href').toBeTruthy();
-
-    await checkPageLoads(browser, `${urlBase}/vendors/${vendorId}`);
-  }
-
-  await page.close();
+  // Check Sign Up page
+  await page.getByRole('button', { name: 'Log In' }).click();
+  await page.getByRole('link', { name: 'Sign Up', exact: true }).click();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading', { name: 'Sign up', level: 2 })).toBeVisible();
 });

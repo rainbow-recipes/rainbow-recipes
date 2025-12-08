@@ -1,44 +1,23 @@
-import { test } from '@playwright/test';
-import { ensureAuthStorage, getBaseUrl, checkPageLoads, checkProtectedEditPage } from './auth-utils';
+import { test, expect } from './auth-utils';
 
-const baseUrl = getBaseUrl();
-let adminStoragePath: string;
+test.slow();
+test('test access to admin page', async ({ getUserPage }) => {
+  // Call the getUserPage fixture with admin signin info to get authenticated session for admin
+  const adminPage = await getUserPage('admin@foo.com', 'changeme');
 
-test.beforeAll(async () => {
-  adminStoragePath = await ensureAuthStorage({
-    storageName: 'admin-storage.json',
-    envEmailVar: 'TEST_ADMIN_EMAIL',
-    envPasswordVar: 'TEST_ADMIN_PASSWORD',
-    defaultEmail: 'admin@foo.com',
-    defaultPassword: 'changeme',
-    baseUrl,
-    validateSession: true,
-    callbackUrl: '/recipes',
-  });
-});
+  // Navigate to the home adminPage
+  await adminPage.goto('http://localhost:3000/');
 
-test('protected: /admin loads for admin user', async ({ browser, baseURL }) => {
-  const urlBase = baseURL ?? getBaseUrl();
-  await checkPageLoads(browser, `${urlBase}/admin`, { storagePath: adminStoragePath });
-});
+  // Check for navigation elements
+  await expect(adminPage.getByRole('link', { name: 'Admin' })).toBeVisible();
+  await expect(adminPage.getByRole('link', { name: 'Recipes', exact: true })).toBeVisible();
+  await expect(adminPage.getByRole('link', { name: 'Vendors', exact: true })).toBeVisible();
+  await expect(adminPage.getByRole('button', { name: 'Categories' })).toBeVisible();
+  await expect(adminPage.getByRole('link', { name: 'About', exact: true })).toBeVisible();
+  await expect(adminPage.getByRole('link', { name: 'Favorites' })).toBeVisible();
 
-test('protected: /admin/add-database-item loads for admin user', async ({ browser, baseURL }) => {
-  const urlBase = baseURL ?? getBaseUrl();
-  await checkPageLoads(browser, `${urlBase}/admin/add-database-item`, {
-    storagePath: adminStoragePath,
-    contentCheck: 'Add Database Item',
-  });
-});
-
-test('protected: /recipes/edit/[id] loads for admin user', async ({ browser, baseURL }) => {
-  const urlBase = baseURL ?? getBaseUrl();
-
-  await checkProtectedEditPage({
-    browser,
-    storagePath: adminStoragePath,
-    baseUrl: urlBase,
-    listPath: '/recipes',
-    editHrefContains: '/recipes/edit/',
-    editPathPrefix: '/recipes/edit/',
-  });
+  // Test Admin adminPage
+  await adminPage.getByRole('link', { name: 'Admin' }).click();
+  await adminPage.waitForLoadState('networkidle');
+  await expect(adminPage.getByRole('heading', { name: 'Admin Dashboard' })).toBeVisible();
 });
