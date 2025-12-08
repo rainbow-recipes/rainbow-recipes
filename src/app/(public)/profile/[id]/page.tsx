@@ -1,6 +1,5 @@
 import { Container } from 'react-bootstrap';
-import { ChevronLeft, PersonCircle } from 'react-bootstrap-icons';
-import Link from 'next/link';
+import { PersonCircle } from 'react-bootstrap-icons';
 import Image from 'next/image';
 import notFound from '@/app/not-found';
 import { prisma } from '@/lib/prisma';
