@@ -159,9 +159,9 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
             step="0.01"
             min="0"
             placeholder="e.g. 12.50"
-            {...register('cost', { 
+            {...register('cost', {
               required: 'Cost is required',
-              min: { value: 0, message: 'Cost must be a positive number' }
+              min: { value: 0, message: 'Cost must be a positive number' },
             })}
             aria-invalid={errors.cost ? 'true' : 'false'}
             aria-required="true"
@@ -182,9 +182,9 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
             type="number"
             min="0"
             placeholder="e.g. 30"
-            {...register('prepTime', { 
+            {...register('prepTime', {
               required: 'Prep time is required',
-              min: { value: 0, message: 'Prep time must be a positive number' }
+              min: { value: 0, message: 'Prep time must be a positive number' },
             })}
             aria-invalid={errors.prepTime ? 'true' : 'false'}
             aria-required="true"
