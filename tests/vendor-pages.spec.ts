@@ -46,6 +46,10 @@ test('test access to vendor pages', async ({ getUserPage }) => {
   await expect(vendorPage.getByRole('link', { name: 'About', exact: true })).toBeVisible({ timeout: headingTimeout });
   await expect(vendorPage.getByRole('link', { name: 'Favorites' })).toBeVisible({ timeout: headingTimeout });
 
+  // Expand the Vendors dropdown
+  await vendorPage.getByRole('button', { name: 'Vendors' }).click();
+  await expect(vendorPage.getByRole('link', { name: 'Vendors', exact: true })).toBeVisible({ timeout: headingTimeout });
+
   // Check My Store vendorPage
   await vendorPage.getByRole('link', { name: 'My Store' }).click();
   await vendorPage.waitForURL('**/my-store', { timeout: headingTimeout });

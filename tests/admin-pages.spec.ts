@@ -46,6 +46,10 @@ test('test access to admin page', async ({ getUserPage }) => {
   await expect(adminPage.getByRole('link', { name: 'About', exact: true })).toBeVisible({ timeout: headingTimeout });
   await expect(adminPage.getByRole('link', { name: 'Favorites' })).toBeVisible({ timeout: headingTimeout });
 
+  // Expand the Vendors dropdown
+  await adminPage.getByRole('button', { name: 'Vendors' }).click();
+  await expect(adminPage.getByRole('link', { name: 'Vendors', exact: true })).toBeVisible({ timeout: headingTimeout });
+
   // Test Admin adminPage
   await adminPage.getByRole('link', { name: 'Admin' }).click();
   await adminPage.waitForURL('**/admin');
