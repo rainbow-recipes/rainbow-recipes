@@ -19,12 +19,12 @@ type IngredientChoice = { id?: number; name: string; itemCategory?: ItemCategory
 
 type Props = {
   value: IngredientChoice[];
-  onChange: (v: IngredientChoice[]) => void;
+  onChangeAction: (v: IngredientChoice[]) => void;
   placeholder?: string;
   detailErrors?: boolean[];
 };
 
-export default function IngredientAutocomplete({ value, onChange, placeholder = '', detailErrors = [] }: Props) {
+export default function IngredientAutocomplete({ value, onChangeAction, placeholder = '', detailErrors = [] }: Props) {
   function normalizeName(s: string) {
     return s.trim().replace(/\s+/g, ' ').toLowerCase();
   }
@@ -37,7 +37,7 @@ export default function IngredientAutocomplete({ value, onChange, placeholder = 
   const [checkingExact, setCheckingExact] = useState(false);
   const [typedDetail, setTypedDetail] = useState<boolean[]>([]);
   useEffect(() => () => {
-    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    if (debounceRef.current && typeof window !== 'undefined') window.clearTimeout(debounceRef.current);
   }, []);
 
   // keep a parallel array tracking whether the user has typed into each
@@ -59,76 +59,85 @@ export default function IngredientAutocomplete({ value, onChange, placeholder = 
       return;
     }
 
-    if (debounceRef.current) window.clearTimeout(debounceRef.current);
-    debounceRef.current = window.setTimeout(async () => {
-      try {
-        // Primary search by full query
-        const take = 8;
-        const results: IngredientChoice[] = [];
-        const pushResults = (arr: any[]) => {
-          for (const d of arr) {
-            results.push({ id: d.id, name: d.name, itemCategory: d.itemCategory });
+    if (debounceRef.current && typeof window !== 'undefined') window.clearTimeout(debounceRef.current);
+    debounceRef.current = typeof window !== 'undefined'
+      ? window.setTimeout(async () => {
+        try {
+          // Primary search by full query
+          const take = 8;
+          const results: IngredientChoice[] = [];
+          const pushResults = (arr: any[]) => {
+            for (const d of arr) {
+              results.push({ id: d.id, name: d.name, itemCategory: d.itemCategory });
+            }
+          };
+
+          // use trimmed query for fetches so leading/trailing spaces don't affect results
+          const fullRes = await fetch(`/api/ingredients?q=${encodeURIComponent(q)}&take=${take}`);
+          if (fullRes.ok) {
+            const data = await fullRes.json();
+            pushResults(data);
           }
-        };
 
-        // use trimmed query for fetches so leading/trailing spaces don't affect results
-        const fullRes = await fetch(`/api/ingredients?q=${encodeURIComponent(q)}&take=${take}`);
-        if (fullRes.ok) {
-          const data = await fullRes.json();
-          pushResults(data);
-        }
+          // If query has multiple words, also search by each token so single-word items ("chicken")
+          // show up when user types "chicken breast". Limit token searches to short tokens and
+          // to avoid too many requests.
+          const tokens = q.split(/\s+/).map((t) => t.trim()).filter(Boolean);
+          if (tokens.length > 1) {
+            const tokenPromises = tokens
+              .filter((t) => t.length >= 2)
+              .slice(0, 4)
+              .map((t) => fetch(`/api/ingredients?q=${encodeURIComponent(t)}&take=${take}`)
+                .then((r) => (r.ok ? r.json() : []))
+                .catch(() => []));
 
-        // If query has multiple words, also search by each token so single-word items ("chicken")
-        // show up when user types "chicken breast". Limit token searches to short tokens and
-        // to avoid too many requests.
-        const tokens = q.split(/\s+/).map((t) => t.trim()).filter(Boolean);
-        if (tokens.length > 1) {
-          const tokenPromises = tokens
-            .filter((t) => t.length >= 2)
-            .slice(0, 4)
-            .map((t) => fetch(`/api/ingredients?q=${encodeURIComponent(t)}&take=${take}`)
-              .then((r) => (r.ok ? r.json() : []))
-              .catch(() => []));
-
-          const tokenResults = await Promise.all(tokenPromises);
-          for (const tr of tokenResults) pushResults(tr);
-        }
-
-        // dedupe by id or normalized name
-        const seen = new Set<string | number>();
-        const deduped: IngredientChoice[] = [];
-        for (const r of results) {
-          const key = r.id ?? normalizeName(r.name);
-          if (!seen.has(key)) {
-            seen.add(key);
-            deduped.push(r);
+            const tokenResults = await Promise.all(tokenPromises);
+            for (const tr of tokenResults) pushResults(tr);
           }
-          if (deduped.length >= take) break;
-        }
 
-        if (deduped.length) {
-          setSuggestions(deduped);
-          setOpen(true);
-        } else {
+          // dedupe by id or normalized name
+          const seen = new Set<string | number>();
+          const deduped: IngredientChoice[] = [];
+          for (const r of results) {
+            const key = r.id ?? normalizeName(r.name);
+            if (!seen.has(key)) {
+              seen.add(key);
+              deduped.push(r);
+            }
+            if (deduped.length >= take) break;
+          }
+
+          if (deduped.length) {
+            setSuggestions(deduped);
+            setOpen(true);
+          } else {
+            setSuggestions([]);
+            setOpen(false);
+          }
+        } catch (err) {
           setSuggestions([]);
           setOpen(false);
         }
-      } catch (err) {
-        setSuggestions([]);
-        setOpen(false);
-      }
-    }, 250);
+      }, 250)
+      : null;
   }, [query]);
 
-  useEffect(() => {
-    function onDocClick(e: MouseEvent) {
-      if (!containerRef.current) return;
-      if (!containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+  // Define `onDocClick` function
+  const onDocClick = (event: MouseEvent) => {
+    if (!containerRef.current) return;
+    if (!containerRef.current.contains(event.target as Node)) {
+      setOpen(false);
     }
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
+  };
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.addEventListener('mousedown', onDocClick);
+      return () => {
+        document.removeEventListener('mousedown', onDocClick);
+      };
+    }
+    return undefined; // Explicitly return undefined if document is not available
   }, []);
 
   function addChoice(choice: IngredientChoice) {
@@ -139,7 +148,7 @@ export default function IngredientAutocomplete({ value, onChange, placeholder = 
       itemCategory: choice.itemCategory ?? 'other',
       detail: choice.detail ?? '',
     };
-    onChange([...value, newChoice]);
+    onChangeAction([...value, newChoice]);
     setQuery('');
     setSuggestions([]);
     setOpen(false);
@@ -148,7 +157,7 @@ export default function IngredientAutocomplete({ value, onChange, placeholder = 
   function removeAt(index: number) {
     const next = [...value];
     next.splice(index, 1);
-    onChange(next);
+    onChangeAction(next);
   }
 
   return (
@@ -174,7 +183,7 @@ export default function IngredientAutocomplete({ value, onChange, placeholder = 
                   const val = e.target.value;
                   const next = [...value];
                   next[i] = { ...next[i], detail: val };
-                  onChange(next);
+                  onChangeAction(next);
                   // mark as typed once the user has entered any characters
                   if (!typedDetail[i] && val.length > 0) {
                     const td = [...typedDetail];
@@ -212,7 +221,7 @@ export default function IngredientAutocomplete({ value, onChange, placeholder = 
                   onChange={(e) => {
                     const next = [...value];
                     next[i] = { ...next[i], itemCategory: e.target.value as ItemCategory };
-                    onChange(next);
+                    onChangeAction(next);
                   }}
                   aria-label={`Category for ${v.name}`}
                   style={{ height: 28, fontSize: '0.75rem', padding: '2px 6px', width: 'auto', minWidth: 80 }}
