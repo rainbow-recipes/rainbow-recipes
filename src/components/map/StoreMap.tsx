@@ -6,7 +6,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import L from 'leaflet';
 import styles from './StoreMap.module.css';
 import 'leaflet/dist/leaflet.css';
 // eslint-disable-next-line import/order
@@ -29,6 +28,15 @@ const Marker = dynamic(
   () => import('react-leaflet').then((m) => m.Marker),
   { ssr: false },
 );
+
+// Replace dynamic import with standard import for leaflet
+let L: typeof import('leaflet');
+
+if (typeof window !== 'undefined') {
+  import('leaflet').then((module) => {
+    L = module;
+  });
+}
 
 type StoreDTO = {
   id: string;

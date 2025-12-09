@@ -238,7 +238,7 @@ export default function EditRecipeForm({ allTags, recipe }: EditRecipeFormProps)
                 <div>
                   <IngredientAutocomplete
                     value={field.value || []}
-                    onChange={field.onChange}
+                    onChangeAction={field.onChange} // Updated to match the expected prop name
                     placeholder="Type an ingredient and press Enter or pick a suggestion"
                     detailErrors={detailErrors}
                   />
