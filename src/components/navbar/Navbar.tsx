@@ -27,6 +27,10 @@ export default function Navbar() {
     return p === target;
   }
 
+  // Treat Vendors dropdown as "active" if user is on vendors list,
+  // a specific vendor page, or the vendor map page.
+  const isVendorsSectionActive = pathname.startsWith('/vendors') || pathname === '/map';
+
   return (
     <BootstrapNavbar
       expand="lg"
@@ -80,13 +84,29 @@ export default function Navbar() {
             >
               Recipes
             </Nav.Link>
-            <Nav.Link
-              as={Link}
-              href="/vendors"
-              className={`nav-link-custom ${isActive(pathname, '/vendors') ? 'active' : ''}`}
+
+            <NavDropdown
+              title="Vendors"
+              id="vendors-dropdown"
+              className={`nav-link-custom ${isVendorsSectionActive ? 'active' : ''}`}
             >
-              Vendors
-            </Nav.Link>
+              <NavDropdown.Item
+                as={Link}
+                href="/vendors"
+                className="d-flex align-items-center gap-2"
+              >
+                Vendors
+              </NavDropdown.Item>
+
+              <NavDropdown.Item
+                as={Link}
+                href="/map"
+                className="d-flex align-items-center gap-2"
+              >
+                Vendor Map
+              </NavDropdown.Item>
+            </NavDropdown>
+
             <NavDropdown
               title="Categories"
               id="categories-dropdown"
@@ -122,6 +142,7 @@ export default function Navbar() {
                 Instant Pot
               </NavDropdown.Item>
             </NavDropdown>
+
             <Nav.Link
               as={Link}
               href="/about"
