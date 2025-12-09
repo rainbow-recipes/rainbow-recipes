@@ -325,10 +325,12 @@ export default function StoreItemList({
                   type="button"
                   className="btn btn-sm btn-outline-danger"
                   onClick={() => {
+                    setSearchTerm('');
                     setSelectedCategories([]);
                     setAvailabilityFilter('all');
                     setMinPrice(undefined);
                     setMaxPrice(undefined);
+                    setSortOption('none');
                   }}
                 >
                   Clear Filters
