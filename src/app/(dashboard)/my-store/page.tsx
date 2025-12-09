@@ -5,7 +5,7 @@ import { Store } from '@prisma/client';
 import { vendorProtectedPage } from '@/lib/page-protection';
 import { authOptions } from '@/lib/auth';
 import Link from 'next/link';
-import MyStoreItemsPanel from '@/components/store-items/StoreItemsPanel';
+import StoreItemList from '@/components/store-items/StoreItemList';
 
 export default async function MyStorePage() {
   // Protect the page, only logged in vendors can access it.
@@ -111,9 +111,12 @@ export default async function MyStorePage() {
                   </Row>
                 </Col>
                 <Col>
-                  {/* Client-side panel handles search and rendering */}
-                  {/* @ts-ignore server->client prop */}
-                  <MyStoreItemsPanel items={items} isMyStore />
+                  <StoreItemList items={items} mode="myStore" showSearch />
+                  <div className="text-end mt-3">
+                    <Link href="/my-store/add-item" className="btn btn-outline-dark btn-lg rounded-pill">
+                      Add Item
+                    </Link>
+                  </div>
                 </Col>
               </Row>
               <Row>
