@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import notFound from '@/app/not-found';
 import Link from 'next/link';
 import { ChevronLeft } from 'react-bootstrap-icons';
-import StoreItemsPanel from '@/components/store-items/StoreItemsPanel';
+import StoreItemList from '@/components/store-items/StoreItemList';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import VendorReviewsList from '@/components/vendors/reviews/VendorReviewsList';
@@ -18,14 +18,18 @@ export default async function VendorsPage({ params }: { params: { id: string | s
     : null;
   const id = String(Array.isArray(params?.id) ? params?.id[0] : params?.id);
   // console.log(id);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore Prisma type inference issue with Store.reviews relation
   const store = await prisma.store.findUnique({
     where: { id },
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     include: {
       reviews: {
-        orderBy: { id: 'desc' },
+        orderBy: { id: 'desc' as const },
       },
     },
-  });
+  }) as any;
   // console.log(store);
   if (!store) {
     return notFound();
@@ -49,14 +53,14 @@ export default async function VendorsPage({ params }: { params: { id: string | s
   }));
 
   // Fetch user info for each review
-  const reviewOwnerEmails = Array.from(new Set(store.reviews.map((r) => r.owner)));
+  const reviewOwnerEmails = Array.from(new Set(store.reviews.map((r: any) => r.owner as string)));
   const reviewOwners = await prisma.user.findMany({
-    where: { email: { in: reviewOwnerEmails } },
+    where: { email: { in: reviewOwnerEmails as string[] } },
     select: { id: true, email: true, firstName: true, lastName: true, name: true },
   });
   const ownerMap = new Map(reviewOwners.map((u) => [u.email, u]));
 
-  const reviewsWithUserInfo = store.reviews.map((review) => {
+  const reviewsWithUserInfo = store.reviews.map((review: any) => {
     const user = ownerMap.get(review.owner);
     return {
       ...review,
@@ -69,7 +73,7 @@ export default async function VendorsPage({ params }: { params: { id: string | s
 
   // Calculate average rating
   const averageRating = reviewsWithUserInfo.length > 0
-    ? (reviewsWithUserInfo.reduce((sum, r) => sum + r.rating, 0) / reviewsWithUserInfo.length)
+    ? (reviewsWithUserInfo.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewsWithUserInfo.length)
     : null;
 
   return (
@@ -145,7 +149,7 @@ export default async function VendorsPage({ params }: { params: { id: string | s
                   ))}
                 </Col>
                 <Col xs="auto">
-                  {store.hours.map((hour) => (
+                  {store.hours.map((hour: string) => (
                     <div>
                       {hour}
                     </div>
@@ -154,9 +158,7 @@ export default async function VendorsPage({ params }: { params: { id: string | s
               </Row>
             </Col>
             <Col>
-              {/* Client-side panel handles search and rendering */}
-              {/* @ts-ignore server->client prop */}
-              <StoreItemsPanel items={items} isMyStore={false} />
+              <StoreItemList items={items} mode="publicVendor" showSearch />
             </Col>
           </Row>
         </Container>
