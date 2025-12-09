@@ -143,7 +143,13 @@ export default function StoreMap() {
   // Session cache to reduce repeated geocode calls
   const geoCache = useRef<Map<string, GeocodeResult | null>>(new Map());
 
-  const pinIcon = useMemo(() => createPinIcon(), []);
+  // Ensure `createPinIcon` is only executed on the client side
+  const pinIcon = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return createPinIcon();
+    }
+    return null;
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -349,7 +355,7 @@ export default function StoreMap() {
             <Marker
               key={s.id}
               position={[s.lat, s.lng]}
-              icon={pinIcon}
+              icon={pinIcon || undefined} // Use `undefined` if `pinIcon` is null
             >
               <Popup>
                 <div style={{ minWidth: 180 }}>
