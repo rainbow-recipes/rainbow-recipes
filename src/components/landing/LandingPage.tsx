@@ -188,7 +188,7 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
               href="/lucky"
               className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
             >
-              I&apos;m feeling lucky!
+              I'm feeling lucky!
             </Link>
           </div>
         </Container>
