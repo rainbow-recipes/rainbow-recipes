@@ -39,15 +39,16 @@ export async function POST(req: Request) {
 
   if (existing) {
     await prisma.favorite.delete({ where: { id: existing.id } });
-    return NextResponse.json({ favorited: false });
+  } else {
+    await prisma.favorite.create({
+      data: {
+        userId: user.id,
+        recipeId: Number(recipeId),
+      },
+    });
   }
 
-  await prisma.favorite.create({
-    data: {
-      userId: user.id,
-      recipeId: Number(recipeId),
-    },
-  });
+  const favoritesCount = await prisma.favorite.count({ where: { recipeId: Number(recipeId) } });
 
-  return NextResponse.json({ favorited: true });
+  return NextResponse.json({ favorited: !existing, favoritesCount });
 }

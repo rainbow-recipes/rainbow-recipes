@@ -7,7 +7,7 @@ import { useSearchParams, usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import type { Recipe, Tag, ItemCategory } from '@prisma/client';
 import { Card } from 'react-bootstrap';
-import { SuitHeart, SuitHeartFill, ChevronDown, ChevronRight } from 'react-bootstrap-icons';
+import { SuitHeart, SuitHeartFill, ChevronDown, ChevronRight, StarFill } from 'react-bootstrap-icons';
 import defaultRecipeImage from '../../../public/default-recipe-image.png';
 
 type RecipeWithTags = Recipe & {
@@ -19,6 +19,11 @@ type RecipeWithTags = Recipe & {
     lastName: string | null;
     name: string | null;
   } | null;
+  reviews?: { rating: number }[];
+  _count?: {
+    favorites: number;
+    reviews?: number;
+  };
 };
 
 interface RecipeListProps {
@@ -96,6 +101,7 @@ export default function RecipeList({
   const [sortOption, setSortOption] = useState('none');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const isAuthenticated = Boolean(currentUserId);
 
   // Click outside to close dropdown
   useEffect(() => {
@@ -205,6 +211,14 @@ export default function RecipeList({
           return bFav - aFav;
         });
         break;
+      case 'favorites-count-desc':
+        // eslint-disable-next-line no-underscore-dangle
+        result.sort((a, b) => (b._count?.favorites || 0) - (a._count?.favorites || 0));
+        break;
+      case 'favorites-count-asc':
+        // eslint-disable-next-line no-underscore-dangle
+        result.sort((a, b) => (a._count?.favorites || 0) - (b._count?.favorites || 0));
+        break;
       default:
         // No sorting applied
         break;
@@ -248,20 +262,70 @@ export default function RecipeList({
   };
 
   const toggleFavorite = async (recipeId: number) => {
-    // optimistic UI
-    setFavoriteIds((prev) => (prev.includes(recipeId)
-      ? prev.filter((id) => id !== recipeId)
-      : [...prev, recipeId]));
+    const wasFavorite = favoriteIds.includes(recipeId);
+    // eslint-disable-next-line no-underscore-dangle
+    const prevCount = recipes.find((r) => r.id === recipeId)?._count?.favorites ?? 0;
+
+    // optimistic UI for favorite ids
+    setFavoriteIds((prev) => (wasFavorite ? prev.filter((id) => id !== recipeId) : [...prev, recipeId]));
+
+    // optimistic UI for favorite count
+    setRecipes((current) => current.map((recipe) => {
+      if (recipe.id !== recipeId) return recipe;
+      const nextCount = wasFavorite ? Math.max(0, prevCount - 1) : prevCount + 1;
+      return {
+        ...recipe,
+        _count: { favorites: nextCount },
+      };
+    }));
 
     try {
-      await fetch('/api/favorites', {
+      const res = await fetch('/api/favorites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recipeId }),
       });
+
+      if (!res.ok) throw new Error('Favorite request failed');
+
+      const data: { favorited: boolean; favoritesCount?: number } = await res.json();
+
+      // reconcile ids with server truth
+      setFavoriteIds((prev) => {
+        const alreadyFav = prev.includes(recipeId);
+        if (data.favorited && !alreadyFav) return [...prev, recipeId];
+        if (!data.favorited && alreadyFav) return prev.filter((id) => id !== recipeId);
+        return prev;
+      });
+
+      // reconcile count with server truth
+      if (typeof data.favoritesCount === 'number') {
+        setRecipes((current) => current.map((recipe) => {
+          if (recipe.id !== recipeId) return recipe;
+          return {
+            ...recipe,
+            _count: { favorites: data.favoritesCount ?? 0 },
+          } as RecipeWithTags;
+        }));
+      }
     } catch (err) {
       console.error(err);
-      // could revert state here if needed
+      // revert optimistic updates on failure
+      setFavoriteIds((prev) => {
+        const alreadyFav = prev.includes(recipeId);
+        if (wasFavorite) {
+          return alreadyFav ? prev : [...prev, recipeId];
+        }
+        return prev.filter((id) => id !== recipeId);
+      });
+
+      setRecipes((current) => current.map((recipe) => {
+        if (recipe.id !== recipeId) return recipe;
+        return {
+          ...recipe,
+          _count: { favorites: prevCount },
+        } as RecipeWithTags;
+      }));
     }
   };
 
@@ -423,7 +487,31 @@ export default function RecipeList({
                             setIsSortOpen(false);
                           }}
                         >
-                          Favorites First
+                          My Favorites First
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSortOption('favorites-count-desc');
+                            setIsSortOpen(false);
+                          }}
+                        >
+                          Most Favorited
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSortOption('favorites-count-asc');
+                            setIsSortOpen(false);
+                          }}
+                        >
+                          Least Favorited
                         </button>
                       </li>
                     </ul>
@@ -444,6 +532,7 @@ export default function RecipeList({
 
       {/* Main layout: left filter column + right cards */}
       <div className="row">
+
         {/* Filter column */}
         {mode !== 'publicProfile' && (
           <div className="col-md-3 mb-4">
@@ -637,6 +726,10 @@ export default function RecipeList({
                 const isFavorite = favoriteIds.includes(recipe.id);
                 // recipe.authorId may be string | null depending on Prisma schema; coerce for comparison
                 const isOwner = recipe.authorId != null && String(currentUserId) === String(recipe.authorId);
+                const ratingValues = recipe.reviews?.map((r) => r.rating) || [];
+                const averageRating = ratingValues.length > 0
+                  ? ratingValues.reduce((sum, r) => sum + r, 0) / ratingValues.length
+                  : null;
 
                 return (
                   <div key={recipe.id} className="col-md-4 mb-4">
@@ -660,35 +753,64 @@ export default function RecipeList({
 
                         <Card.Body className="d-flex flex-column">
                           {/* Title + heart row */}
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <h5 className="card-title mb-0">{recipe.name}</h5>
+                          <div className="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                              <h5 className="card-title mb-0">{recipe.name}</h5>
+                            </div>
                             {mode !== 'publicProfile' && (
-                              <button
-                                type="button"
-                                className="btn btn-link p-0 border-0"
-                                style={{ position: 'relative', zIndex: 2 }}
-                                onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe.id); }}
-                                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                              >
-                                <span style={{ fontSize: '1.4rem' }}>
-                                  {isFavorite ? <SuitHeartFill /> : <SuitHeart />}
-                                </span>
-                              </button>
+                              <div className="d-flex align-items-center gap-1 ms-2">
+                                {/* eslint-disable-next-line no-underscore-dangle */}
+                                <span className="text-muted small">{recipe._count?.favorites || 0}</span>
+                                <button
+                                  type="button"
+                                  className="btn btn-link p-0 border-0"
+                                  style={{ position: 'relative', zIndex: 2 }}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (!isAuthenticated) return;
+                                    toggleFavorite(recipe.id);
+                                  }}
+                                  disabled={!isAuthenticated}
+                                  aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                >
+                                  <span style={{ fontSize: '1.4rem', color: 'palevioletred' }}>
+                                    {(!isAuthenticated || isFavorite) ? <SuitHeartFill /> : <SuitHeart />}
+                                  </span>
+                                </button>
+                              </div>
                             )}
                           </div>
 
-                          {recipe.author && (
-                            <Card.Text className="text-muted small mb-2">
-                              <Link
-                                href={`/profiles/${recipe.author.id}`}
-                                className="text-decoration-none"
-                                onClick={(e) => e.stopPropagation()}
-                                style={{ position: 'relative', zIndex: 2 }}
-                              >
-                                {recipe.author.firstName && recipe.author.lastName
-                                  ? `${recipe.author.firstName} ${recipe.author.lastName}`
-                                  : recipe.author.firstName || recipe.author.name || 'Anonymous User'}
-                              </Link>
+                          {(recipe.author || averageRating !== null) && (
+                            <Card.Text className="text-muted small mb-2 d-flex align-items-center gap-2 flex-wrap">
+                              {recipe.author && (
+                                <Link
+                                  href={`/profile/${recipe.author.id}`}
+                                  className="text-decoration-none text-muted"
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{ position: 'relative', zIndex: 2 }}
+                                >
+                                  {recipe.author.firstName && recipe.author.lastName
+                                    ? `${recipe.author.firstName} ${recipe.author.lastName}`
+                                    : recipe.author.firstName || recipe.author.name || 'Anonymous User'}
+                                </Link>
+                              )}
+                              {averageRating !== null && (
+                                <span className="d-flex align-items-center gap-1">
+                                  <StarFill size={14} className="text-warning" />
+                                  <span>{averageRating.toFixed(1)}</span>
+                                  {/* eslint-disable-next-line no-underscore-dangle */}
+                                  {recipe._count?.reviews ? (
+                                    <span>
+                                      (
+                                      {/* eslint-disable-next-line no-underscore-dangle */}
+                                      {recipe._count.reviews}
+                                      )
+                                    </span>
+                                  ) : null}
+                                </span>
+                              )}
                             </Card.Text>
                           )}
 

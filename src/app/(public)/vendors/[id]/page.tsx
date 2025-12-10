@@ -2,7 +2,7 @@ import { Col, Container, Row, Image } from 'react-bootstrap';
 import { prisma } from '@/lib/prisma';
 import notFound from '@/app/not-found';
 import Link from 'next/link';
-import { ChevronLeft } from 'react-bootstrap-icons';
+import { ChevronLeft, Star, StarFill } from 'react-bootstrap-icons';
 import StoreItemList from '@/components/store-items/StoreItemList';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -101,7 +101,7 @@ export default async function VendorsPage({ params }: { params: { id: string | s
               <div className="mt-2 ms-3">
                 <div className="text-warning" style={{ fontSize: '1.2rem', letterSpacing: '0.1em' }}>
                   {Array.from({ length: 5 }, (_, i) => (
-                    <span key={i}>{i < Math.round(averageRating) ? '★' : '☆'}</span>
+                    <span key={i}>{i < Math.round(averageRating) ? <StarFill /> : <Star />}</span>
                   ))}
                 </div>
                 <div className="text-muted small">

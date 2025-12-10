@@ -21,6 +21,12 @@ export default async function RecipesPage() {
         author: {
           select: { id: true, firstName: true, lastName: true, name: true },
         },
+        reviews: {
+          select: { rating: true },
+        },
+        _count: {
+          select: { favorites: true, reviews: true },
+        },
       },
     }),
     prisma.tag.findMany(),

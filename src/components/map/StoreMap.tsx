@@ -6,10 +6,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useMap } from 'react-leaflet';
 import styles from './StoreMap.module.css';
 import 'leaflet/dist/leaflet.css';
-// eslint-disable-next-line import/order
-import { useMap } from 'react-leaflet';
 
 // react-leaflet dynamic imports (client-only)
 const MapContainer = dynamic(

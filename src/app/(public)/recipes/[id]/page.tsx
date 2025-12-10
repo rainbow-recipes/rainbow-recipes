@@ -1,5 +1,5 @@
 import { Col, Container, Image, Row } from 'react-bootstrap';
-import { ChevronLeft, Basket2 } from 'react-bootstrap-icons';
+import { ChevronLeft, Basket2, Star, StarFill } from 'react-bootstrap-icons';
 import Link from 'next/link';
 import notFound from '@/app/not-found';
 import { prisma } from '@/lib/prisma';
@@ -110,7 +110,7 @@ export default async function RecipesPage({ params }: { params: { id: string | s
 
       {author ? (
         <div className="text-center mb-1">
-          <Link href={`/profile/${author.id}`} className="text-decoration-none">
+          <Link href={`/profile/${author.id}`} className="text-decoration-none text-muted">
             {author.firstName && author.lastName
               ? `${author.firstName} ${author.lastName}`
               : author.firstName || author.name || 'Anonymous User'}
@@ -129,7 +129,7 @@ export default async function RecipesPage({ params }: { params: { id: string | s
         <div className="text-center mb-3">
           <div className="text-warning" style={{ fontSize: '1.5rem', letterSpacing: '0.1em' }}>
             {Array.from({ length: 5 }, (_, i) => (
-              <span key={i}>{i < Math.round(averageRating) ? '★' : '☆'}</span>
+              <span key={i}>{i < Math.round(averageRating) ? <StarFill /> : <Star />}</span>
             ))}
           </div>
           <div className="text-muted small">
