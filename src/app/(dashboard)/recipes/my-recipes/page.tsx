@@ -23,13 +23,21 @@ export default async function MyRecipesPage() {
   const isAdmin = currentUser?.role === 'ADMIN';
 
   // Load data in parallel
-  const [myRecipes, tags, favorites] = await Promise.all([
+  const [myRecipes, tags, allIngredients, favorites] = await Promise.all([
     prisma.recipe.findMany({
       where: { authorId: currentUserId },
-      include: { tags: true },
+      include: {
+        tags: true,
+        ingredients: {
+          select: { id: true, name: true, itemCategory: true },
+        },
+      },
       orderBy: { name: 'asc' },
     }),
     prisma.tag.findMany(),
+    prisma.databaseItem.findMany({
+      select: { id: true, name: true, itemCategory: true },
+    }),
     prisma.favorite.findMany({
       where: { userId: currentUserId },
       select: { recipeId: true },
@@ -44,6 +52,7 @@ export default async function MyRecipesPage() {
       <RecipeList
         initialRecipes={myRecipes}
         allTags={tags}
+        allIngredients={allIngredients}
         initialFavoriteIds={favoriteIds}
         isAdmin={isAdmin}
         currentUserId={currentUserId}

@@ -16,6 +16,9 @@ export default async function PublicProfilePage({ params }: { params: { id: stri
         orderBy: { id: 'desc' },
         include: {
           tags: true,
+          ingredients: {
+            select: { id: true, name: true, itemCategory: true },
+          },
           favorites: true,
           author: {
             select: { id: true, firstName: true, lastName: true, name: true },
@@ -92,6 +95,7 @@ export default async function PublicProfilePage({ params }: { params: { id: stri
         <RecipeList
           initialRecipes={user.recipes}
           allTags={[]}
+          allIngredients={[]}
           initialFavoriteIds={[]}
           currentUserId={undefined}
           isAdmin={false}

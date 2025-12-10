@@ -16,16 +16,24 @@ export default async function MyRecipesPage() {
   );
 
   // Load data in parallel
-  const [favorites, tags] = await Promise.all([
+  const [favorites, tags, allIngredients] = await Promise.all([
     prisma.favorite.findMany({
       where: { userId: (session?.user as any)?.id },
       include: {
         recipe: {
-          include: { tags: true },
+          include: {
+            tags: true,
+            ingredients: {
+              select: { id: true, name: true, itemCategory: true },
+            },
+          },
         },
       },
     }),
     prisma.tag.findMany(),
+    prisma.databaseItem.findMany({
+      select: { id: true, name: true, itemCategory: true },
+    }),
   ]);
 
   const favoriteRecipes = favorites.map(f => f.recipe);
@@ -39,6 +47,7 @@ export default async function MyRecipesPage() {
       <RecipeList
         initialRecipes={favoriteRecipes}
         allTags={tags}
+        allIngredients={allIngredients}
         initialFavoriteIds={favoriteIds}
         isAdmin={isAdmin}
         currentUserId={currentUserId}
