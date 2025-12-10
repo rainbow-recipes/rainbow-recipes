@@ -11,16 +11,22 @@ const prisma = new PrismaClient();
 export default async function RecipesPage() {
   const session = await getServerSession(authOptions);
 
-  const [recipes, tags] = await Promise.all([
+  const [recipes, tags, allIngredients] = await Promise.all([
     prisma.recipe.findMany({
       include: {
         tags: true,
+        ingredients: {
+          select: { id: true, name: true, itemCategory: true },
+        },
         author: {
           select: { id: true, firstName: true, lastName: true, name: true },
         },
       },
     }),
     prisma.tag.findMany(),
+    prisma.databaseItem.findMany({
+      select: { id: true, name: true, itemCategory: true },
+    }),
   ]);
 
   let favoriteIds: number[] = [];
@@ -52,6 +58,7 @@ export default async function RecipesPage() {
       <RecipeList
         initialRecipes={recipes}
         allTags={tags}
+        allIngredients={allIngredients}
         initialFavoriteIds={favoriteIds}
         isAdmin={isAdmin}
         currentUserId={currentUserId}

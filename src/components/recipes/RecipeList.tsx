@@ -5,13 +5,14 @@
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState, useRef } from 'react';
-import type { Recipe, Tag } from '@prisma/client';
+import type { Recipe, Tag, ItemCategory } from '@prisma/client';
 import { Card } from 'react-bootstrap';
-import { SuitHeart, SuitHeartFill } from 'react-bootstrap-icons';
+import { SuitHeart, SuitHeartFill, ChevronDown, ChevronRight } from 'react-bootstrap-icons';
 import defaultRecipeImage from '../../../public/default-recipe-image.png';
 
 type RecipeWithTags = Recipe & {
   tags: Tag[];
+  ingredients: { id: number; name: string; itemCategory: ItemCategory }[];
   author?: {
     id: string;
     firstName: string | null;
@@ -23,6 +24,7 @@ type RecipeWithTags = Recipe & {
 interface RecipeListProps {
   initialRecipes: RecipeWithTags[];
   allTags: Tag[];
+  allIngredients: { id: number; name: string; itemCategory: ItemCategory }[];
   initialFavoriteIds: number[];
   isAdmin: boolean;
   // the currently signed-in user's id (optional) - may be string or number depending on auth
@@ -37,6 +39,7 @@ interface RecipeListProps {
 export default function RecipeList({
   initialRecipes,
   allTags,
+  allIngredients,
   initialFavoriteIds,
   isAdmin,
   currentUserId,
@@ -52,6 +55,22 @@ export default function RecipeList({
   const dietTags = useMemo(() => allTags.filter((t) => t.category === 'Diet'), [allTags]);
   const applianceTags = useMemo(() => allTags.filter((t) => t.category === 'Appliance'), [allTags]);
 
+  // Group ingredients by category
+  const groupedIngredients = useMemo(() => {
+    const groups: Record<ItemCategory, typeof allIngredients> = {} as any;
+    allIngredients.forEach((ing) => {
+      if (!groups[ing.itemCategory]) {
+        groups[ing.itemCategory] = [];
+      }
+      groups[ing.itemCategory].push(ing);
+    });
+    // Sort ingredients within each category
+    Object.keys(groups).forEach((cat) => {
+      groups[cat as ItemCategory].sort((a, b) => a.name.localeCompare(b.name));
+    });
+    return groups;
+  }, [allIngredients]);
+
   // Helper function to find tag IDs by name
   const getTagIdsByName = (tagName: string, tagList: Tag[]) => {
     const normalizeString = (str: string) => str.toLowerCase().replace('-', '').replace(' ', '');
@@ -62,6 +81,9 @@ export default function RecipeList({
   // Initialize state without dependencies on initial props
   const [selectedDietTags, setSelectedDietTags] = useState<number[]>([]);
   const [selectedApplianceTags, setSelectedApplianceTags] = useState<number[]>([]);
+  const [selectedIngredientIds, setSelectedIngredientIds] = useState<number[]>([]);
+  const [selectedIngredientCategories, setSelectedIngredientCategories] = useState<ItemCategory[]>([]);
+  const [openIngredientCategories, setOpenIngredientCategories] = useState<Record<ItemCategory, boolean>>({} as Record<ItemCategory, boolean>);
   const [maxPrepTime, setMaxPrepTime] = useState<number | undefined>();
   const [maxCost, setMaxCost] = useState<number | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,6 +92,7 @@ export default function RecipeList({
   // State for collapsible sections
   const [foodTypeOpen, setFoodTypeOpen] = useState(false);
   const [applianceOpen, setApplianceOpen] = useState(false);
+  const [ingredientsOpen, setIngredientsOpen] = useState(false);
   const [sortOption, setSortOption] = useState('none');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
@@ -143,6 +166,16 @@ export default function RecipeList({
         if (!hasAppliance) return false;
       }
 
+      // OR-based ingredient filtering: match if ANY selected ingredient OR ANY ingredient in selected categories
+      if (selectedIngredientCategories.length > 0 || selectedIngredientIds.length > 0) {
+        const matchesCategory = selectedIngredientCategories.length > 0
+          && recipe.ingredients.some((ing) => selectedIngredientCategories.includes(ing.itemCategory));
+        const matchesIngredient = selectedIngredientIds.length > 0
+          && recipe.ingredients.some((ing) => selectedIngredientIds.includes(ing.id));
+        
+        if (!matchesCategory && !matchesIngredient) return false;
+      }
+
       return true;
     });
 
@@ -185,6 +218,8 @@ export default function RecipeList({
     maxCost,
     selectedDietTags,
     selectedApplianceTags,
+    selectedIngredientCategories,
+    selectedIngredientIds,
     searchTerm,
     sortOption,
     favoriteIds,
@@ -196,6 +231,21 @@ export default function RecipeList({
 
   const toggleAppliance = (id: number) => {
     setSelectedApplianceTags((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const toggleIngredient = (id: number) => {
+    setSelectedIngredientIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const toggleIngredientCategory = (category: ItemCategory) => {
+    setSelectedIngredientCategories((prev) => (prev.includes(category) ? prev.filter((x) => x !== category) : [...prev, category]));
+  };
+
+  const toggleOpenIngredientCategory = (category: ItemCategory) => {
+    setOpenIngredientCategories((prev) => ({
+      ...prev,
+      [category]: !prev[category],
+    }));
   };
 
   const toggleFavorite = async (recipeId: number) => {
@@ -471,6 +521,73 @@ export default function RecipeList({
                       </label>
                     </div>
                   ))}
+                </details>
+
+                {/* Ingredients - Grouped by Category */}
+                <details open={ingredientsOpen} className="mb-2">
+                  <summary
+                    className="fw-semibold mb-1"
+                    style={{ cursor: 'pointer' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIngredientsOpen(!ingredientsOpen);
+                    }}
+                  >
+                    Ingredients
+                  </summary>
+                  {Object.keys(groupedIngredients).length === 0 && (
+                    <div className="text-muted small">(no ingredients yet)</div>
+                  )}
+                  {Object.entries(groupedIngredients).map(([category, ingredients]) => {
+                    const cat = category as ItemCategory;
+                    const isOpen = openIngredientCategories[cat] || false;
+                    const categoryLabel = category.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+                    
+                    return (
+                      <div key={category} className="mb-2">
+                        <div className="d-flex align-items-center">
+                          <button
+                            type="button"
+                            className="btn btn-link p-0 border-0 text-decoration-none me-1"
+                            onClick={() => toggleOpenIngredientCategory(cat)}
+                            style={{ fontSize: '0.9rem' }}
+                          >
+                            {isOpen ? <ChevronDown /> : <ChevronRight />}
+                          </button>
+                          <div className="form-check">
+                            <input
+                              id={`cat-${category}`}
+                              type="checkbox"
+                              className="form-check-input"
+                              checked={selectedIngredientCategories.includes(cat)}
+                              onChange={() => toggleIngredientCategory(cat)}
+                            />
+                            <label htmlFor={`cat-${category}`} className="form-check-label fw-normal">
+                              {categoryLabel}
+                            </label>
+                          </div>
+                        </div>
+                        {isOpen && (
+                          <div className="ms-4" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                            {ingredients.map((ingredient) => (
+                              <div key={ingredient.id} className="form-check">
+                                <input
+                                  id={`ing-${ingredient.id}`}
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  checked={selectedIngredientIds.includes(ingredient.id)}
+                                  onChange={() => toggleIngredient(ingredient.id)}
+                                />
+                                <label htmlFor={`ing-${ingredient.id}`} className="form-check-label">
+                                  {ingredient.name}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </details>
 
                 {/* Cost */}
