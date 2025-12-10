@@ -43,7 +43,7 @@ function GuestLanding() {
             href="/lucky"
             className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
           >
-            I&posm feeling lucky!
+            I&pos;m feeling lucky!
           </Link>
         </Container>
       </div>
@@ -188,7 +188,7 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
               href="/lucky"
               className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
             >
-              I'm feeling lucky!
+              I&apos;m feeling lucky!
             </Link>
           </div>
         </Container>
