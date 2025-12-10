@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+// Force dynamic rendering - don't try to statically generate this page
+export const dynamic = 'force-dynamic';
 
 export default async function LuckyPage() {
   // Fetch all recipe IDs
