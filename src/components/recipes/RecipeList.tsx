@@ -172,7 +172,6 @@ export default function RecipeList({
           && recipe.ingredients.some((ing) => selectedIngredientCategories.includes(ing.itemCategory));
         const matchesIngredient = selectedIngredientIds.length > 0
           && recipe.ingredients.some((ing) => selectedIngredientIds.includes(ing.id));
-        
         if (!matchesCategory && !matchesIngredient) return false;
       }
 
@@ -542,7 +541,6 @@ export default function RecipeList({
                     const cat = category as ItemCategory;
                     const isOpen = openIngredientCategories[cat] || false;
                     const categoryLabel = category.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
-                    
                     return (
                       <div key={category} className="mb-2">
                         <div className="d-flex align-items-center">
