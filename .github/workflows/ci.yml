@@ -15,8 +15,8 @@ jobs:
       # Prefer a secret set in the repository/org; fallback to a safe CI-only value
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'fallback-secret-for-ci-only-do-not-use-in-production' }}
       NEXTAUTH_URL: http://localhost:3000
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rainbow_test
-      DATABASE_URL_UNPOOLED: postgresql://postgres:postgres@localhost:5432/rainbow_test
+      POSTGRES_URL_NON_POOLING: postgresql://postgres:postgres@localhost:5432/rainbow_test
+      POSTGRES_PRISMA_URL: postgresql://postgres:postgres@localhost:5432/rainbow_test
     services:
       postgres:
         image: postgres:15
