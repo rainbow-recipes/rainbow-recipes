@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
+import { addTag, editTag, deleteTag } from '@/lib/dbActions';
 
 interface Tag {
   id: number;
@@ -75,18 +76,7 @@ const AdminTagPanel = ({ initialTags, onRefresh }: AdminTagPanelProps) => {
     }
 
     try {
-      const res = await fetch('/api/admin/tags/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newTagName.trim(), category: newTagCategory }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error || 'Failed to add tag');
-      }
-
-      const newTag = await res.json();
+      const newTag = await addTag({ name: newTagName.trim(), category: newTagCategory });
       setTags((prev) => [...prev, { ...newTag, recipeCount: 0 }]);
       setShowAddModal(false);
       setNewTagName('');
@@ -117,17 +107,7 @@ const AdminTagPanel = ({ initialTags, onRefresh }: AdminTagPanelProps) => {
     setEditId(null);
 
     try {
-      const res = await fetch('/api/admin/tags/edit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, name: editName.trim(), category: editCategory }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error || 'Failed to update tag');
-      }
-
+      await editTag({ id, name: editName.trim(), category: editCategory });
       if (onRefresh) await onRefresh();
     } catch (err) {
       setTags(previous);
@@ -149,16 +129,7 @@ const AdminTagPanel = ({ initialTags, onRefresh }: AdminTagPanelProps) => {
     setTags((prev) => prev.filter((t) => t.id !== id));
 
     try {
-      const res = await fetch('/api/admin/tags/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error || 'Failed to delete tag');
-      }
+      await deleteTag(id);
       if (onRefresh) await onRefresh();
     } catch (err) {
       setTags(previous);

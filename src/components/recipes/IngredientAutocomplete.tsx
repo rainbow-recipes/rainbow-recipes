@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CaretRight } from 'react-bootstrap-icons';
 import { prettyCategory } from '@/lib/categoryUtils';
+import { searchIngredients } from '@/lib/dbActions';
 
 type ItemCategory =
   | 'produce'
@@ -72,12 +73,9 @@ export default function IngredientAutocomplete({ value, onChangeAction, placehol
             }
           };
 
-          // use trimmed query for fetches so leading/trailing spaces don't affect results
-          const fullRes = await fetch(`/api/ingredients?q=${encodeURIComponent(q)}&take=${take}`);
-          if (fullRes.ok) {
-            const data = await fullRes.json();
-            pushResults(data);
-          }
+          // use trimmed query for searches
+          const fullData = await searchIngredients(q, take);
+          pushResults(fullData);
 
           // If query has multiple words, also search by each token so single-word items ("chicken")
           // show up when user types "chicken breast". Limit token searches to short tokens and
@@ -87,9 +85,7 @@ export default function IngredientAutocomplete({ value, onChangeAction, placehol
             const tokenPromises = tokens
               .filter((t) => t.length >= 2)
               .slice(0, 4)
-              .map((t) => fetch(`/api/ingredients?q=${encodeURIComponent(t)}&take=${take}`)
-                .then((r) => (r.ok ? r.json() : []))
-                .catch(() => []));
+              .map((t) => searchIngredients(t, take));
 
             const tokenResults = await Promise.all(tokenPromises);
             for (const tr of tokenResults) pushResults(tr);
@@ -273,14 +269,11 @@ export default function IngredientAutocomplete({ value, onChangeAction, placehol
               (async () => {
                 setCheckingExact(true);
                 try {
-                  const res = await fetch(`/api/ingredients?q=${encodeURIComponent(qTrim)}&take=1`);
-                  if (res.ok) {
-                    const data = await res.json();
-                    const exact = data.find((d: any) => normalizeName(d.name) === norm);
-                    if (exact) {
-                      addChoice({ id: exact.id, name: exact.name, itemCategory: exact.itemCategory });
-                      return;
-                    }
+                  const data = await searchIngredients(qTrim, 1);
+                  const exact = data.find((d: any) => normalizeName(d.name) === norm);
+                  if (exact) {
+                    addChoice({ id: exact.id, name: exact.name, itemCategory: exact.itemCategory });
+                    return;
                   }
                 } catch (err) {
                   // ignore and fall back to creating new

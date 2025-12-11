@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { adminProtectedPage } from '@/lib/page-protection';
 import AdminPageClient from '@/components/admin/AdminPageClient';
-
-const prisma = new PrismaClient();
 
 export default async function AdminPage() {
   // Protect the page, only logged in admins can access it.
@@ -15,49 +13,49 @@ export default async function AdminPage() {
     } | null,
   );
 
-  const users = await prisma.user.findMany({
-    orderBy: { email: 'asc' },
-  });
-
-  const plainUsers = users.map((u) => ({
-    id: u.id,
-    email: u.email,
-    firstName: u.firstName,
-    lastName: u.lastName,
-    role: u.role,
-    isMerchant: u.isMerchant,
-    merchantApproved: u.merchantApproved,
-  }));
-
-  const databaseItems = await prisma.databaseItem.findMany({
-    orderBy: { name: 'asc' },
-  });
-
-  const plainItems = databaseItems.map((item) => ({
-    id: item.id,
-    name: item.name,
-    itemCategory: item.itemCategory,
-    approved: item.approved,
-  }));
-
-  const tags = await prisma.tag.findMany({
-    orderBy: { name: 'asc' },
-    include: {
-      recipes: true,
-    },
-  });
+  const [users, databaseItems, tags] = await Promise.all([
+    prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isMerchant: true,
+        merchantApproved: true,
+      },
+      orderBy: { email: 'asc' },
+    }),
+    prisma.databaseItem.findMany({
+      select: {
+        id: true,
+        name: true,
+        itemCategory: true,
+        approved: true,
+      },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.tag.findMany({
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        _count: { select: { recipes: true } },
+      },
+      orderBy: { name: 'asc' },
+    }),
+  ]);
 
   const plainTags = tags.map((tag) => ({
-    id: tag.id,
-    name: tag.name,
-    category: tag.category,
-    recipeCount: tag.recipes.length,
+    ...tag,
+    // eslint-disable-next-line no-underscore-dangle
+    recipeCount: tag._count.recipes,
   }));
 
   return (
     <div className="container my-4">
       <h2 className="mb-3">Admin Dashboard</h2>
-      <AdminPageClient initialUsers={plainUsers} initialItems={plainItems} initialTags={plainTags} />
+      <AdminPageClient initialUsers={users} initialItems={databaseItems} initialTags={plainTags} />
     </div>
   );
 }

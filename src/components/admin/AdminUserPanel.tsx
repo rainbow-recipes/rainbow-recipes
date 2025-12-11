@@ -2,7 +2,8 @@
 
 'use client';
 
-import { createStore } from '@/lib/dbActions';
+import { createStore, approveMerchant, deleteUser } from '@/lib/dbActions';
+import { useSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 
 type Role = 'USER' | 'ADMIN';
@@ -22,6 +23,7 @@ interface AdminPanelProps {
 }
 
 const AdminUserPanel = ({ initialUsers }: AdminPanelProps) => {
+  const { data: session } = useSession();
   const [users, setUsers] = useState<AdminUser[]>(initialUsers);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -45,14 +47,7 @@ const AdminUserPanel = ({ initialUsers }: AdminPanelProps) => {
     setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, merchantApproved: true } : u)));
 
     try {
-      const res = await fetch('/api/admin/approve-merchant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      });
-      if (!res.ok) {
-        console.error('Failed to approve merchant');
-      }
+      await approveMerchant(userId);
     } catch (err) {
       console.error(err);
     }
@@ -72,15 +67,8 @@ const AdminUserPanel = ({ initialUsers }: AdminPanelProps) => {
     setUsers((prev) => prev.filter((u) => u.id !== userId));
 
     try {
-      const res = await fetch('/api/admin/delete-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      });
-      if (!res.ok) {
-        console.error('Failed to delete user');
-        setUsers(prevUsers); // revert
-      }
+      const adminEmail = session?.user?.email || '';
+      await deleteUser(userId, adminEmail);
     } catch (err) {
       console.error(err);
       setUsers(prevUsers); // revert

@@ -30,13 +30,6 @@ enum ItemCategory {
   other
 }
 
-enum Condition {
-  poor
-  fair
-  good
-  excellent
-}
-
 //
 // Core app models
 //
@@ -145,14 +138,6 @@ model VendorReview {
   owner   String
   storeId String
   store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
-}
-
-model Stuff {
-  id        Int       @id @default(autoincrement())
-  name      String
-  quantity  Int
-  owner     String
-  condition Condition @default(good)
 }
 
 model Account {

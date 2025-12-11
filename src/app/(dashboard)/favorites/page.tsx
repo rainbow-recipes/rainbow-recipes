@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { loggedInProtectedPage } from '@/lib/page-protection';
 import RecipeList from '@/components/recipes/RecipeList';
-
-const prisma = new PrismaClient();
+import { Container } from 'react-bootstrap';
 
 export default async function MyRecipesPage() {
   // Protect the page, only logged in users can access it.
@@ -42,7 +41,7 @@ export default async function MyRecipesPage() {
   const currentUserId = (session?.user as any)?.id;
 
   return (
-    <div className="container my-4">
+    <Container className="my-4">
       <h2 className="mb-4">My Favorites</h2>
       <RecipeList
         initialRecipes={favoriteRecipes}
@@ -51,7 +50,8 @@ export default async function MyRecipesPage() {
         initialFavoriteIds={favoriteIds}
         isAdmin={isAdmin}
         currentUserId={currentUserId}
+        userEmail={session?.user?.email ?? undefined}
       />
-    </div>
+    </Container>
   );
 }

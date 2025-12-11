@@ -7,6 +7,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useMap } from 'react-leaflet';
+import { getStores } from '@/lib/dbActions';
 import styles from './StoreMap.module.css';
 import 'leaflet/dist/leaflet.css';
 
@@ -67,10 +68,8 @@ const DEFAULT_CENTER: [number, number] = [21.3069, -157.8583];
 const DEFAULT_ZOOM = 12;
 
 async function fetchStores(): Promise<StoreDTO[]> {
-  const res = await fetch('/api/stores', { cache: 'no-store' });
-  if (!res.ok) throw new Error('Failed to fetch stores');
-  const data = await res.json();
-  return data.stores ?? [];
+  const stores = await getStores();
+  return stores ?? [];
 }
 
 async function geocode(location: string): Promise<GeocodeResult | null> {

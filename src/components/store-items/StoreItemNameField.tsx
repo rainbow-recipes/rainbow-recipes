@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { prettyCategory } from '@/lib/categoryUtils';
+import { searchIngredients } from '@/lib/dbActions';
 
 export type StoreItemNameFieldProps = {
   label?: string;
@@ -48,13 +49,7 @@ export default function StoreItemNameField({
     debounceRef.current = window.setTimeout(async () => {
       try {
         const take = 8;
-        const res = await fetch(`/api/ingredients?q=${encodeURIComponent(q)}&take=${take}`);
-        if (!res.ok) {
-          setSuggestions([]);
-          setOpen(false);
-          return;
-        }
-        const data = await res.json();
+        const data = await searchIngredients(q, take);
         const dedup: Array<{ id?: number; name: string; itemCategory?: string }> = [];
         const seen = new Set<number | string>();
         for (const d of data) {
@@ -109,14 +104,11 @@ export default function StoreItemNameField({
               } else {
                 (async () => {
                   try {
-                    const res = await fetch(`/api/ingredients?q=${encodeURIComponent(qTrim)}&take=1`);
-                    if (res.ok) {
-                      const data = await res.json();
-                      const exact = (data || []).find((d: any) => normalize(d.name) === normalize(qTrim));
-                      if (exact) {
-                        setValue('name', exact.name);
-                        if (exact.itemCategory) setValue(itemCategoryField, exact.itemCategory as any);
-                      }
+                    const data = await searchIngredients(qTrim, 1);
+                    const exact = (data || []).find((d: any) => normalize(d.name) === normalize(qTrim));
+                    if (exact) {
+                      setValue('name', exact.name);
+                      if (exact.itemCategory) setValue(itemCategoryField, exact.itemCategory as any);
                     }
                   } catch (err) {
                     // ignore lookup errors

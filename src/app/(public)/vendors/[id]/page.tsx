@@ -3,45 +3,51 @@ import { prisma } from '@/lib/prisma';
 import notFound from '@/app/not-found';
 import Link from 'next/link';
 import { ChevronLeft, Star, StarFill } from 'react-bootstrap-icons';
-import StoreItemList from '@/components/store-items/StoreItemList';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import StoreItemList from '@/components/store-items/StoreItemList';
 import VendorReviewsList from '@/components/vendors/reviews/VendorReviewsList';
 
 export default async function VendorsPage({ params }: { params: { id: string | string[] } }) {
   const session = await getServerSession(authOptions);
-  const userEmail = session?.user?.email || null;
-  const currentUser = userEmail
-    ? await prisma.user.findUnique({
-      where: { email: userEmail },
-    })
-    : null;
+  const userEmail = session?.user?.email;
   const id = String(Array.isArray(params?.id) ? params?.id[0] : params?.id);
-  // console.log(id);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore Prisma type inference issue with Store.reviews relation
-  const store = await prisma.store.findUnique({
-    where: { id },
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    include: {
-      reviews: {
-        orderBy: { id: 'desc' as const },
+
+  const [store, currentUser] = await Promise.all([
+    prisma.store.findUnique({
+      where: { id },
+      include: {
+        reviews: {
+          orderBy: { id: 'desc' as const },
+        },
       },
-    },
-  }) as any;
-  // console.log(store);
+    }),
+    userEmail
+      ? prisma.user.findUnique({
+        where: { email: userEmail },
+        select: { id: true, role: true },
+      })
+      : null,
+  ]);
+
   if (!store) {
     return notFound();
   }
 
-  const { name: storeName, website, image } = store;
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-  const itemsRaw = await prisma.storeItem.findMany({
-    where: { owner: store.owner ?? '' },
-    include: { databaseItem: true },
-  });
+  const [itemsRaw, reviewOwners] = await Promise.all([
+    prisma.storeItem.findMany({
+      where: { owner: store.owner ?? '' },
+      include: { databaseItem: true },
+    }),
+    prisma.user.findMany({
+      where: {
+        email: {
+          in: Array.from(new Set((store.reviews as any[]).map((r) => r.owner))),
+        },
+      },
+      select: { id: true, email: true, firstName: true, lastName: true, name: true },
+    }),
+  ]);
 
   // Make sure items are serializable for the client (numbers/strings/booleans)
   const items = itemsRaw.map((it) => ({
@@ -52,15 +58,9 @@ export default async function VendorsPage({ params }: { params: { id: string | s
       : (it.price as any),
   }));
 
-  // Fetch user info for each review
-  const reviewOwnerEmails = Array.from(new Set(store.reviews.map((r: any) => r.owner as string)));
-  const reviewOwners = await prisma.user.findMany({
-    where: { email: { in: reviewOwnerEmails as string[] } },
-    select: { id: true, email: true, firstName: true, lastName: true, name: true },
-  });
   const ownerMap = new Map(reviewOwners.map((u) => [u.email, u]));
 
-  const reviewsWithUserInfo = store.reviews.map((review: any) => {
+  const reviewsWithUserInfo = (store.reviews as any[]).map((review) => {
     const user = ownerMap.get(review.owner);
     return {
       ...review,
@@ -71,10 +71,12 @@ export default async function VendorsPage({ params }: { params: { id: string | s
     };
   });
 
-  // Calculate average rating
   const averageRating = reviewsWithUserInfo.length > 0
-    ? (reviewsWithUserInfo.reduce((sum: number, r: any) => sum + r.rating, 0) / reviewsWithUserInfo.length)
+    ? (reviewsWithUserInfo.reduce((sum, r) => sum + r.rating, 0) / reviewsWithUserInfo.length)
     : null;
+
+  const { name: storeName, website, image } = store;
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return (
     <main>

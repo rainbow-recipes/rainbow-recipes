@@ -16,17 +16,14 @@ export default async function EditStorePage({ params }: { params: { id: string |
   );
 
   const id = String(Array.isArray(params?.id) ? params?.id[0] : params?.id);
-  // console.log(id);
   const store: Store | null = await prisma.store.findUnique({
     where: { id },
   });
-  // console.log(store);
   if (!store) {
     return notFound();
   }
 
   const userEmail = (session?.user as any)?.email;
-
   // Only allow the owner of the store to edit it.
   if (!userEmail || store.owner !== userEmail) {
     return notFound();

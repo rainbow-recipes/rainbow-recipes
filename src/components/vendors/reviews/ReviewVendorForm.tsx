@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Form, Button, Alert } from 'react-bootstrap';
+import { createVendorReview } from '@/lib/dbActions';
 
 interface ReviewVendorFormProps {
   storeId: string;
@@ -16,6 +18,7 @@ type ReviewFormValues = {
 
 export default function ReviewVendorForm({ storeId }: ReviewVendorFormProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const {
     register,
     handleSubmit,
@@ -37,20 +40,11 @@ export default function ReviewVendorForm({ storeId }: ReviewVendorFormProps) {
         return;
       }
 
-      const res = await fetch('/api/reviews/vendor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          storeId,
-          rating: ratingNum,
-          review: data.review,
-        }),
+      await createVendorReview(session?.user?.email || '', {
+        storeId,
+        rating: ratingNum,
+        review: data.review,
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to submit review');
-      }
 
       setSuccess('Review submitted successfully!');
       reset();

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ItemCategory } from '@prisma/client';
 import { prettyCategory } from '@/lib/categoryUtils';
+import { approveDatabaseItem, deleteDatabaseItem, mergeDatabaseItems, updateDatabaseItem } from '@/lib/dbActions';
 import { DatabaseFillGear, Intersect } from 'react-bootstrap-icons';
 
 interface DatabaseItem {
@@ -100,12 +101,7 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
     const previous = items;
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, approved: true } : it)));
     try {
-      const res = await fetch('/api/admin/approve-database-item', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemId: id }),
-      });
-      if (!res.ok) throw new Error('Failed to approve');
+      await approveDatabaseItem(id);
       if (onRefresh) await onRefresh();
     } catch (err) {
       setItems(previous);
@@ -120,12 +116,7 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
     const previous = items;
     setItems((prev) => prev.filter((it) => it.id !== id));
     try {
-      const res = await fetch('/api/admin/delete-database-item', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemId: id }),
-      });
-      if (!res.ok) throw new Error('Failed to delete');
+      await deleteDatabaseItem(id);
     } catch (err) {
       setItems(previous);
     }
@@ -142,16 +133,7 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, name: editName, itemCategory: editCategory } : it)));
     setEditId(null);
     try {
-      const res = await fetch('/api/admin/update-database-item', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemId: id, name: editName, itemCategory: editCategory }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        const message = data?.error || 'Failed to update';
-        throw new Error(message);
-      }
+      await updateDatabaseItem({ itemId: id, name: editName, itemCategory: editCategory });
     } catch (err) {
       setItems(previous);
       // eslint-disable-next-line no-alert
@@ -175,18 +157,7 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
     setMergeTargetId(null);
 
     try {
-      const res = await fetch('/api/admin/merge-database-item', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourceId: mergeSourceId, targetId: mergeTargetId }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        const message = data?.error || 'Failed to merge';
-        throw new Error(message);
-      }
-
+      await mergeDatabaseItems(mergeSourceId!, mergeTargetId!);
       if (onRefresh) await onRefresh();
     } catch (err) {
       setItems(previous);

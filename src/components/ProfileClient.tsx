@@ -3,6 +3,8 @@
 'use client';
 
 import { useState, ChangeEvent, FormEvent } from 'react';
+import { useSession } from 'next-auth/react';
+import { updateProfile } from '@/lib/dbActions';
 
 type Role = 'USER' | 'ADMIN';
 
@@ -51,6 +53,7 @@ export default function ProfileClient({
   store,
   canEdit = true,
 }: ProfileClientProps) {
+  const { data: session } = useSession();
   const [user, setUser] = useState(initialUser);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -83,24 +86,11 @@ export default function ProfileClient({
     setError(null);
 
     try {
-      const res = await fetch('/api/profile/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          image,
-        }),
+      const data = await updateProfile(session?.user?.email || '', {
+        firstName,
+        lastName,
+        image,
       });
-
-      if (!res.ok) {
-        setError('Failed to update profile. Please try again.');
-        return;
-      }
-
-      const data = await res.json();
 
       if (data.user) {
         setUser((prev) => ({

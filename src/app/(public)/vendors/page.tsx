@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
-import VendorList from '@/components/vendors/VendorList';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-
-const prisma = new PrismaClient();
+import VendorList from '@/components/vendors/VendorList';
 
 export default async function VendorsPage() {
   const session = await getServerSession(authOptions);

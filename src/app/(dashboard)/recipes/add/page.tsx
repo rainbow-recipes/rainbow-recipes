@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import AddRecipeForm from '@/components/recipes/AddRecipeForm';
 import { getServerSession } from 'next-auth';
 import { loggedInProtectedPage } from '@/lib/page-protection';
 import { authOptions } from '@/lib/auth';
-
-const prisma = new PrismaClient();
 
 export default async function AddRecipePage() {
   // Protect the page, only logged in users can access it.

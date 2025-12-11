@@ -3,9 +3,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from 'react-bootstrap';
 import Link from 'next/link';
 import { Star, StarFill, TrashFill } from 'react-bootstrap-icons';
+import swal from 'sweetalert';
+import { deleteRecipeReview } from '@/lib/dbActions';
 
 interface RecipeReview {
   id: number;
@@ -39,6 +42,7 @@ export default function RecipeReviewsList({
 }: RecipeReviewsListProps) {
   const [reviewList, setReviewList] = useState(reviews);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const { data: session } = useSession();
 
   const canDeleteReview = (reviewOwner: string) => currentUserEmail === reviewOwner || userRole === 'ADMIN';
   const isAuthor = recipeAuthorId && currentUserId && recipeAuthorId === currentUserId;
@@ -52,21 +56,12 @@ export default function RecipeReviewsList({
 
     setDeleting(reviewId);
     try {
-      const res = await fetch(`/api/reviews/recipe/${reviewId}`, {
-        method: 'DELETE',
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        // eslint-disable-next-line no-alert
-        window.alert(errData.error || 'Failed to delete review');
-        return;
-      }
-
+      await deleteRecipeReview(session?.user?.email || '', reviewId);
       setReviewList(reviewList.filter((r) => r.id !== reviewId));
+      swal('Success', 'Review deleted successfully!', 'success');
     } catch (err: any) {
       // eslint-disable-next-line no-alert
-      window.alert(err.message || 'An error occurred while deleting the review.');
+      swal('Error', err.message || 'An error occurred while deleting the review.', 'error');
     } finally {
       setDeleting(null);
     }

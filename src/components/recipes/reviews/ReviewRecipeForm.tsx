@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Form, Button, Alert } from 'react-bootstrap';
+import { createRecipeReview } from '@/lib/dbActions';
 
 interface ReviewRecipeFormProps {
   recipeId: number;
@@ -16,6 +18,7 @@ type ReviewFormValues = {
 
 export default function ReviewRecipeForm({ recipeId }: ReviewRecipeFormProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const {
     register,
     handleSubmit,
@@ -37,20 +40,11 @@ export default function ReviewRecipeForm({ recipeId }: ReviewRecipeFormProps) {
         return;
       }
 
-      const res = await fetch('/api/reviews/recipe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          recipeId,
-          rating: ratingNum,
-          review: data.review,
-        }),
+      await createRecipeReview(session?.user?.email || '', {
+        recipeId,
+        rating: ratingNum,
+        review: data.review,
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to submit review');
-      }
 
       setSuccess('Review submitted successfully!');
       reset();

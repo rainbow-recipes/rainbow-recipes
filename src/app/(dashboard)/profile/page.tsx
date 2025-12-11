@@ -1,11 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { loggedInProtectedPage } from '@/lib/page-protection';
 import ProfileClient from '@/components/ProfileClient';
-
-const prisma = new PrismaClient();
 
 export default async function ProfilePage() {
   // Protect the page, only logged in users can access it.
@@ -18,12 +16,36 @@ export default async function ProfilePage() {
 
   const user = await prisma.user.findUnique({
     where: { email: session?.user?.email! },
-    include: {
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      firstName: true,
+      lastName: true,
+      image: true,
+      role: true,
+      isMerchant: true,
+      merchantApproved: true,
       recipes: {
+        select: {
+          id: true,
+          name: true,
+          prepTime: true,
+          cost: true,
+        },
         orderBy: { id: 'desc' },
       },
       favorites: {
-        include: { recipe: true },
+        select: {
+          recipe: {
+            select: {
+              id: true,
+              name: true,
+              prepTime: true,
+              cost: true,
+            },
+          },
+        },
         orderBy: { id: 'desc' },
       },
     },
@@ -37,56 +59,29 @@ export default async function ProfilePage() {
   const store = user.isMerchant
     ? await prisma.store.findFirst({
       where: { owner: user.email },
+      select: {
+        id: true,
+        name: true,
+        location: true,
+        website: true,
+        hours: true,
+        image: true,
+      },
     })
     : null;
 
-  const plainUser = {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    image: user.image,
-    role: user.role,
-    isMerchant: user.isMerchant,
-    merchantApproved: user.merchantApproved,
-  };
-
-  const publishedRecipes = user.recipes.map((r) => ({
-    id: r.id,
-    name: r.name,
-    prepTime: r.prepTime,
-    cost: r.cost,
-  }));
+  const publishedRecipes = user.recipes;
 
   const favoriteRecipes = user.favorites
-    .map((f) => (f.recipe
-      ? {
-        id: f.recipe.id,
-        name: f.recipe.name,
-        prepTime: f.recipe.prepTime,
-        cost: f.recipe.cost,
-      }
-      : null))
+    .map((f) => f.recipe)
     .filter(Boolean) as { id: number; name: string; prepTime: number; cost: number }[];
-
-  const storeSummary = store
-    ? {
-      id: store.id,
-      name: store.name,
-      location: store.location,
-      website: store.website,
-      hours: store.hours,
-      image: store.image,
-    }
-    : null;
 
   return (
     <ProfileClient
-      user={plainUser}
+      user={user}
       publishedRecipes={publishedRecipes}
       favoriteRecipes={favoriteRecipes}
-      store={storeSummary}
+      store={store}
       canEdit
     />
   );
