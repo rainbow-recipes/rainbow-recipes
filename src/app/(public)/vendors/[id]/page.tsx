@@ -91,11 +91,11 @@ export default async function VendorsPage({ params }: { params: { id: string | s
                 <Image
                   src={image}
                   alt={`${storeName} logo`}
-                  className="img-fluid rounded-circle"
-                  style={{ width: '75px', height: '75px', objectFit: 'cover' }}
+                  className="img-fluid"
+                  style={{ maxWidth: '100px', maxHeight: '75px', objectFit: 'fill' }}
                 />
               ) : null}
-              <h1 className="mb-0">{storeName}</h1>
+              <h1 className="mb-0" style={{ fontWeight: 'bold' }}>{storeName}</h1>
             </div>
             {averageRating !== null && (
               <div className="mt-2 ms-3">

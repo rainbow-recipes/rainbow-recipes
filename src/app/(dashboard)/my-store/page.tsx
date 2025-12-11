@@ -62,10 +62,10 @@ export default async function MyStorePage() {
                       src={image}
                       alt={`${storeName} logo`}
                       className="img-fluid rounded-circle"
-                      style={{ width: '75px', height: '75px', objectFit: 'cover' }}
+                      style={{ maxWidth: '100px', maxHeight: '75px', objectFit: 'fill' }}
                     />
                   ) : null}
-                  <h1 className="mb-0">{storeName}</h1>
+                  <h1 className="mb-0" style={{ fontWeight: 'bold' }}>{storeName}</h1>
                 </div>
               </Col>
               <Col>

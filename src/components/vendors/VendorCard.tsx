@@ -6,13 +6,13 @@ import defaultImage from '../../../public/default-store-image.png';
 
 export default function VendorCard({ store }: { store: Store }) {
   return (
-    <Card className="h-100 text-start shadow-sm border-0 w-100" style={{ maxWidth: '12rem' }}>
+    <Card className="text-center shadow-lg border-0" style={{ width: '12rem', height: 'fit-content' }}>
       {(store.image === null) && (
       <Card.Img
         variant="top"
         src={defaultImage.src}
         alt={`${store.name}`}
-        style={{ width: '100%', aspectRatio: '1', objectFit: 'cover' }}
+        style={{ width: '100%', aspectRatio: '1', objectFit: 'contain' }}
       />
       )}
       {store.image !== null && (
@@ -20,7 +20,7 @@ export default function VendorCard({ store }: { store: Store }) {
           variant="top"
           src={store.image}
           alt={`${store.name}`}
-          style={{ width: '100%', aspectRatio: '1', objectFit: 'cover' }}
+          style={{ width: '100%', aspectRatio: '1', objectFit: 'contain', padding: '0.5rem' }}
         />
       )}
       <Card.Body>
