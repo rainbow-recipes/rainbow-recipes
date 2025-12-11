@@ -99,6 +99,7 @@ export default async function PublicProfilePage({ params }: { params: { id: stri
           initialFavoriteIds={[]}
           currentUserId={undefined}
           isAdmin={false}
+          userEmail={undefined}
           mode="publicProfile"
         />
       )}

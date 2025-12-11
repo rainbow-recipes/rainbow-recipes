@@ -1,17 +1,13 @@
-// src/app/recipes/page.tsx
-
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import RecipeList from '@/components/recipes/RecipeList';
 import { Row } from 'react-bootstrap';
 
-const prisma = new PrismaClient();
-
 export default async function RecipesPage() {
   const session = await getServerSession(authOptions);
 
-  const [recipes, tags, allIngredients] = await Promise.all([
+  const [recipes, tags, allIngredients, userWithFavorites] = await Promise.all([
     prisma.recipe.findMany({
       include: {
         tags: true,
@@ -33,28 +29,21 @@ export default async function RecipesPage() {
     prisma.databaseItem.findMany({
       select: { id: true, name: true, itemCategory: true },
     }),
+    session?.user?.email
+      ? prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: {
+          id: true,
+          role: true,
+          favorites: { select: { recipeId: true } },
+        },
+      })
+      : null,
   ]);
 
-  let favoriteIds: number[] = [];
-  let isAdmin = false;
-  let currentUserId: string | number | undefined;
-
-  if (session?.user?.email) {
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
-    });
-
-    if (user) {
-      currentUserId = user.id;
-      const favorites = await prisma.favorite.findMany({
-        where: { userId: user.id },
-        select: { recipeId: true },
-      });
-      favoriteIds = favorites.map((f) => f.recipeId);
-    }
-
-    isAdmin = (session.user as any)?.role === 'ADMIN';
-  }
+  const favoriteIds = userWithFavorites?.favorites.map((f) => f.recipeId) ?? [];
+  const isAdmin = userWithFavorites?.role === 'ADMIN';
+  const currentUserId = userWithFavorites?.id;
 
   return (
     <div className="container my-4">
@@ -68,6 +57,7 @@ export default async function RecipesPage() {
         initialFavoriteIds={favoriteIds}
         isAdmin={isAdmin}
         currentUserId={currentUserId}
+        userEmail={session?.user?.email ?? undefined}
       />
     </div>
   );

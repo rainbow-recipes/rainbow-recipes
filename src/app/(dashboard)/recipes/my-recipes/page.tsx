@@ -13,16 +13,14 @@ export default async function MyRecipesPage() {
     } | null,
   );
 
-  const owner = (session && session.user && session.user.email) || '';
+  const userEmail = session?.user?.email!;
   const currentUser = await prisma.user.findUnique({
-    where: {
-      email: owner,
-    },
+    where: { email: userEmail },
+    select: { id: true, role: true },
   });
   const currentUserId = currentUser?.id;
   const isAdmin = currentUser?.role === 'ADMIN';
 
-  // Load data in parallel
   const [myRecipes, tags, allIngredients, favorites] = await Promise.all([
     prisma.recipe.findMany({
       where: { authorId: currentUserId },
@@ -44,7 +42,7 @@ export default async function MyRecipesPage() {
     }),
   ]);
 
-  const favoriteIds = favorites.map(f => f.recipeId);
+  const favoriteIds = favorites.map((f) => f.recipeId);
 
   return (
     <div className="container my-4">
@@ -56,6 +54,7 @@ export default async function MyRecipesPage() {
         initialFavoriteIds={favoriteIds}
         isAdmin={isAdmin}
         currentUserId={currentUserId}
+        userEmail={session?.user?.email ?? undefined}
       />
     </div>
   );

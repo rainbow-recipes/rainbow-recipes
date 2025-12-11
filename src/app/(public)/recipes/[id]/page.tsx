@@ -3,59 +3,74 @@ import { ChevronLeft, Basket2, Star, StarFill } from 'react-bootstrap-icons';
 import Link from 'next/link';
 import notFound from '@/app/not-found';
 import { prisma } from '@/lib/prisma';
-import { IngredientAvailabilityList } from '@/components/recipes/IngredientAvailabilityList';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { IngredientAvailabilityList } from '@/components/recipes/IngredientAvailabilityList';
 import RecipeReviewsList from '@/components/recipes/reviews/RecipeReviewsList';
 
 export default async function RecipesPage({ params }: { params: { id: string | string[] } }) {
   const session = await getServerSession(authOptions);
-  const userEmail = session?.user?.email || null;
-  const currentUser = userEmail
-    ? await prisma.user.findUnique({
-      where: { email: userEmail },
-    })
-    : null;
+  const userEmail = session?.user?.email;
   const id = Number(String(Array.isArray(params?.id) ? params?.id[0] : params?.id));
-  // console.log(id);
-  const recipe = await prisma.recipe.findUnique({
-    where: { id },
-    include: {
-      ingredients: {
-        include: { storeItems: true },
-      },
-      tags: true,
-      reviews: {
-        orderBy: { id: 'desc' },
-        include: {
-          recipe: false,
+
+  const [recipe, currentUser] = await Promise.all([
+    prisma.recipe.findUnique({
+      where: { id },
+      include: {
+        ingredients: {
+          include: { storeItems: true },
+        },
+        tags: true,
+        reviews: {
+          orderBy: { id: 'desc' },
+          include: {
+            recipe: false,
+          },
         },
       },
-    },
-  });
-  // console.log(recipe);
+    }),
+    userEmail
+      ? prisma.user.findUnique({
+        where: { email: userEmail },
+        select: { id: true, role: true },
+      })
+      : null,
+  ]);
+
   if (!recipe) {
     return notFound();
   }
 
-  const author = recipe.authorId
-    ? await prisma.user.findUnique({
-      where: { id: recipe.authorId },
-      select: { id: true, firstName: true, lastName: true, name: true },
-    })
-    : null;
-
-  // Fetch store names for any store items tied to these ingredients
-  const ownerEmails = Array.from(new Set(
-    recipe.ingredients.flatMap((ing) => ing.storeItems?.map((s) => s.owner).filter(Boolean) || []),
-  ));
-  const stores = ownerEmails.length
-    ? await prisma.store.findMany({
-      where: { owner: { in: ownerEmails as string[] } },
+  // Fetch author, stores, and review owners in parallel
+  const [author, stores, reviewOwners] = await Promise.all([
+    recipe.authorId
+      ? prisma.user.findUnique({
+        where: { id: recipe.authorId },
+        select: { id: true, firstName: true, lastName: true, name: true },
+      })
+      : null,
+    prisma.store.findMany({
+      where: {
+        owner: {
+          in: Array.from(new Set(
+            recipe.ingredients.flatMap((ing) => ing.storeItems?.map((s) => s.owner).filter(Boolean) || []),
+          )) as string[],
+        },
+      },
       select: { id: true, name: true, owner: true },
-    })
-    : [];
+    }),
+    prisma.user.findMany({
+      where: {
+        email: {
+          in: Array.from(new Set(recipe.reviews.map((r) => r.owner))),
+        },
+      },
+      select: { id: true, email: true, firstName: true, lastName: true, name: true },
+    }),
+  ]);
+
   const storeByOwner = new Map(stores.map((s) => [s.owner, { id: s.id, name: s.name }]));
+  const ownerMap = new Map(reviewOwners.map((u) => [u.email, u]));
 
   const ingredientAvailability = recipe.ingredients.map((ing) => ({
     id: ing.id,
@@ -75,14 +90,6 @@ export default async function RecipesPage({ params }: { params: { id: string | s
     }),
   }));
 
-  // Fetch user info for each review
-  const reviewOwnerEmails = Array.from(new Set(recipe.reviews.map((r) => r.owner)));
-  const reviewOwners = await prisma.user.findMany({
-    where: { email: { in: reviewOwnerEmails } },
-    select: { id: true, email: true, firstName: true, lastName: true, name: true },
-  });
-  const ownerMap = new Map(reviewOwners.map((u) => [u.email, u]));
-
   const reviewsWithUserInfo = recipe.reviews.map((review) => {
     const user = ownerMap.get(review.owner);
     return {
@@ -94,7 +101,6 @@ export default async function RecipesPage({ params }: { params: { id: string | s
     };
   });
 
-  // Calculate average rating
   const averageRating = reviewsWithUserInfo.length > 0
     ? (reviewsWithUserInfo.reduce((sum, r) => sum + r.rating, 0) / reviewsWithUserInfo.length)
     : null;

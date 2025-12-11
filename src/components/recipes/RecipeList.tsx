@@ -3,11 +3,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams, usePathname } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import type { Recipe, Tag, ItemCategory } from '@prisma/client';
 import { Card } from 'react-bootstrap';
 import { SuitHeart, SuitHeartFill, ChevronDown, ChevronRight, StarFill } from 'react-bootstrap-icons';
+import swal from 'sweetalert';
+import { toggleFavorite, deleteRecipe } from '@/lib/dbActions';
 import defaultRecipeImage from '../../../public/default-recipe-image.png';
 
 type RecipeWithTags = Recipe & {
@@ -35,6 +38,9 @@ interface RecipeListProps {
   // the currently signed-in user's id (optional) - may be string or number depending on auth
   // eslint-disable-next-line react/require-default-props
   currentUserId?: string | number;
+  // the currently signed-in user's email (optional)
+  // eslint-disable-next-line react/require-default-props
+  userEmail?: string;
   // eslint-disable-next-line react/require-default-props
   showSearch?: boolean;
   // eslint-disable-next-line react/require-default-props
@@ -48,9 +54,12 @@ export default function RecipeList({
   initialFavoriteIds,
   isAdmin,
   currentUserId,
+  userEmail,
   showSearch = true,
   mode = 'default',
 }: RecipeListProps) {
+  const router = useRouter();
+  const { data: session } = useSession();
   const [recipes, setRecipes] = useState<RecipeWithTags[]>(initialRecipes);
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -261,7 +270,9 @@ export default function RecipeList({
     }));
   };
 
-  const toggleFavorite = async (recipeId: number) => {
+  const toggleFavoriteHandler = async (recipeId: number) => {
+    if (!userEmail) return;
+
     const wasFavorite = favoriteIds.includes(recipeId);
     // eslint-disable-next-line no-underscore-dangle
     const prevCount = recipes.find((r) => r.id === recipeId)?._count?.favorites ?? 0;
@@ -280,15 +291,7 @@ export default function RecipeList({
     }));
 
     try {
-      const res = await fetch('/api/favorites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipeId }),
-      });
-
-      if (!res.ok) throw new Error('Favorite request failed');
-
-      const data: { favorited: boolean; favoritesCount?: number } = await res.json();
+      const data = await toggleFavorite(userEmail, recipeId);
 
       // reconcile ids with server truth
       setFavoriteIds((prev) => {
@@ -318,35 +321,29 @@ export default function RecipeList({
         }
         return prev.filter((id) => id !== recipeId);
       });
-
       setRecipes((current) => current.map((recipe) => {
         if (recipe.id !== recipeId) return recipe;
         return {
           ...recipe,
           _count: { favorites: prevCount },
-        } as RecipeWithTags;
+        };
       }));
     }
   };
 
   const handleDeleteRecipe = async (recipeId: number) => {
-    if (!isAdmin) return;
+    const recipe = recipes.find((r) => r.id === recipeId);
+    const isOwner = recipe?.authorId != null && String(currentUserId) === String(recipe.authorId);
 
-    const prevRecipes = recipes;
-    // optimistic remove
-    setRecipes((current) => current.filter((r) => r.id !== recipeId));
+    if (!isAdmin && !isOwner) return;
 
     try {
-      const res = await fetch(`/api/recipes/${recipeId}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) {
-        console.error('Failed to delete recipe');
-        setRecipes(prevRecipes); // revert on failure
-      }
+      await deleteRecipe(session?.user?.email || '', recipeId);
+      setRecipes((current) => current.filter((r) => r.id !== recipeId));
+      swal('Success', 'Recipe deleted successfully!', 'success');
     } catch (err) {
       console.error('Error deleting recipe:', err);
-      setRecipes(prevRecipes); // revert on error
+      swal('Error', 'Failed to delete recipe.', 'error');
     }
   };
 
@@ -732,8 +729,20 @@ export default function RecipeList({
                   : null;
 
                 return (
-                  <div key={recipe.id} className="col-md-4 mb-4">
-                    <Link href={`/recipes/${recipe.id}`} className="text-decoration-none" aria-label={`View ${recipe.name}`}>
+                  <div key={recipe.id} className="col-md-4 mb-4 d-flex">
+                    <div
+                      onClick={() => router.push(`/recipes/${recipe.id}`)}
+                      style={{ cursor: 'pointer', width: '100%' }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          router.push(`/recipes/${recipe.id}`);
+                        }
+                      }}
+                      className="text-decoration-none"
+                      aria-label={`View ${recipe.name}`}
+                    >
                       <Card className="h-100 border-0 shadow-sm position-relative">
                         {recipe.image ? (
                           <Card.Img
@@ -769,7 +778,7 @@ export default function RecipeList({
                                     e.preventDefault();
                                     e.stopPropagation();
                                     if (!isAuthenticated) return;
-                                    toggleFavorite(recipe.id);
+                                    toggleFavoriteHandler(recipe.id);
                                   }}
                                   disabled={!isAuthenticated}
                                   aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -851,7 +860,11 @@ export default function RecipeList({
                                   type="button"
                                   className="btn btn-sm btn-outline-danger ms-2"
                                   style={{ position: 'relative', zIndex: 2 }}
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteRecipe(recipe.id); }}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleDeleteRecipe(recipe.id);
+                                  }}
                                 >
                                   Delete
                                 </button>
@@ -860,7 +873,7 @@ export default function RecipeList({
                           )}
                         </Card.Body>
                       </Card>
-                    </Link>
+                    </div>
                   </div>
                 );
               })}

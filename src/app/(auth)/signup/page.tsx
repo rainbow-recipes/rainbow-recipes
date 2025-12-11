@@ -5,6 +5,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { signUp } from '@/lib/dbActions';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -21,23 +22,12 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || 'Failed to sign up');
-      } else {
-        // After sign up, go to sign in
-        router.push('/signin');
-      }
-    } catch (err) {
+      await signUp(email, password, firstName, lastName);
+      // After sign up, go to sign in
+      router.push('/signin');
+    } catch (err: any) {
       console.error(err);
-      setError('Failed to sign up');
+      setError(err.message || 'Failed to sign up');
     } finally {
       setLoading(false);
     }

@@ -16,17 +16,17 @@ export default async function MyStorePage() {
     } | null,
   );
 
-  // Session shape may include either `user.id` or `user.email` depending on NextAuth callbacks.
-  // Try to resolve the user by id first, then by email as a fallback.
   const sessionUser = session?.user as ({ id?: string; email?: string } | undefined);
-  const lookupById = sessionUser?.id;
-  const lookupByEmail = sessionUser?.email;
-  // eslint-disable-next-line no-nested-ternary
-  const user = lookupById
-    ? await prisma.user.findUnique({ where: { id: lookupById } })
-    : lookupByEmail
-      ? await prisma.user.findUnique({ where: { email: lookupByEmail } })
-      : null;
+  const user = sessionUser?.id || sessionUser?.email
+    ? await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: sessionUser?.id },
+          { email: sessionUser?.email },
+        ],
+      },
+    })
+    : null;
   const id = user?.id;
   const store: Store | null = await prisma.store.findUnique({
     where: { id },

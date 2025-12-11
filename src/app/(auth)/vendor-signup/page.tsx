@@ -5,6 +5,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { vendorSignUp } from '@/lib/dbActions';
 
 export default function VendorSignUpPage() {
   const router = useRouter();
@@ -21,23 +22,12 @@ export default function VendorSignUpPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/vendor-signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || 'Failed to sign up as vendor');
-      } else {
-        // After vendor sign up, send them to sign in with a note
-        router.push('/signin');
-      }
-    } catch (err) {
+      await vendorSignUp(email, password, firstName, lastName);
+      // After vendor sign up, send them to sign in with a note
+      router.push('/signin');
+    } catch (err: any) {
       console.error(err);
-      setError('Failed to sign up as vendor');
+      setError(err.message || 'Failed to sign up as vendor');
     } finally {
       setLoading(false);
     }

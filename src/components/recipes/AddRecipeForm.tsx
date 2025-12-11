@@ -6,9 +6,11 @@
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import type { Tag, ItemCategory } from '@prisma/client';
 import { Form, Button, Container } from 'react-bootstrap';
 import swal from 'sweetalert';
+import { createRecipe } from '@/lib/dbActions';
 import IngredientAutocomplete from './IngredientAutocomplete';
 
 interface AddRecipeFormProps {
@@ -30,6 +32,7 @@ type RecipeFormValues = {
 
 export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const {
     register,
     control,
@@ -85,37 +88,21 @@ export default function AddRecipeForm({ allTags }: AddRecipeFormProps) {
         }
       }
 
-      // Call API to create recipe
-      const res = await fetch('/api/recipes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          cost: costNum,
-          prepTime: prepNum,
-          description: description || '',
-          image: imageData,
-          tagIds: selectedTagIds,
-          ingredients: ingredients.map((ing) => ({
-            id: ing.id,
-            name: ing.name,
-            itemCategory: (ing as any).itemCategory,
-          })),
-          ingredientQuantities,
-        }),
+      // Call server action to create recipe
+      await createRecipe(session?.user?.email || '', {
+        name,
+        cost: costNum,
+        prepTime: prepNum,
+        description: description || '',
+        image: imageData,
+        tagIds: selectedTagIds,
+        ingredients: ingredients.map((ing) => ({
+          id: ing.id,
+          name: ing.name,
+          itemCategory: (ing as any).itemCategory,
+        })),
+        ingredientQuantities,
       });
-
-      if (!res.ok) {
-        // try to parse server error message to show user-friendly feedback
-        let payload: any = null;
-        try {
-          payload = await res.json();
-        } catch (e) {
-          // ignore
-        }
-        const msg = payload?.error || payload?.message || `Server error: ${res.status}`;
-        throw new Error(msg);
-      }
 
       // Show success message and redirect
       await swal('Success', 'Recipe added successfully', 'success', { timer: 2000 });
