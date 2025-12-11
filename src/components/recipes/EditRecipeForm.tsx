@@ -8,7 +8,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import type { Tag, ItemCategory } from '@prisma/client';
 import { Form, Button, Container } from 'react-bootstrap';
-import IngredientAutocomplete from '@/components/recipes/IngredientAutocomplete';
+import swal from 'sweetalert';
+import IngredientAutocomplete from './IngredientAutocomplete';
 
 interface EditRecipeFormProps {
   allTags: Tag[];
@@ -60,7 +61,6 @@ export default function EditRecipeForm({ allTags, recipe }: EditRecipeFormProps)
     formState: { isSubmitting, errors },
   } = useForm<RecipeFormValues>({ mode: 'onChange', defaultValues: defaultValues as any });
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const dietTags = allTags.filter((t) => t.category === 'Diet');
   const applianceTags = allTags.filter((t) => t.category === 'Appliance');
@@ -141,11 +141,9 @@ export default function EditRecipeForm({ allTags, recipe }: EditRecipeFormProps)
         throw new Error(msg);
       }
 
-      // Show success message and redirect after a short delay
-      setSuccess('Recipe updated successfully!');
-      setTimeout(() => {
-        router.push('/recipes');
-      }, 1500);
+      // Show success message and redirect
+      await swal('Success', 'Recipe updated successfully', 'success', { timer: 2000 });
+      router.push('/recipes');
     } catch (err) {
       console.error(err);
       setError('Failed to save changes. Please try again.');
@@ -154,40 +152,6 @@ export default function EditRecipeForm({ allTags, recipe }: EditRecipeFormProps)
 
   return (
     <Container className="py-4">
-      {success && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 9999,
-            backgroundColor: 'white',
-            padding: '2rem',
-            borderRadius: '8px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-            minWidth: '300px',
-            textAlign: 'center',
-          }}
-        >
-          <div className="alert alert-success mb-0" style={{ fontSize: '1.1rem' }}>
-            {success}
-          </div>
-        </div>
-      )}
-      {success && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            zIndex: 9998,
-          }}
-        />
-      )}
       <h2 className="mb-3">Edit recipe</h2>
       <Form onSubmit={handleSubmit(onSubmit)}>
         {error && <div className="alert alert-danger">{error}</div>}
