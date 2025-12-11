@@ -39,12 +39,12 @@ function GuestLanding() {
           >
             Browse Recipes
           </Link>
-          <Link
+          <a
             href="/lucky"
             className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
           >
             I&apos;m feeling lucky!
-          </Link>
+          </a>
         </Container>
       </div>
       {/* FEATURE SECTION */}
@@ -184,12 +184,12 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
               Favorite Recipes
             </Link>
 
-            <Link
+            <a
               href="/lucky"
               className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
             >
               I&apos;m feeling lucky!
-            </Link>
+            </a>
           </div>
         </Container>
       </div>
