@@ -39,6 +39,12 @@ function GuestLanding() {
           >
             Browse Recipes
           </Link>
+          <Link
+            href="/lucky"
+            className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
+          >
+            I&apos;m feeling lucky!
+          </Link>
         </Container>
       </div>
       {/* FEATURE SECTION */}
@@ -176,6 +182,13 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
               className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
             >
               Favorite Recipes
+            </Link>
+
+            <Link
+              href="/lucky"
+              className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
+            >
+              I&apos;m feeling lucky!
             </Link>
           </div>
         </Container>
