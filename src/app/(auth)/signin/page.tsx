@@ -1,10 +1,10 @@
 'use client';
 
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import { FormEvent, useState, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Alert, Button, Card, Col, Container, Form, Row } from 'react-bootstrap';
 
 function SignInForm() {
   const router = useRouter();
@@ -44,63 +44,54 @@ function SignInForm() {
   };
 
   return (
-    <Container className="py-5">
-      <Row className="justify-content-center">
-        <Col md={6} lg={5}>
-          <Card className="shadow-sm">
-            <Card.Body>
-              <h2 className="mb-4 text-center">Sign in</h2>
+    <div className="container my-5" style={{ maxWidth: 480 }}>
+      <h2 className="mb-4 text-center">Sign in</h2>
 
-              {error && (
-                <Alert variant="danger" className="mb-3">
-                  {error}
-                </Alert>
-              )}
+      {error && <div className="alert alert-danger">{error}</div>}
 
-              <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3" controlId="email">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control
-                    type="email"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </Form.Group>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label className="form-label" htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            className="form-control"
+            placeholder="you@example.com"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
 
-                <Form.Group className="mb-4" controlId="password">
-                  <Form.Label>Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    placeholder="••••••••"
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </Form.Group>
+        <div className="mb-4">
+          <label className="form-label" htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            className="form-control"
+            placeholder="••••••••"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
 
-                <Button
-                  type="submit"
-                  variant="dark"
-                  className="w-100 mb-3"
-                  disabled={submitting}
-                >
-                  {submitting ? 'Signing in…' : 'Sign in'}
-                </Button>
-              </Form>
+        <button
+          type="submit"
+          className="btn btn-success w-100 mb-3"
+          disabled={submitting}
+        >
+          {submitting ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
 
-              <div className="text-center">
-                <span>Don&apos;t have an account? </span>
-                <Link href="/signup">Sign up</Link>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+      <div className="text-center">
+        <span>Don&apos;t have an account? </span>
+        <Link href="/signup">Sign up</Link>
+      </div>
+    </div>
   );
 }
 
