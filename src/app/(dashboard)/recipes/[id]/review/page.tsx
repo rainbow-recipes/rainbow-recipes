@@ -7,7 +7,8 @@ import notFound from '@/app/not-found';
 import { Container, Alert } from 'react-bootstrap';
 import Link from 'next/link';
 
-export default async function ReviewRecipePage({ params }: { params: { id: string } }) {
+export default async function ReviewRecipePage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   // Protect the page, only logged in users can access it.
   const session = await getServerSession(authOptions);
   loggedInProtectedPage(
@@ -16,7 +17,7 @@ export default async function ReviewRecipePage({ params }: { params: { id: strin
     } | null,
   );
 
-  const recipeId = parseInt(params.id, 10);
+  const recipeId = parseInt(resolvedParams.id, 10);
   if (Number.isNaN(recipeId)) {
     return notFound();
   }

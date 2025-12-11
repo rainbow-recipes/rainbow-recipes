@@ -6,7 +6,7 @@ import defaultImage from '../../../public/default-store-image.png';
 
 export default function VendorCard({ store }: { store: Store }) {
   return (
-    <Card className="text-center shadow-lg border-0" style={{ width: '12rem', height: 'fit-content' }}>
+    <Card className="text-center shadow-sm border-0" style={{ width: '12rem', height: 'fit-content' }}>
       {(store.image === null) && (
       <Card.Img
         variant="top"

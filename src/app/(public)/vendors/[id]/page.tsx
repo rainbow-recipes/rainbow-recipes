@@ -8,10 +8,11 @@ import { authOptions } from '@/lib/auth';
 import StoreItemList from '@/components/store-items/StoreItemList';
 import VendorReviewsList from '@/components/vendors/reviews/VendorReviewsList';
 
-export default async function VendorsPage({ params }: { params: { id: string | string[] } }) {
+export default async function VendorsPage({ params }: { params: Promise<{ id: string | string[] }> }) {
+  const resolvedParams = await params;
   const session = await getServerSession(authOptions);
   const userEmail = session?.user?.email;
-  const id = String(Array.isArray(params?.id) ? params?.id[0] : params?.id);
+  const id = String(Array.isArray(resolvedParams?.id) ? resolvedParams?.id[0] : resolvedParams?.id);
 
   const [store, currentUser] = await Promise.all([
     prisma.store.findUnique({

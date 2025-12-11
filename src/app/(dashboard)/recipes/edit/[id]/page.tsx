@@ -7,10 +7,11 @@ import { prisma } from '@/lib/prisma';
 import EditRecipeForm from '@/components/recipes/EditRecipeForm';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditRecipePage({ params }: Props) {
+  const resolvedParams = await params;
   // Protect the page, only logged in users can access it.
   const session = await getServerSession(authOptions);
   loggedInProtectedPage(
@@ -19,7 +20,7 @@ export default async function EditRecipePage({ params }: Props) {
     } | null,
   );
 
-  const recipeId = Number(params.id);
+  const recipeId = Number(resolvedParams.id);
   if (Number.isNaN(recipeId)) {
     return <div>Invalid recipe id</div>;
   }

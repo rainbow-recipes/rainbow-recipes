@@ -8,10 +8,11 @@ import { authOptions } from '@/lib/auth';
 import { IngredientAvailabilityList } from '@/components/recipes/IngredientAvailabilityList';
 import RecipeReviewsList from '@/components/recipes/reviews/RecipeReviewsList';
 
-export default async function RecipesPage({ params }: { params: { id: string | string[] } }) {
+export default async function RecipesPage({ params }: { params: Promise<{ id: string | string[] }> }) {
+  const resolvedParams = await params;
   const session = await getServerSession(authOptions);
   const userEmail = session?.user?.email;
-  const id = Number(String(Array.isArray(params?.id) ? params?.id[0] : params?.id));
+  const id = Number(String(Array.isArray(resolvedParams?.id) ? resolvedParams?.id[0] : resolvedParams?.id));
 
   const [recipe, currentUser] = await Promise.all([
     prisma.recipe.findUnique({

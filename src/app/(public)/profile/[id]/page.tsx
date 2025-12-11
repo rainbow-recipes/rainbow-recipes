@@ -5,8 +5,9 @@ import notFound from '@/app/not-found';
 import { prisma } from '@/lib/prisma';
 import RecipeList from '@/components/recipes/RecipeList';
 
-export default async function PublicProfilePage({ params }: { params: { id: string } }) {
-  const userId = String(params.id);
+export default async function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const userId = String(resolvedParams.id);
 
   // Fetch user with their public recipes and favorites count
   const user = await prisma.user.findUnique({

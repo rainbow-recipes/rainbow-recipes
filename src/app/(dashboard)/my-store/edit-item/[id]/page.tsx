@@ -5,7 +5,8 @@ import { prisma } from '@/lib/prisma';
 import notFound from '@/app/not-found';
 import EditStoreItemForm from '@/components/store-items/EditStoreItemForm';
 
-export default async function EditItemPage({ params }: { params: { id: string | string[] } }) {
+export default async function EditItemPage({ params }: { params: Promise<{ id: string | string[] }> }) {
+  const resolvedParams = await params;
   const session = await getServerSession(authOptions);
   vendorProtectedPage(
     session as {
@@ -13,7 +14,7 @@ export default async function EditItemPage({ params }: { params: { id: string | 
     } | null,
   );
 
-  const id = Number(Array.isArray(params?.id) ? params?.id[0] : params?.id);
+  const id = Number(Array.isArray(resolvedParams?.id) ? resolvedParams?.id[0] : resolvedParams?.id);
   const item = await prisma.storeItem.findUnique({
     where: { id },
     include: { databaseItem: true },

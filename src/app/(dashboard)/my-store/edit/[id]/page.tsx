@@ -6,7 +6,8 @@ import EditStorePageForm from '@/components/vendors/EditStorePageForm';
 import { Store } from '@prisma/client';
 import notFound from '@/app/not-found';
 
-export default async function EditStorePage({ params }: { params: { id: string | string[] } }) {
+export default async function EditStorePage({ params }: { params: Promise<{ id: string | string[] }> }) {
+  const resolvedParams = await params;
   // Protect the page, only logged in vendors can access it.
   const session = await getServerSession(authOptions);
   vendorProtectedPage(
@@ -15,7 +16,7 @@ export default async function EditStorePage({ params }: { params: { id: string |
     } | null,
   );
 
-  const id = String(Array.isArray(params?.id) ? params?.id[0] : params?.id);
+  const id = String(Array.isArray(resolvedParams?.id) ? resolvedParams?.id[0] : resolvedParams?.id);
   const store: Store | null = await prisma.store.findUnique({
     where: { id },
   });

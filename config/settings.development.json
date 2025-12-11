@@ -56,6 +56,7 @@
     { "name": "basil", "itemCategory": "produce" },
     { "name": "chives", "itemCategory": "produce" },
     { "name": "thyme", "itemCategory": "produce" },
+    { "name": "green onion", "itemCategory": "produce" },
 
     { "name": "chicken", "itemCategory": "meat_seafood" },
     { "name": "beef", "itemCategory": "meat_seafood" },
@@ -147,7 +148,7 @@
     "name": "Simple Fried Rice",
     "cost": 5,
     "prepTime": 20,
-    "ingredientNames": ["rice", "egg", "soy sauce", "green onion"],
+    "ingredientNames": ["rice", "eggs", "soy sauce", "green onion"],
     "ingredientQuantities": ["2 cups cooked", "2", "2 tbsp", "2 stalks"],
     "description": "Quick fried rice with egg, soy sauce, and green onion.",
     "tagNames": ["Stovetop"],

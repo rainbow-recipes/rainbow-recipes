@@ -7,7 +7,8 @@ import notFound from '@/app/not-found';
 import { Container, Alert } from 'react-bootstrap';
 import Link from 'next/link';
 
-export default async function ReviewVendorPage({ params }: { params: { id: string } }) {
+export default async function ReviewVendorPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   // Protect the page, only logged in users can access it.
   const session = await getServerSession(authOptions);
   loggedInProtectedPage(
@@ -16,7 +17,7 @@ export default async function ReviewVendorPage({ params }: { params: { id: strin
     } | null,
   );
 
-  const storeId = params.id;
+  const storeId = resolvedParams.id;
 
   const store = await prisma.store.findUnique({
     where: { id: storeId },
