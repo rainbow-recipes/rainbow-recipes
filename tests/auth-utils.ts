@@ -5,36 +5,22 @@ import { test as base, expect, Page } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
+// Base configuration
 const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
-
-// Store sessions in a predictable place
 const SESSION_STORAGE_PATH = path.join(__dirname, 'playwright-auth-sessions');
+
+// Ensure session directory exists
 if (!fs.existsSync(SESSION_STORAGE_PATH)) {
   fs.mkdirSync(SESSION_STORAGE_PATH, { recursive: true });
 }
 
+// Define our custom fixtures
 interface AuthFixtures {
   getUserPage: (email: string, password: string) => Promise<Page>;
 }
 
 /**
- * More robust navigation helper for Next/React dev reload flakiness.
- */
-async function gotoStable(page: Page, url: string) {
-  try {
-    await page.goto(url, { waitUntil: 'domcontentloaded' });
-  } catch (error: any) {
-    const msg = error?.message || '';
-    const interrupted = msg.includes('interrupted by another navigation')
-      || msg.includes('NS_BINDING_ABORTED')
-      || msg.includes('frame was detached');
-    if (!interrupted) throw error;
-  }
-  await page.waitForLoadState('networkidle').catch(() => {});
-}
-
-/**
- * Fill login inputs with light retry.
+ * Helper to fill form fields with retry logic
  */
 async function fillFormWithRetry(
   page: Page,
@@ -47,162 +33,192 @@ async function fillFormWithRetry(
     while (attempts < maxAttempts) {
       try {
         const element = page.locator(field.selector);
-        await element.waitFor({ state: 'visible', timeout: 3000 });
+        await element.waitFor({ state: 'visible', timeout: 2000 });
+        await element.clear();
         await element.fill(field.value);
+        await element.evaluate((el) => el.blur()); // Trigger blur event
         break;
-      } catch {
+      } catch (error) {
         attempts++;
         if (attempts >= maxAttempts) {
-          throw new Error(`Failed to fill field ${field.selector}`);
+          throw new Error(`Failed to fill field ${field.selector} after ${maxAttempts} attempts`);
         }
-        await page.waitForTimeout(250);
+        await page.waitForTimeout(500);
       }
     }
   }
 }
 
 /**
- * Primary auth check: NextAuth session endpoint.
+ * Authenticate using the UI with robust waiting and error handling
  */
-async function sessionEmail(page: Page): Promise<string | null> {
-  try {
-    const res = await page.request.get(`${BASE_URL}/api/auth/session`);
-    if (!res.ok()) return null;
-    const data = await res.json();
-    const email = data?.user?.email;
-    return typeof email === 'string' ? email : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Secondary auth check: navbar greeting.
- * Matches your Navbar: title={`Hello, ${session?.user?.email}`}
- */
-async function hasHelloDropdown(page: Page, email: string): Promise<boolean> {
-  try {
-    const re = new RegExp(`Hello,\\s*${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
-    const helloButton = page.getByRole('button', { name: re });
-    if (await helloButton.count()) return true;
-
-    // Fallback text match in case Bootstrap renders slightly differently
-    const helloText = page.getByText(re);
-    return (await helloText.count()) > 0;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Combined predicate: session email OR Navbar greeting.
- */
-async function isAuthenticatedAs(page: Page, email: string): Promise<boolean> {
-  const sessEmail = await sessionEmail(page);
-  if (sessEmail && sessEmail.toLowerCase() === email.toLowerCase()) return true;
-
-  // UI fallback
-  await gotoStable(page, `${BASE_URL}/`);
-  return hasHelloDropdown(page, email);
-}
-
-/**
- * Turn an email into a filesystem-safe name.
- */
-function safeSessionName(email: string) {
-  return email.replace(/[^a-zA-Z0-9._-]/g, '_');
-}
-
 async function authenticateWithUI(
   page: Page,
   email: string,
   password: string,
-) {
-  console.log(`Authenticating user: ${email}`);
-
-  const sessionFile = path.join(
-    SESSION_STORAGE_PATH,
-    `session-${safeSessionName(email)}.json`,
-  );
-
-  // 1) Try restore cookies if we have them
-  if (fs.existsSync(sessionFile)) {
-    try {
-      const sessionData = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
-      if (sessionData?.cookies?.length) {
-        await page.context().addCookies(sessionData.cookies);
+  sessionName: string,
+): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const safeGoto = async (url: string, label: string): Promise<void> => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
+        await page.waitForLoadState('networkidle');
+        return;
+      } catch (error: any) {
+        const msg = error?.message || '';
+        const interrupted = msg.includes('interrupted by another navigation');
+        if (!interrupted || attempt === 1) {
+          throw error;
+        }
+        // Give the ongoing navigation a moment to settle, then retry
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(300);
       }
+    }
+  };
 
-      await gotoStable(page, `${BASE_URL}/`);
+  const sessionPath = path.join(SESSION_STORAGE_PATH, `${sessionName}.json`);
 
-      const ok = await isAuthenticatedAs(page, email);
-      if (ok) {
+  // Try to restore session from storage if available
+  if (fs.existsSync(sessionPath)) {
+    try {
+      const sessionData = JSON.parse(fs.readFileSync(sessionPath, 'utf8'));
+      await page.context().addCookies(sessionData.cookies);
+
+      // Navigate to homepage to verify session
+      await page.goto(BASE_URL);
+      await page.waitForLoadState('networkidle');
+
+      // Check if we're authenticated by looking for a sign-out option or user email
+      const isAuthenticated = await Promise.race([
+        page.getByText(email).isVisible().then((visible) => visible),
+        page.getByRole('button', { name: email }).isVisible().then((visible) => visible),
+        page.getByText('Sign out').isVisible().then((visible) => visible),
+        page.getByRole('button', { name: 'Sign out' }).isVisible().then((visible) => visible),
+        // eslint-disable-next-line no-promise-executor-return
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000)),
+      ]);
+
+      if (isAuthenticated) {
         console.log(`✓ Restored session for ${email}`);
         return;
       }
 
       console.log(`× Saved session for ${email} expired, re-authenticating...`);
     } catch (error) {
-      console.log(`× Error restoring session: ${String(error)}`);
+      console.log(`× Error restoring session: ${error}`);
     }
   }
 
-  // 2) Fresh UI login
+  // If session restoration fails, authenticate via UI
   try {
     console.log(`→ Authenticating ${email} via UI...`);
 
-    await gotoStable(page, `${BASE_URL}/signin`);
+    // Navigate to login page
+    await safeGoto(`${BASE_URL}/signin`, 'signin');
 
-    // These selectors match your app (from earlier messages)
+    // Fill in credentials with retry logic
     await fillFormWithRetry(page, [
       { selector: '#email', value: email },
       { selector: '#password', value: password },
     ]);
 
-    const signInBtn = page.getByRole('button', { name: /sign\s*in/i });
-    const logInBtn = page.getByRole('button', { name: /log\s*in/i });
-
-    if (await signInBtn.count()) {
-      await signInBtn.first().click();
-    } else if (await logInBtn.count()) {
-      await logInBtn.first().click();
+    // Click submit button and wait for navigation
+    const submitButton = page.getByRole('button', { name: /sign[ -]?in/i });
+    if (!await submitButton.isVisible({ timeout: 1000 })) {
+      // Try alternative selector if the first one doesn't work
+      await page.getByRole('button', { name: /log[ -]?in/i }).click();
     } else {
-      await page.locator('#password').press('Enter');
+      await submitButton.click();
     }
 
-    // Prefer waiting until we're not stuck on /signin
-    await page.waitForURL((url) => !url.pathname.endsWith('/signin'), { timeout: 15000 })
-      .catch(() => {});
+    // Wait for navigation to complete
+    await page.waitForLoadState('networkidle');
 
-    await page.waitForLoadState('networkidle').catch(() => {});
-
-    // 3) Assert session is truly established
+    // Verify authentication was successful
     await expect(async () => {
-      const ok = await isAuthenticatedAs(page, email);
-      expect(ok).toBeTruthy();
-    }).toPass({ timeout: 25000 });
+      const authState = await Promise.race([
+        page.getByText(email).isVisible().then((visible) => ({ success: visible })),
+        page.getByRole('button', { name: email }).isVisible().then((visible) => ({ success: visible })),
+        page.getByText('Sign out').isVisible().then((visible) => ({ success: visible })),
+        page.getByRole('button', { name: 'Sign out' }).isVisible().then((visible) => ({ success: visible })),
+        // eslint-disable-next-line no-promise-executor-return
+        new Promise<{ success: boolean }>((resolve) => setTimeout(() => resolve({ success: false }), 5000)),
+      ]);
 
-    // 4) Save cookies
+      expect(authState.success).toBeTruthy();
+    }).toPass({ timeout: 10000 });
+
+    // Save session for future tests
     const cookies = await page.context().cookies();
-    fs.writeFileSync(sessionFile, JSON.stringify({ cookies }, null, 2));
+    fs.writeFileSync(sessionPath, JSON.stringify({ cookies }));
     console.log(`✓ Successfully authenticated ${email} and saved session`);
   } catch (error) {
     console.error(`× Authentication failed for ${email}:`, error);
-    throw new Error(`Authentication failed: ${String(error)}`);
+
+    throw new Error(`Authentication failed: ${error}`);
   }
 }
 
+// Create custom test with authenticated fixtures
 export const test = base.extend<AuthFixtures>({
   getUserPage: async ({ browser }, use) => {
-    const getUserPage = async (email: string, password: string) => {
+    const createUserPage = async (email: string, password: string) => {
       const context = await browser.newContext();
       const page = await context.newPage();
-      await authenticateWithUI(page, email, password);
+
+      await authenticateWithUI(page, email, password, `session-${email}`);
       return page;
     };
 
-    await use(getUserPage);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    await use(createUserPage);
   },
 });
 
-export { expect };
+export { expect } from '@playwright/test';
+
+// ============ Helper Functions for Admin Tests ============
+
+const TEST_BASE_URL = 'http://localhost:3000';
+
+/**
+ * Safely navigate to home and handle auth errors
+ */
+export async function navigateToHome(page: Page) {
+  try {
+    await page.goto(`${TEST_BASE_URL}/`, { waitUntil: 'domcontentloaded' });
+  } catch (error: any) {
+    const msg = error?.message || '';
+    const isNavigationError = msg.includes('interrupted by another navigation')
+      || msg.includes('NS_BINDING_ABORTED')
+      || msg.includes('frame was detached');
+    if (!isNavigationError) {
+      throw error;
+    }
+    await page.waitForLoadState('networkidle');
+  }
+  await page.waitForLoadState('networkidle');
+
+  // Retry if on error page
+  if (page.url().includes('/api/auth/error')) {
+    await page.goto(`${TEST_BASE_URL}/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle');
+  }
+
+  // Final check
+  if (page.url().includes('/api/auth/error')) {
+    await page.goto(`${TEST_BASE_URL}/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle');
+  }
+}
+
+/**
+ * Click link and wait for navigation
+ */
+export async function clickAndNavigate(page: Page, name: string, urlPattern: string) {
+  await page.getByRole('link', { name, exact: true }).click();
+  await page.waitForURL(urlPattern);
+  await page.waitForLoadState('networkidle');
+}

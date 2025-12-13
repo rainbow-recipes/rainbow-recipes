@@ -3,8 +3,9 @@
 'use client';
 
 import { useState, ChangeEvent, FormEvent } from 'react';
-import { useSession } from 'next-auth/react';
-import { updateProfile } from '@/lib/dbActions';
+import { useSession, signOut } from 'next-auth/react';
+import swal from 'sweetalert';
+import { updateProfile, changeEmail, changePasswordVerified, deleteAccount } from '@/lib/dbActions';
 
 type Role = 'USER' | 'ADMIN';
 
@@ -56,11 +57,26 @@ export default function ProfileClient({
   const { data: session } = useSession();
   const [user, setUser] = useState(initialUser);
   const [editing, setEditing] = useState(false);
+  const [editTab, setEditTab] = useState<'profile' | 'email' | 'password' | 'delete'>('profile');
   const [saving, setSaving] = useState(false);
   const [firstName, setFirstName] = useState(initialUser.firstName ?? '');
   const [lastName, setLastName] = useState(initialUser.lastName ?? '');
   const [image, setImage] = useState(initialUser.image ?? '');
   const [error, setError] = useState<string | null>(null);
+  
+  // Change email state
+  const [newEmail, setNewEmail] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  
+  // Change password state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  // Delete account state
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const fullName = user.firstName || user.lastName
     ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
@@ -106,6 +122,90 @@ export default function ProfileClient({
       setError('Something went wrong. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangeEmail = async (e: FormEvent) => {
+    e.preventDefault();
+    setEmailError(null);
+
+    try {
+      await changeEmail(session?.user?.email || '', newEmail);
+
+      setUser((prev) => ({ ...prev, email: newEmail }));
+      setEditTab('profile');
+      setEditing(false);
+      setNewEmail('');
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      swal('Success', 'Your email has been changed. You will be signed out.', 'success', { timer: 2000 }).then(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        signOut({ redirect: true, callbackUrl: '/signin' });
+      });
+    } catch (err) {
+      setEmailError(err instanceof Error ? err.message : 'Something went wrong');
+    }
+  };
+
+  const handleChangePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    try {
+      await changePasswordVerified(
+        user.email,
+        currentPassword,
+        newPassword,
+      );
+
+      setEditTab('profile');
+      setEditing(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      swal('Success', 'Your password has been changed. You will be signed out.', 'success', {
+        timer: 2000,
+      }).then(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        signOut({ redirect: true, callbackUrl: '/signin' });
+      });
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Something went wrong');
+    }
+  };
+
+  const handleDeleteAccount = async (e: FormEvent) => {
+    e.preventDefault();
+    setDeleteError(null);
+
+    // Confirm deletion with sweetalert
+    const ok = await new Promise<boolean>((resolve) => {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      swal({
+        title: 'Delete Account',
+        text: 'Are you sure you want to delete your account?'
+          + ' This action cannot be undone.'
+          + ' All your data will be permanently removed.',
+        icon: 'warning',
+        buttons: ['Cancel', 'Delete'],
+        dangerMode: true,
+      }).then((v) => resolve(Boolean(v)));
+    });
+
+    if (!ok) return;
+
+    try {
+        await deleteAccount(user.email, deletePassword);
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      swal('Success', 'Your account has been deleted. You will be logged out.', 'success');
+      await signOut({ redirect: true, callbackUrl: '/' });
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Something went wrong');
     }
   };
 
@@ -163,13 +263,20 @@ export default function ProfileClient({
               </div>
 
               {canEdit && (
-                <button
-                  type="button"
-                  className="btn btn-outline-dark bg-white btn-profile-edit"
-                  onClick={() => setEditing((prev) => !prev)}
-                >
-                  {editing ? 'Cancel' : 'Edit profile'}
-                </button>
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-outline-dark bg-white btn-profile-edit"
+                    onClick={() => {
+                      setEditing((prev) => !prev);
+                      if (editing) {
+                        setEditTab('profile');
+                      }
+                    }}
+                  >
+                    {editing ? 'Cancel' : 'Edit profile'}
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -213,82 +320,320 @@ export default function ProfileClient({
               <div className="card-body">
                 <h2 className="h5 mb-3">Edit profile</h2>
 
-                {error && (
-                  <div className="alert alert-danger py-2">{error}</div>
-                )}
-
-                <form onSubmit={handleSave} className="row g-3">
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">First name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Last name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Upload profile photo</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="form-control"
-                      onChange={handleFileChange}
-                    />
-                    <div className="form-text">
-                      Choose an image from your device.
-                    </div>
-                  </div>
-
-                  <div className="col-12 col-md-6">
-                    <label className="form-label">Or photo URL (optional)</label>
-                    <input
-                      type="url"
-                      className="form-control"
-                      placeholder="https://example.com/my-photo.jpg"
-                      value={image}
-                      onChange={(e) => setImage(e.target.value)}
-                    />
-                    <div className="form-text">
-                      You can paste an image link instead of uploading.
-                    </div>
-                  </div>
-
-                  <div className="col-12 d-flex justify-content-end gap-2">
+                {/* Tabs */}
+                <ul className="nav nav-tabs mb-3">
+                  <li className="nav-item">
                     <button
                       type="button"
-                      className="btn btn-outline-secondary"
-                      onClick={() => {
-                        setEditing(false);
-                        setFirstName(initialUser.firstName ?? '');
-                        setLastName(initialUser.lastName ?? '');
-                        setImage(initialUser.image ?? '');
-                        setError(null);
-                      }}
-                      disabled={saving}
+                      className={`nav-link ${editTab === 'profile' ? 'active' : ''}`}
+                      onClick={() => setEditTab('profile')}
                     >
-                      Cancel
+                      Profile
                     </button>
+                  </li>
+                  <li className="nav-item">
                     <button
-                      type="submit"
-                      className="btn btn-success"
-                      disabled={saving}
+                      type="button"
+                      className={`nav-link ${editTab === 'email' ? 'active' : ''}`}
+                      onClick={() => setEditTab('email')}
                     >
-                      {saving ? 'Saving...' : 'Save changes'}
+                      Change email
                     </button>
-                  </div>
-                </form>
+                  </li>
+                  <li className="nav-item">
+                    <button
+                      type="button"
+                      className={`nav-link ${editTab === 'password' ? 'active' : ''}`}
+                      onClick={() => setEditTab('password')}
+                    >
+                      Change password
+                    </button>
+                  </li>
+                  {user.role !== 'ADMIN' && (
+                    <li className="nav-item">
+                      <button
+                        type="button"
+                        className={`nav-link text-danger ${editTab === 'delete' ? 'active' : ''}`}
+                        onClick={() => setEditTab('delete')}
+                      >
+                        Delete account
+                      </button>
+                    </li>
+                  )}
+                </ul>
+
+                {/* Profile Tab */}
+                {editTab === 'profile' && (
+                  <>
+                    {error && (
+                      <div className="alert alert-danger py-2">{error}</div>
+                    )}
+
+                    <form onSubmit={handleSave} className="row g-3">
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">First name</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Last name</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Upload profile photo</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="form-control"
+                          onChange={handleFileChange}
+                        />
+                        <div className="form-text">
+                          Choose an image from your device.
+                        </div>
+                      </div>
+
+                      <div className="col-12 col-md-6">
+                        <label className="form-label">Or photo URL (optional)</label>
+                        <input
+                          type="url"
+                          className="form-control"
+                          placeholder="https://example.com/my-photo.jpg"
+                          value={image}
+                          onChange={(e) => setImage(e.target.value)}
+                        />
+                        <div className="form-text">
+                          You can paste an image link instead of uploading.
+                        </div>
+                      </div>
+
+                      <div className="col-12 d-flex justify-content-end gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => {
+                            setEditing(false);
+                            setFirstName(initialUser.firstName ?? '');
+                            setLastName(initialUser.lastName ?? '');
+                            setImage(initialUser.image ?? '');
+                            setError(null);
+                          }}
+                          disabled={saving}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="btn btn-success"
+                          disabled={saving}
+                        >
+                          {saving ? 'Saving...' : 'Save changes'}
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
+
+                {/* Email Tab */}
+                {editTab === 'email' && (
+                  <>
+                    {emailError && (
+                      <div className="alert alert-danger py-2">{emailError}</div>
+                    )}
+
+                    <form onSubmit={handleChangeEmail} className="row g-3">
+                      <div className="col-12">
+                        <label className="form-label">Current email</label>
+                        <input
+                          type="email"
+                          className="form-control"
+                          value={user.email}
+                          disabled
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label">New email</label>
+                        <input
+                          type="email"
+                          className="form-control"
+                          placeholder="Enter new email"
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-12 d-flex justify-content-end gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => {
+                            setEditing(false);
+                            setNewEmail('');
+                            setEmailError(null);
+                            setEditTab('profile');
+                          }}
+                          disabled={saving}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="btn btn-success"
+                          disabled={saving}
+                        >
+                          {saving ? 'Changing...' : 'Change email'}
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
+
+                {/* Password Tab */}
+                {editTab === 'password' && (
+                  <>
+                    {passwordError && (
+                      <div className="alert alert-danger py-2">{passwordError}</div>
+                    )}
+
+                    <form onSubmit={handleChangePassword} className="row g-3">
+                      <div className="col-12">
+                        <label className="form-label">Current password</label>
+                        <input
+                          type="password"
+                          className="form-control"
+                          placeholder="Enter current password"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label">New password</label>
+                        <input
+                          type="password"
+                          className="form-control"
+                          placeholder="Enter new password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          required
+                        />
+                        <div className="form-text">
+                          At least 8 characters
+                        </div>
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label">Confirm password</label>
+                        <input
+                          type="password"
+                          className="form-control"
+                          placeholder="Confirm new password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-12 d-flex justify-content-end gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => {
+                            setEditing(false);
+                            setCurrentPassword('');
+                            setNewPassword('');
+                            setConfirmPassword('');
+                            setPasswordError(null);
+                            setEditTab('profile');
+                          }}
+                          disabled={saving}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="btn btn-success"
+                          disabled={saving}
+                        >
+                          {saving ? 'Changing...' : 'Change password'}
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
+
+                {/* Delete Account Tab */}
+                {editTab === 'delete' && (
+                  <>
+                    <div className="alert alert-danger py-3 mb-3">
+                      <h6 className="alert-heading">Danger Zone</h6>
+                      <p className="mb-0">
+                        Deleting your account is permanent. You will lose all recipes,
+                        {' '}
+                        favorites, reviews, and profile data. This cannot be undone.
+                      </p>
+                    </div>
+
+                    {deleteError && (
+                      <div className="alert alert-danger py-2">{deleteError}</div>
+                    )}
+
+                    <form onSubmit={handleDeleteAccount} className="row g-3">
+                      <div className="col-12">
+                        <label className="form-label">
+                          Enter your password to delete account
+                        </label>
+                        <input
+                          type="password"
+                          className="form-control"
+                          placeholder="Enter your password"
+                          value={deletePassword}
+                          onChange={(e) => setDeletePassword(e.target.value)}
+                          required
+                        />
+                        <div className="form-text">
+                          We need your password to confirm this action.
+                        </div>
+                      </div>
+
+                      <div className="col-12 d-flex justify-content-end gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => {
+                            setEditing(false);
+                            setDeletePassword('');
+                            setDeleteError(null);
+                            setEditTab('profile');
+                          }}
+                          disabled={saving}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="btn btn-danger"
+                          disabled={saving}
+                        >
+                          {saving ? 'Deleting...' : 'Delete account'}
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
               </div>
             </div>
           </div>

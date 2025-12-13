@@ -56,10 +56,15 @@ export default function AddStoreItemForm() {
       };
 
       await addStoreItem(payload);
-      swal('Success', 'Your item has been added', 'success', {
-        timer: 2000,
-      });
-    } catch (err) {
+    } catch (err: any) {
+      // Ignore redirect errors (they're thrown by Next.js redirect() function)
+      if (err?.message?.includes('NEXT_REDIRECT') || err?.digest?.includes('NEXT_REDIRECT')) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        swal('Success', 'Your item has been added', 'success', {
+          timer: 2000,
+        });
+        return;
+      }
       // eslint-disable-next-line no-console
       console.error('Error adding item:', err);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises

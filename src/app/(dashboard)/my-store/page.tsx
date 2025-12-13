@@ -95,15 +95,15 @@ export default async function MyStorePage() {
                   <Row>
                     <Col xs="auto">
                       {days.map((day) => (
-                        <div>
+                        <div key={day}>
                           {day}
                           :
                         </div>
                       ))}
                     </Col>
                     <Col xs="auto">
-                      {store?.hours.map((hour) => (
-                        <div>
+                      {store?.hours.map((hour, idx) => (
+                        <div key={idx}>
                           {hour}
                         </div>
                       ))}

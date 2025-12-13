@@ -1,72 +1,88 @@
-/* eslint-disable import/no-extraneous-dependencies */
-import { test, expect } from './auth-utils';
+import { test, expect, navigateToHome, clickAndNavigate } from './auth-utils';
 
-const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
+const HEADING_TIMEOUT = 10000;
+const VENDOR_EMAIL = 'vendor@foo.com';
+const VENDOR_PASSWORD = 'changeme';
 
-test.describe('vendor pages', () => {
-  test('test access to vendor pages', async ({ getUserPage }) => {
-    const email = 'vendor@foo.com';
-    const password = 'changeme';
+test.slow();
 
-    const page = await getUserPage(email, password);
+test('vendor can view my store', async ({ getUserPage }) => {
+  const vendorPage = await getUserPage(VENDOR_EMAIL, VENDOR_PASSWORD);
+  await navigateToHome(vendorPage);
 
-    // Land on home
-    await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle').catch(() => {});
+  // Check My Store page
+  await clickAndNavigate(vendorPage, 'My Store', '**/my-store');
+  await expect(vendorPage.getByRole('heading', { name: "Bobby's Farm" })).toBeVisible({ timeout: HEADING_TIMEOUT });
+});
 
-    // Confirm logged-in dropdown label matches your Navbar implementation
-    const helloButton = page.getByRole('button', { name: new RegExp(`Hello,\\s*${email}`, 'i') });
-    await expect(helloButton).toBeVisible({ timeout: 10000 });
+test('vendor can edit store', async ({ getUserPage }) => {
+  const vendorPage = await getUserPage(VENDOR_EMAIL, VENDOR_PASSWORD);
+  await navigateToHome(vendorPage);
 
-    // ✅ Since "My Store only for vendors", require it for this account
-    const myStoreLink = page.getByRole('link', { name: /^My Store$/i });
-    await expect(myStoreLink).toBeVisible({ timeout: 10000 });
+  // Navigate to My Store
+  await clickAndNavigate(vendorPage, 'My Store', '**/my-store');
 
-    // Go to My Store
-    await myStoreLink.click();
-    await page.waitForURL('**/my-store', { timeout: 10000 });
-    await page.waitForLoadState('networkidle').catch(() => {});
+  // Click Edit My Store
+  await clickAndNavigate(vendorPage, 'Edit My Store', '**/my-store/edit/**');
+  await expect(vendorPage.getByRole('heading', { name: 'Edit My Store' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 
-    // Flexible "store page isn't empty" assertion:
-    // We don't assume a <main> tag exists.
-    const storeHeading = page.getByRole('heading', { name: /my store|store|dashboard/i });
-    const storeTextHint = page.getByText(/store|products|inventory|orders|vendor/i);
+  // Edit store fields
+  await vendorPage.getByPlaceholder('Enter location').fill('2500 Campus Rd, Honolulu, HI 96822');
+  await vendorPage.getByRole('button', { name: 'Submit' }).click();
+  await vendorPage.waitForURL('**/my-store', { timeout: HEADING_TIMEOUT });
+  await vendorPage.waitForLoadState('networkidle');
+});
 
-    await expect(async () => {
-      const urlOk = page.url().includes('/my-store');
+// Run item lifecycle test serially to avoid conflicts when parallel tests add/delete items
+test.describe.serial('vendor items', () => {
+  test('vendor can add, edit, and delete items', async ({ getUserPage }) => {
+    const vendorPage = await getUserPage(VENDOR_EMAIL, VENDOR_PASSWORD);
+    await navigateToHome(vendorPage);
 
-      const headingOk = (await storeHeading.count()) > 0
-        ? await storeHeading.first().isVisible().catch(() => false)
-        : false;
+    // Navigate to My Store
+    await vendorPage.getByRole('link', { name: 'My Store' }).click();
+    await vendorPage.waitForURL('**/my-store', { timeout: HEADING_TIMEOUT });
+    await vendorPage.waitForLoadState('networkidle');
 
-      const textOk = (await storeTextHint.count()) > 0
-        ? await storeTextHint.first().isVisible().catch(() => false)
-        : false;
+    // Add a new item
+    await vendorPage.getByRole('link', { name: 'Add Item' }).click();
+    await vendorPage.waitForURL('**/my-store/add-item', { timeout: HEADING_TIMEOUT });
+    await vendorPage.waitForLoadState('networkidle');
+    await expect(vendorPage.getByRole('heading', { name: 'Add Store Item' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 
-      // Pass if URL is correct AND we see some store-ish signal
-      expect(urlOk && (headingOk || textOk)).toBeTruthy();
-    }).toPass({ timeout: 10000 });
+    await vendorPage.getByPlaceholder('Start typing to see suggestions...').fill('Orange');
+    await vendorPage.locator('#additem-suggestions').getByRole('option', { name: 'Orange' }).first().click();
+    await vendorPage.getByPlaceholder('e.g., 16 floz, 1 lb, 1 bunch').fill('each');
+    await vendorPage.getByPlaceholder('Enter price ($)').fill('1.50');
+    await vendorPage.getByRole('button', { name: 'Submit' }).click();
+    await vendorPage.waitForURL('**/my-store', { timeout: HEADING_TIMEOUT });
+    await vendorPage.waitForLoadState('networkidle');
 
-    // --- Optional sanity: Vendors dropdown links still reachable ---
-    const vendorsDropdown = page.getByRole('button', { name: /^Vendors$/i });
-    if (await vendorsDropdown.count()) {
-      await vendorsDropdown.click();
+    // Edit the newly added item
+    await vendorPage.getByRole('row', { name: /Orange/ }).first().getByRole('link').click();
+    await vendorPage.waitForURL('**/my-store/edit-item/**', { timeout: HEADING_TIMEOUT });
+    await vendorPage.waitForLoadState('networkidle');
+    await expect(vendorPage.getByRole('heading', { name: 'Edit Store Item' }))
+      .toBeVisible({ timeout: HEADING_TIMEOUT });
 
-      const vendorsItem = page.getByRole('link', { name: /^Vendors$/i }).first();
-      if (await vendorsItem.count()) {
-        await vendorsItem.click();
-        await page.waitForURL('**/vendors', { timeout: 10000 });
-        await page.waitForLoadState('networkidle').catch(() => {});
-      }
+    await vendorPage.getByPlaceholder('Enter price ($)').fill('2.00');
+    await vendorPage.getByRole('button', { name: /Save/ }).click();
+    await vendorPage.waitForURL('**/my-store', { timeout: HEADING_TIMEOUT });
+    await vendorPage.waitForLoadState('networkidle');
 
-      // back to dropdown for map
-      await vendorsDropdown.click();
-      const mapItem = page.getByRole('link', { name: /Vendor Map/i }).first();
-      if (await mapItem.count()) {
-        await mapItem.click();
-        await page.waitForURL('**/map', { timeout: 10000 });
-        await page.waitForLoadState('networkidle').catch(() => {});
-      }
-    }
+    // Delete the edited item - use .first() to get only the most recent Orange item
+    await expect(vendorPage.getByRole('button', { name: 'Delete' }).first())
+      .toBeVisible({ timeout: HEADING_TIMEOUT });
+
+    const deleteRow = vendorPage.getByRole('row', { name: /Orange/ }).first();
+    await deleteRow.getByRole('button', { name: 'Delete' }).click();
+
+    // Handle sweetalert confirmation
+    await vendorPage.getByRole('button', { name: 'Delete' }).last().click();
+
+    // Wait for the page to reload after deletion
+    await vendorPage.waitForLoadState('networkidle');
+    await vendorPage.waitForURL('**/my-store', { timeout: HEADING_TIMEOUT });
+    await vendorPage.waitForLoadState('networkidle');
   });
 });

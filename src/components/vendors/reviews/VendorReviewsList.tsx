@@ -46,9 +46,14 @@ export default function VendorReviewsList({
   const isOwner = storeOwnerEmail && currentUserEmail && storeOwnerEmail === currentUserEmail;
 
   const handleDeleteReview = async (reviewId: number) => {
-    // eslint-disable-next-line no-alert
-    const response = window.confirm('Are you sure you want to delete this review?');
-    if (!response) {
+    const confirmed = await swal({
+      title: 'Delete review?',
+      text: 'Are you sure you want to delete this review?',
+      icon: 'warning',
+      buttons: ['Cancel', 'Delete'],
+      dangerMode: true,
+    });
+    if (!confirmed) {
       return;
     }
 

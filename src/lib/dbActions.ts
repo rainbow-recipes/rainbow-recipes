@@ -1,7 +1,7 @@
 'use server';
 
 import { Store, ItemCategory, Prisma } from '@prisma/client';
-import { hash } from 'bcrypt';
+import { hash, compare } from 'bcrypt';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { prisma } from './prisma';
@@ -337,6 +337,48 @@ export async function addDatabaseItem(item: {
   });
   redirect('/admin?tab=items');
 }
+
+export async function createDatabaseItem(item: {
+  name: string;
+  ItemCategory: string;
+}) {
+  let itemCategory: ItemCategory;
+  if (item.ItemCategory === 'produce') {
+    itemCategory = 'produce';
+  } else if (item.ItemCategory === 'meat_seafood') {
+    itemCategory = 'meat_seafood';
+  } else if (item.ItemCategory === 'dairy_eggs') {
+    itemCategory = 'dairy_eggs';
+  } else if (item.ItemCategory === 'frozen') {
+    itemCategory = 'frozen';
+  } else if (item.ItemCategory === 'canned') {
+    itemCategory = 'canned';
+  } else if (item.ItemCategory === 'dry') {
+    itemCategory = 'dry';
+  } else if (item.ItemCategory === 'condiments_spices') {
+    itemCategory = 'condiments_spices';
+  } else {
+    itemCategory = 'other';
+  }
+
+  try {
+    const created = await prisma.databaseItem.create({
+      data: {
+        name: item.name,
+        itemCategory,
+        approved: false,
+      },
+    });
+
+    return created;
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      throw new Error('A database item with that name already exists.');
+    }
+    throw new Error('Failed to create database item.');
+  }
+}
+
 
 export async function getDatabaseItems() {
   const databaseItems = await prisma.databaseItem.findMany({
@@ -1020,5 +1062,107 @@ export async function deleteVendorReview(userEmail: string, reviewId: number) {
   });
 
   revalidatePath(`/vendors/${review.storeId}`);
+  return { success: true };
+}
+
+/* --- Account Management --- */
+
+export async function changeEmail(userEmail: string, newEmail: string) {
+  if (!userEmail || !newEmail) {
+    throw new Error('Current email and new email are required');
+  }
+
+  if (newEmail === userEmail) {
+    throw new Error('New email must be different from current email');
+  }
+
+  // Check if new email already exists
+  const existing = await prisma.user.findUnique({
+    where: { email: newEmail },
+  });
+
+  if (existing) {
+    throw new Error('That email is already in use');
+  }
+
+  // Update email
+  await prisma.user.update({
+    where: { email: userEmail },
+    data: { email: newEmail },
+  });
+
+  return { success: true };
+}
+
+export async function changePasswordVerified(
+  userEmail: string,
+  currentPassword: string,
+  newPassword: string,
+) {
+  if (!userEmail || !currentPassword || !newPassword) {
+    throw new Error('All fields are required');
+  }
+
+  if (newPassword.length < 8) {
+    throw new Error('New password must be at least 8 characters');
+  }
+
+  // Get user with password
+  const user = await prisma.user.findUnique({
+    where: { email: userEmail },
+    select: { password: true },
+  });
+
+  if (!user || !user.password) {
+    throw new Error('User not found or has no password set');
+  }
+
+  // Verify current password
+  const passwordMatch = await compare(currentPassword, user.password);
+  if (!passwordMatch) {
+    throw new Error('Current password is incorrect');
+  }
+
+  // Hash new password and update
+  const hashed = await hash(newPassword, 10);
+  await prisma.user.update({
+    where: { email: userEmail },
+    data: { password: hashed },
+  });
+
+  return { success: true };
+}
+
+export async function deleteAccount(userEmail: string, password: string) {
+  if (!userEmail || !password) {
+    throw new Error('Email and password are required');
+  }
+
+  // Get user with password and role
+  const user = await prisma.user.findUnique({
+    where: { email: userEmail },
+    select: { id: true, password: true, role: true },
+  });
+
+  if (!user || !user.password) {
+    throw new Error('User not found or has no password set');
+  }
+
+  // Prevent admins from deleting their own account
+  if (user.role === 'ADMIN') {
+    throw new Error('Admins cannot delete their own account');
+  }
+
+  // Verify password
+  const passwordMatch = await compare(password, user.password);
+  if (!passwordMatch) {
+    throw new Error('Password is incorrect');
+  }
+
+  // Delete the user
+  await prisma.user.delete({
+    where: { id: user.id },
+  });
+
   return { success: true };
 }

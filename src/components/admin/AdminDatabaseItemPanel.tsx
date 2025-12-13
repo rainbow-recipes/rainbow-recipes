@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { ItemCategory } from '@prisma/client';
+import { Button, Form, Modal } from 'react-bootstrap';
 import { prettyCategory } from '@/lib/categoryUtils';
-import { approveDatabaseItem, deleteDatabaseItem, mergeDatabaseItems, updateDatabaseItem } from '@/lib/dbActions';
+import { approveDatabaseItem, createDatabaseItem, deleteDatabaseItem,
+  mergeDatabaseItems, updateDatabaseItem } from '@/lib/dbActions';
 import { DatabaseFillGear, Intersect } from 'react-bootstrap-icons';
+import swal from 'sweetalert';
 
 interface DatabaseItem {
   id: number;
@@ -32,6 +34,10 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
   const [editCategory, setEditCategory] = useState<ItemCategory>('other');
   const [mergeSourceId, setMergeSourceId] = useState<number | null>(null);
   const [mergeTargetId, setMergeTargetId] = useState<number | null>(null);
+  // Add new item modal
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemCategory, setNewItemCategory] = useState<ItemCategory>('produce');
 
   useEffect(() => {
     if (items.length >= 2) {
@@ -108,17 +114,49 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
     }
   };
 
+  const handleAddItem = async () => {
+    if (!newItemName.trim()) {
+      // eslint-disable-next-line no-alert
+      alert('Item name is required');
+      return;
+    }
+
+    try {
+      const newItem = await createDatabaseItem({
+        name: newItemName.trim(),
+        ItemCategory: newItemCategory,
+      });
+      setItems((prev) => [...prev, newItem]);
+      setShowAddModal(false);
+      setNewItemName('');
+      setNewItemCategory('produce');
+
+      if (onRefresh) await onRefresh();
+    } catch (err) {
+      // eslint-disable-next-line no-alert
+      alert(err instanceof Error ? err.message : 'Failed to add item');
+    }
+  };
+
   const handleDelete = async (id: number) => {
-    // eslint-disable-next-line no-alert
-    const confirmed = window.confirm('Are you sure you want to delete this database item?');
+    const confirmed = await swal({
+      title: 'Delete database item?',
+      text: 'Are you sure you want to delete this database item?',
+      icon: 'warning',
+      buttons: ['Cancel', 'Delete'],
+      dangerMode: true,
+    });
     if (!confirmed) return;
 
     const previous = items;
     setItems((prev) => prev.filter((it) => it.id !== id));
     try {
       await deleteDatabaseItem(id);
+      if (onRefresh) await onRefresh();
     } catch (err) {
       setItems(previous);
+      // eslint-disable-next-line no-alert
+      alert(err instanceof Error ? err.message : 'Failed to delete item');
     }
   };
 
@@ -170,11 +208,13 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
     <>
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h4 className="mb-0">Database Item Management</h4>
-        <Link href="/admin/add-database-item">
-          <button type="button" className="btn btn-outline-dark btn-md rounded-pill">
-            Add Database Item
-          </button>
-        </Link>
+        <button
+          type="button"
+          className="btn btn-outline-dark btn-md rounded-pill"
+          onClick={() => setShowAddModal(true)}
+        >
+          Add Database Item
+        </button>
       </div>
 
       <hr className="my-4" />
@@ -399,6 +439,47 @@ const AdminDatabaseItemPanel = ({ initialItems, onRefresh }: AdminDatabaseItemPa
           </table>
         </div>
       )}
+
+      {/* Add Database Item Modal */}
+      <Modal show={showAddModal} onHide={() => setShowAddModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add New Database Item</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Item Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter item name"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Category</Form.Label>
+              <Form.Select
+                value={newItemCategory}
+                onChange={(e) => setNewItemCategory(e.target.value as ItemCategory)}
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {prettyCategory(cat)}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowAddModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleAddItem}>
+            Add Item
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 };

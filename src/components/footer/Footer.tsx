@@ -17,9 +17,9 @@ const Footer: React.FC = () => {
         </div>
 
         <nav className="rr-footer-links" aria-label="Footer navigation">
-          <a href="/recipes">Recipes</a>
-          <a href="/vendors">Vendors</a>
-          <a href="/about">About</a>
+          <Link href="/recipes">Recipes</Link>
+          <Link href="/vendors">Vendors</Link>
+          <Link href="/about">About</Link>
         </nav>
 
         <div className="rr-footer-meta">

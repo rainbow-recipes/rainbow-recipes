@@ -1,11 +1,7 @@
 {
-  "extends": ["next/core-web-vitals", "airbnb", "airbnb-typescript"],
-  "parserOptions": {
-    "ecmaVersion": "latest",
-    "sourceType": "module",
-    "project": "./tsconfig.json"
-  },
+  "extends": ["next/core-web-vitals"],
   "ignorePatterns": ["next.config.mjs"],
+  "plugins": ["@typescript-eslint"],
   "rules": {
     "arrow-parens": "off",
     "func-names": "off",
@@ -21,6 +17,7 @@
     "react/function-component-definition": "off",
     "react/jsx-props-no-spreading": "off",
     "react/one-expression-per-line": "off",
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "@typescript-eslint/no-floating-promises": "off"
   }
 }

@@ -48,9 +48,14 @@ export default function RecipeReviewsList({
   const isAuthor = recipeAuthorId && currentUserId && recipeAuthorId === currentUserId;
 
   const handleDeleteReview = async (reviewId: number) => {
-    // eslint-disable-next-line no-alert
-    const response = window.confirm('Are you sure you want to delete this review?');
-    if (!response) {
+    const confirmed = await swal({
+      title: 'Delete review?',
+      text: 'Are you sure you want to delete this review?',
+      icon: 'warning',
+      buttons: ['Cancel', 'Delete'],
+      dangerMode: true,
+    });
+    if (!confirmed) {
       return;
     }
 
@@ -60,7 +65,6 @@ export default function RecipeReviewsList({
       setReviewList(reviewList.filter((r) => r.id !== reviewId));
       swal('Success', 'Review deleted successfully!', 'success');
     } catch (err: any) {
-      // eslint-disable-next-line no-alert
       swal('Error', err.message || 'An error occurred while deleting the review.', 'error');
     } finally {
       setDeleting(null);

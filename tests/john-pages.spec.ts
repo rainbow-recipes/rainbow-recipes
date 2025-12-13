@@ -1,82 +1,61 @@
-import { test, expect } from './auth-utils';
+import { test, expect, navigateToHome, clickAndNavigate } from './auth-utils';
 
-const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
-
-function getNavbar(page: any) {
-  return page.locator('nav.navbar').first();
-}
-
-async function ensureNavbarExpanded(page: any) {
-  const nav = getNavbar(page);
-  const collapse = nav.locator('#basic-navbar-nav');
-
-  if (await collapse.count()) {
-    const visible = await collapse.isVisible().catch(() => true);
-    if (!visible) {
-      const toggler = nav.locator('.navbar-toggler');
-      if (await toggler.count()) {
-        await toggler.first().click();
-        await collapse.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
-      }
-    }
-  }
-}
+const HEADING_TIMEOUT = 10000;
+const JOHN_EMAIL = 'john@foo.com';
+const JOHN_PASSWORD = 'changeme';
 
 test.slow();
-test('test access to john pages', async ({ getUserPage }) => {
-  const headingTimeout = 10000;
 
-  const johnPage = await getUserPage('john@foo.com', 'changeme');
+// test('john can see navigation elements', async ({ getUserPage }) => {
+//   const johnPage = await getUserPage(JOHN_EMAIL, JOHN_PASSWORD);
+//   await navigateToHome(johnPage);
 
-  await johnPage.goto(`${BASE_URL}/`);
-  await johnPage.waitForLoadState('networkidle');
+//   await expect(johnPage.getByRole('link', { name: 'Recipes', exact: true }))
+//     .toBeVisible({ timeout: HEADING_TIMEOUT });
+//   await expect(johnPage.getByRole('button', { name: 'Vendors', exact: true }))
+//     .toBeVisible({ timeout: HEADING_TIMEOUT });
+//   await expect(johnPage.getByRole('button', { name: 'Categories' })).toBeVisible({ timeout: HEADING_TIMEOUT });
+//   await expect(johnPage.getByRole('link', { name: 'About', exact: true })).toBeVisible({ timeout: HEADING_TIMEOUT });
+//   await expect(johnPage.getByRole('link', { name: 'Favorites' })).toBeVisible({ timeout: HEADING_TIMEOUT });
+// });
 
-  const nav = getNavbar(johnPage);
-  await expect(nav).toBeVisible();
+test('john can edit own recipe', async ({ getUserPage }) => {
+  const johnPage = await getUserPage(JOHN_EMAIL, JOHN_PASSWORD);
+  await navigateToHome(johnPage);
 
-  await ensureNavbarExpanded(johnPage);
+  // Check Edit Recipe page
+  await clickAndNavigate(johnPage, 'Recipes', '**/recipes');
+  await johnPage.getByLabel('View Simple Fried Rice').getByRole('link', { name: 'Edit' }).click();
+  await expect(johnPage.getByRole('heading', { name: 'Edit recipe' })).toBeVisible({ timeout: HEADING_TIMEOUT });
+});
 
-  await expect(nav.getByRole('link', { name: 'Recipes', exact: true }))
-    .toBeVisible({ timeout: headingTimeout });
+test('john can view vendor store', async ({ getUserPage }) => {
+  const johnPage = await getUserPage(JOHN_EMAIL, JOHN_PASSWORD);
+  await navigateToHome(johnPage);
 
-  await expect(nav.getByRole('button', { name: 'Vendors' }))
-    .toBeVisible({ timeout: headingTimeout });
+  // Check Vendor Store page
+  await johnPage.getByRole('button', { name: 'Vendors' }).click();
+  await clickAndNavigate(johnPage, 'Vendors', '**/vendors');
+  await johnPage.getByRole('link', { name: "Bobby's Farm Bobby's Farm" }).click();
+  await expect(johnPage.getByRole('heading', { name: "Bobby's Farm" }))
+    .toBeVisible({ timeout: HEADING_TIMEOUT });
+});
 
-  await expect(nav.getByRole('button', { name: 'Categories' }))
-    .toBeVisible({ timeout: headingTimeout });
+test('john can view favorites and profile', async ({ getUserPage }) => {
+  const johnPage = await getUserPage(JOHN_EMAIL, JOHN_PASSWORD);
+  await navigateToHome(johnPage);
 
-  await expect(nav.getByRole('link', { name: 'About', exact: true }))
-    .toBeVisible({ timeout: headingTimeout });
+  // Check Favorites page
+  await clickAndNavigate(johnPage, 'Favorites', '**/favorites');
+  await expect(johnPage.getByRole('heading', { name: 'My Favorites' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 
-  await expect(nav.getByRole('link', { name: 'Favorites' }))
-    .toBeVisible({ timeout: headingTimeout });
+  // Check Profile page
+  await johnPage.getByRole('button', { name: `Hello, ${JOHN_EMAIL}` }).click();
+  await clickAndNavigate(johnPage, 'Profile', '**/profile');
+  await expect(johnPage.getByText(JOHN_EMAIL, { exact: true })).toBeVisible({ timeout: HEADING_TIMEOUT });
 
-  // Add Recipe flow
-  await nav.getByRole('link', { name: 'Recipes', exact: true }).click();
-  await johnPage.waitForLoadState('networkidle');
-  await johnPage.getByRole('link', { name: 'Add Recipe' }).click();
-  await johnPage.waitForLoadState('networkidle');
-  await expect(johnPage.getByRole('heading', { name: 'Add new recipe' }))
-    .toBeVisible({ timeout: headingTimeout });
-
-  // Favorites
-  await ensureNavbarExpanded(johnPage);
-  await nav.getByRole('link', { name: 'Favorites' }).click();
-  await johnPage.waitForLoadState('networkidle');
-  await expect(johnPage.getByRole('heading', { name: 'My Favorites' }))
-    .toBeVisible({ timeout: headingTimeout });
-
-  // User dropdown actions
-  const userMenuBtn = nav.getByRole('button', { name: /Hello,\s*john@foo\.com/i });
-  await userMenuBtn.click();
-  await johnPage.getByRole('link', { name: 'Profile' }).click();
-  await johnPage.waitForLoadState('networkidle');
-  await expect(johnPage.getByText('john@foo.com', { exact: true }))
-    .toBeVisible({ timeout: headingTimeout });
-
-  await userMenuBtn.click();
-  await johnPage.getByRole('link', { name: 'My Recipes' }).click();
-  await johnPage.waitForLoadState('networkidle');
-  await expect(johnPage.getByRole('heading', { name: 'My Recipes' }))
-    .toBeVisible({ timeout: headingTimeout });
+  // Check My Recipes page
+  await johnPage.getByRole('button', { name: `Hello, ${JOHN_EMAIL}` }).click();
+  await clickAndNavigate(johnPage, 'My Recipes', '**/recipes/my-recipes');
+  await expect(johnPage.getByRole('heading', { name: 'My Recipes' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 });

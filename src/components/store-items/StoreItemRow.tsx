@@ -49,7 +49,15 @@ export default function StoreItemRow({
               if (!ok) return;
               try {
                 await deleteStoreItem(id as number);
-              } catch (err) {
+              } catch (err: any) {
+                // Ignore redirect errors (they're thrown by Next.js redirect() function)
+                // The redirect() function throws an error which is expected behavior
+                if (err?.message?.includes('NEXT_REDIRECT') || err?.digest?.includes('NEXT_REDIRECT')) {
+                  // Show success message for successful deletion
+                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                  swal('Success', 'Item deleted successfully', 'success', { timer: 2000 });
+                  return;
+                }
                 // show error if delete fails
                 // eslint-disable-next-line no-console
                 console.error('Delete failed', err);

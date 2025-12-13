@@ -28,9 +28,17 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
     return notFound();
   }
 
+  // Convert Decimal price to number for client component
+  const itemForClient = {
+    ...item,
+    price: typeof item.price === 'object' && item.price !== null && 'toNumber' in (item.price as any)
+      ? (item.price as any).toNumber()
+      : Number(item.price),
+  };
+
   return (
     <main>
-      <EditStoreItemForm item={item} />
+      <EditStoreItemForm item={itemForClient} />
     </main>
   );
 }

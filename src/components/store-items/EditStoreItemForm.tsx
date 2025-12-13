@@ -1,12 +1,13 @@
 'use client';
 
+import { redirect } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import swal from 'sweetalert';
-import { redirect } from 'next/navigation';
 import { StoreItem, DatabaseItem } from '@prisma/client';
 import { editStoreItem } from '@/lib/dbActions';
 import { EditStoreItemSchema } from '@/lib/validationSchemas';
@@ -27,6 +28,7 @@ import StoreItemNameField from './StoreItemNameField';
  };
 
 export default function EditStoreItemForm({ item }: EditStoreItemFormProps) {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const currentUser = session?.user?.email || '';
   const {
@@ -71,8 +73,19 @@ export default function EditStoreItemForm({ item }: EditStoreItemFormProps) {
       } as any;
 
       await editStoreItem(payload);
-      swal('Success', 'Your item has been updated', 'success', { timer: 2000 });
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      swal('Success', 'Your item has been updated', 'success', { timer: 2000 }).then(() => {
+        router.push('/my-store');
+      });
     } catch (err) {
+      // redirect() throws NEXT_REDIRECT error, which is expected on success
+      if (err instanceof Error && err.message === 'NEXT_REDIRECT') {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        swal('Success', 'Your item has been updated', 'success', { timer: 2000 }).then(() => {
+          router.push('/my-store');
+        });
+        return;
+      }
       // eslint-disable-next-line no-console
       console.error('Error updating item:', err);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises

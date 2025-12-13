@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 import { addTag, editTag, deleteTag } from '@/lib/dbActions';
+import swal from 'sweetalert';
 
 interface Tag {
   id: number;
@@ -121,8 +122,13 @@ const AdminTagPanel = ({ initialTags, onRefresh }: AdminTagPanelProps) => {
   };
 
   const handleDelete = async (id: number) => {
-    // eslint-disable-next-line no-alert
-    const confirmed = window.confirm('Are you sure you want to delete this tag? This will remove it from all recipes.');
+    const confirmed = await swal({
+      title: 'Delete tag?',
+      text: 'Are you sure you want to delete this tag? This will remove it from all recipes.',
+      icon: 'warning',
+      buttons: ['Cancel', 'Delete'],
+      dangerMode: true,
+    });
     if (!confirmed) return;
 
     const previous = tags;

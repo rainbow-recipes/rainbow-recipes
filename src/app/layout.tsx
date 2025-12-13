@@ -21,8 +21,8 @@ export default function RootLayout({
   const classString = `${inter.className} wrapper`;
 
   return (
-    <html lang="en">
-      <body className={classString}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={classString} suppressHydrationWarning>
         <div className="page-shell">
           <Providers>
             <Navbar />
