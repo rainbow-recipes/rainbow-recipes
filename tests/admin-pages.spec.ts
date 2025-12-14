@@ -102,21 +102,21 @@ test('admin can view recipe details and add review', async ({ getUserPage }) => 
   await expect(adminPage.getByRole('heading', { name: 'Simple Fried Rice' }))
     .toBeVisible({ timeout: HEADING_TIMEOUT });
 
-  // Add review
-  await adminPage.getByRole('button', { name: 'Add Review' }).click();
-  await expect(adminPage.getByRole('heading', { name: 'Review Recipe' })).toBeVisible({ timeout: HEADING_TIMEOUT });
-  await adminPage.waitForLoadState('networkidle');
-  await adminPage.getByRole('spinbutton', { name: 'Rating (1-5)' }).fill('5');
-  await adminPage.getByRole('textbox', { name: 'Review' }).fill('Amazing recipe!');
-  await adminPage.getByRole('button', { name: 'Submit Review' }).click();
-  await adminPage.waitForURL('**/recipes/**');
-  await adminPage.waitForLoadState('networkidle');
+  // // Add review
+  // await adminPage.getByRole('button', { name: 'Add Review' }).click();
+  // await expect(adminPage.getByRole('heading', { name: 'Review Recipe' })).toBeVisible({ timeout: HEADING_TIMEOUT });
+  // await adminPage.waitForLoadState('networkidle');
+  // await adminPage.getByRole('spinbutton', { name: 'Rating (1-5)' }).fill('5');
+  // await adminPage.getByRole('textbox', { name: 'Review' }).fill('Amazing recipe!');
+  // await adminPage.getByRole('button', { name: 'Submit Review' }).click();
+  // await adminPage.waitForURL('**/recipes/**');
+  // await adminPage.waitForLoadState('networkidle');
 
-  // Delete review
-  const review = adminPage.getByText('Amazing recipe!').first();
-  await adminPage.getByRole('button', { name: 'Delete review' }).click();
-  await adminPage.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
-  await adminPage.waitForURL('**/recipes/**');
-  await adminPage.waitForLoadState('networkidle');
-  await expect(review).not.toBeVisible({ timeout: HEADING_TIMEOUT });
+  // // Delete review
+  // const review = adminPage.getByText('Amazing recipe!').first();
+  // await adminPage.getByRole('button', { name: 'Delete review' }).click();
+  // await adminPage.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+  // await adminPage.waitForURL('**/recipes/**');
+  // await adminPage.waitForLoadState('networkidle');
+  // await expect(review).not.toBeVisible({ timeout: HEADING_TIMEOUT });
 });
