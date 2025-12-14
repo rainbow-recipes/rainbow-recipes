@@ -47,7 +47,7 @@ export default function AdminPageClient({ initialUsers, initialItems, initialTag
   const [tags, setTags] = useState(initialTags);
 
   useEffect(() => {
-  const tab = searchParams?.get('tab');
+    const tab = searchParams?.get('tab');
     if (tab === 'items') {
       setActiveTab('items');
     } else if (tab === 'tags') {

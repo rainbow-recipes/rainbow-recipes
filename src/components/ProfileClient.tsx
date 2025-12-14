@@ -63,11 +63,11 @@ export default function ProfileClient({
   const [lastName, setLastName] = useState(initialUser.lastName ?? '');
   const [image, setImage] = useState(initialUser.image ?? '');
   const [error, setError] = useState<string | null>(null);
-  
+
   // Change email state
   const [newEmail, setNewEmail] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
-  
+
   // Change password state
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -200,7 +200,7 @@ export default function ProfileClient({
     if (!ok) return;
 
     try {
-        await deleteAccount(user.email, deletePassword);
+      await deleteAccount(user.email, deletePassword);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       swal('Success', 'Your account has been deleted. You will be logged out.', 'success');
       await signOut({ redirect: true, callbackUrl: '/' });
