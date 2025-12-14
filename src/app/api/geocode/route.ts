@@ -199,6 +199,7 @@ export async function GET(req: NextRequest) {
   // Try each candidate with both services in parallel
   for (const candidate of candidates) {
     // Race between Nominatim and Photon, return first success
+    // eslint-disable-next-line no-await-in-loop
     const result = await Promise.race([
       nominatimSearch(candidate),
       photonSearch(candidate),

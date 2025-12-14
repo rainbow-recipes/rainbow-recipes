@@ -1,7 +1,7 @@
 'use client';
 
 import swal from 'sweetalert';
-import type { StoreItem, DatabaseItem } from '@prisma/client';
+import { StoreItem, DatabaseItem } from '@prisma/client';
 import { deleteStoreItem } from '@/lib/dbActions';
 
 export default function StoreItemRow({

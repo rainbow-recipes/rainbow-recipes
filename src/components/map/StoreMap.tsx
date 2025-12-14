@@ -20,14 +20,6 @@ const TileLayer = dynamic(
   () => import('react-leaflet').then((m) => m.TileLayer),
   { ssr: false },
 );
-const Popup = dynamic(
-  () => import('react-leaflet').then((m) => m.Popup),
-  { ssr: false },
-);
-const Marker = dynamic(
-  () => import('react-leaflet').then((m) => m.Marker),
-  { ssr: false },
-);
 
 /**
  * Custom hook to safely load Leaflet and create the pin icon.
@@ -232,8 +224,6 @@ export default function StoreMap() {
     if (located.length > 0) return [located[0].lat, located[0].lng];
     return DEFAULT_CENTER;
   }, [filtered, located]);
-
-  const queryIsActive = query.trim().length > 0;
 
   return (
     <div className={styles.root}>

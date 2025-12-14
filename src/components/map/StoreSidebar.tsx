@@ -28,6 +28,7 @@ interface StoreSidebarProps {
   hoursPreview: (hours: string[]) => string;
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export function StoreSidebar({
   storeCount,
   filtered,

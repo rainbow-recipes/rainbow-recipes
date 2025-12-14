@@ -379,7 +379,6 @@ export async function createDatabaseItem(item: {
   }
 }
 
-
 export async function getDatabaseItems() {
   const databaseItems = await prisma.databaseItem.findMany({
     orderBy: { name: 'asc' },

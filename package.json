@@ -8,8 +8,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "playwright-development": "npx playwright test",
-    "test:serial-projects": "npx playwright test --project=webkit && npx playwright test --project=firefox && npx playwright test --project=chromium"
+    "playwright-development": "npx playwright test"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
@@ -18,13 +17,12 @@
     "@hookform/resolvers": "^3.6.0",
     "@ngneat/falso": "^7.2.0",
     "@prisma/client": "^5.19.1",
-    "@tanstack/react-query": "^5.90.12",
     "@vercel/edge-config": "^1.4.3",
     "bcrypt": "^5.1.1",
     "bootstrap": "^5.3.3",
     "leaflet": "^1.9.4",
     "multiselect-react-dropdown": "^2.0.25",
-    "next": "^16.0.8",
+    "next": "14.2.35",
     "next-auth": "^4.24.7",
     "playwright": "^1.57.0",
     "react": "^18",
@@ -47,7 +45,7 @@
     "eslint": "^8",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-config-next": "^15.5.7",
+    "eslint-config-next": "^14.2.10",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.3.1",
     "prettier-eslint": "^16.3.0",

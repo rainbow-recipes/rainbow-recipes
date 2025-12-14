@@ -152,9 +152,9 @@ export default async function VendorsPage({ params }: { params: Promise<{ id: st
                   ))}
                 </Col>
                 <Col xs="auto">
-                  {store.hours.map((hour: string, idx) => (
-                    <div key={idx}>
-                      {hour}
+                  {days.map((day, idx) => (
+                    <div key={day}>
+                      {store.hours?.[idx] ?? ''}
                     </div>
                   ))}
                 </Col>
