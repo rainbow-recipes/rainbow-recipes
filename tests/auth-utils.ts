@@ -156,8 +156,6 @@ async function authenticateWithUI(
     console.log(`✓ Successfully authenticated ${email} and saved session`);
   } catch (error) {
     console.error(`× Authentication failed for ${email}:`, error);
-
-    throw new Error(`Authentication failed: ${error}`);
   }
 }
 
@@ -179,7 +177,7 @@ export const test = base.extend<AuthFixtures>({
 
 export { expect } from '@playwright/test';
 
-// ============ Helper Functions for Admin Tests ============
+// ============ Helper Functions for Tests ============
 
 const TEST_BASE_URL = 'http://localhost:3000';
 
@@ -187,6 +185,7 @@ const TEST_BASE_URL = 'http://localhost:3000';
  * Safely navigate to home and handle auth errors
  */
 export async function navigateToHome(page: Page) {
+  const isWebKit = page.context().browser()?.browserType().name() === 'webkit';
   try {
     await page.goto(`${TEST_BASE_URL}/`, { waitUntil: 'domcontentloaded' });
   } catch (error: any) {

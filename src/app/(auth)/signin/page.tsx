@@ -10,8 +10,8 @@ function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const callbackUrl = searchParams.get('callbackUrl') ?? '/recipes';
-  const errorParam = searchParams.get('error');
+  const callbackUrl = searchParams?.get('callbackUrl') ?? '/recipes';
+  const errorParam = searchParams?.get('error');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

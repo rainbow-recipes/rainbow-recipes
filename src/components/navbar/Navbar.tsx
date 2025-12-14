@@ -3,18 +3,13 @@
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
-import {
-  Navbar as BootstrapNavbar,
-  Nav,
-  NavDropdown,
-  Container,
-} from 'react-bootstrap';
+import { Nav, Navbar, NavDropdown, Container } from 'react-bootstrap';
 import './Navbar.css';
 import {
   Basket2, Person, PersonCircle, PersonPlus, JournalText, PlusLg, BoxArrowRight, SuitHeartFill,
 } from 'react-bootstrap-icons';
 
-export default function Navbar() {
+export default function Navigation() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
@@ -29,10 +24,10 @@ export default function Navbar() {
 
   // Treat Vendors dropdown as "active" if user is on vendors list,
   // a specific vendor page, or the vendor map page.
-  const isVendorsSectionActive = pathname.startsWith('/vendors') || pathname === '/map';
+  const isVendorsSectionActive = pathname?.startsWith('/vendors') || pathname === '/map';
 
   return (
-    <BootstrapNavbar
+    <Navbar
       expand="lg"
       fixed="top"
       style={{ backgroundColor: '#024731' }}
@@ -40,7 +35,7 @@ export default function Navbar() {
       className="shadow-sm"
     >
       <Container>
-        <BootstrapNavbar.Brand as={Link} href="/" className="nav-link-custom">
+        <Navbar.Brand as={Link} href="/" className="nav-link-custom">
           <span className="d-inline-flex align-items-center">
             <span
               className="me-2 d-inline-flex align-items-center justify-content-center rounded-circle"
@@ -54,16 +49,16 @@ export default function Navbar() {
             </span>
             <span className="fw-semibold">Rainbow Recipes</span>
           </span>
-        </BootstrapNavbar.Brand>
+        </Navbar.Brand>
 
-        <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
-        <BootstrapNavbar.Collapse id="basic-navbar-nav">
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             {isAdmin && (
               <Nav.Link
                 as={Link}
                 href="/admin"
-                className={`nav-link-custom ${isActive(pathname, '/admin') ? 'active' : ''}`}
+                className={`nav-link-custom ${isActive(pathname ?? '', '/admin') ? 'active' : ''}`}
               >
                 Admin
               </Nav.Link>
@@ -72,7 +67,7 @@ export default function Navbar() {
               <Nav.Link
                 as={Link}
                 href="/my-store"
-                className={`nav-link-custom ${isActive(pathname, '/my-store') ? 'active' : ''}`}
+                className={`nav-link-custom ${isActive(pathname ?? '', '/my-store') ? 'active' : ''}`}
               >
                 My Store
               </Nav.Link>
@@ -80,7 +75,7 @@ export default function Navbar() {
             <Nav.Link
               as={Link}
               href="/recipes"
-              className={`nav-link-custom ${isActive(pathname, '/recipes') ? 'active' : ''}`}
+              className={`nav-link-custom ${isActive(pathname ?? '', '/recipes') ? 'active' : ''}`}
             >
               Recipes
             </Nav.Link>
@@ -146,7 +141,7 @@ export default function Navbar() {
             <Nav.Link
               as={Link}
               href="/about"
-              className={`nav-link-custom ${isActive(pathname, '/about') ? 'active' : ''}`}
+              className={`nav-link-custom ${isActive(pathname ?? '', '/about') ? 'active' : ''}`}
             >
               About
             </Nav.Link>
@@ -157,7 +152,7 @@ export default function Navbar() {
               <Nav.Link
                 as={Link}
                 href="/favorites"
-                className={`nav-link-custom ${isActive(pathname, '/favorites') ? 'active' : ''}`}
+                className={`nav-link-custom ${isActive(pathname ?? '', '/favorites') ? 'active' : ''}`}
               >
                 <div className="d-inline-flex align-items-center gap-2">
                   Favorites
@@ -169,7 +164,7 @@ export default function Navbar() {
               <Nav.Link
                 as={Link}
                 href="/vendor-signup"
-                className={`nav-link-custom ${isActive(pathname, '/vendor-signup') ? 'active' : ''}`}
+                className={`nav-link-custom ${isActive(pathname ?? '', '/vendor-signup') ? 'active' : ''}`}
               >
                 <div className="d-inline-flex align-items-center gap-2">
                   Vendor Sign Up
@@ -234,8 +229,8 @@ export default function Navbar() {
               </NavDropdown>
             )}
           </Nav>
-        </BootstrapNavbar.Collapse>
+        </Navbar.Collapse>
       </Container>
-    </BootstrapNavbar>
+    </Navbar>
   );
 }

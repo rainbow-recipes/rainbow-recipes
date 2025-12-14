@@ -8,7 +8,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "playwright-development": "npx playwright test"
+    "playwright-development": "npx playwright test",
+    "test:serial-projects": "npx playwright test --project=webkit && npx playwright test --project=firefox && npx playwright test --project=chromium"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
@@ -17,6 +18,7 @@
     "@hookform/resolvers": "^3.6.0",
     "@ngneat/falso": "^7.2.0",
     "@prisma/client": "^5.19.1",
+    "@tanstack/react-query": "^5.90.12",
     "@vercel/edge-config": "^1.4.3",
     "bcrypt": "^5.1.1",
     "bootstrap": "^5.3.3",

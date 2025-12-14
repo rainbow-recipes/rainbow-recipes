@@ -63,8 +63,8 @@ export default function RecipeList({
   const [recipes, setRecipes] = useState<RecipeWithTags[]>(initialRecipes);
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const urlFoodType = mode === 'publicProfile' ? null : searchParams.get('foodType');
-  const urlAppliance = mode === 'publicProfile' ? null : searchParams.get('appliance');
+  const urlFoodType = mode === 'publicProfile' ? null : searchParams?.get('foodType');
+  const urlAppliance = mode === 'publicProfile' ? null : searchParams?.get('appliance');
 
   const dietTags = useMemo(() => allTags.filter((t) => t.category === 'Diet'), [allTags]);
   const applianceTags = useMemo(() => allTags.filter((t) => t.category === 'Appliance'), [allTags]);
@@ -336,6 +336,15 @@ export default function RecipeList({
     const isOwner = recipe?.authorId != null && String(currentUserId) === String(recipe.authorId);
 
     if (!isAdmin && !isOwner) return;
+
+    const willDelete = await swal({
+      title: 'Are you sure?',
+      text: 'This will permanently delete the recipe. This action cannot be undone.',
+      icon: 'warning',
+      buttons: [true, 'Delete'],
+      dangerMode: true,
+    });
+    if (!willDelete) return;
 
     try {
       await deleteRecipe(session?.user?.email || '', recipeId);

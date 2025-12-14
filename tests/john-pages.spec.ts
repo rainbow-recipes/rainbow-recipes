@@ -26,6 +26,8 @@ test('john can edit own recipe', async ({ getUserPage }) => {
   // Check Edit Recipe page
   await clickAndNavigate(johnPage, 'Recipes', '**/recipes');
   await johnPage.getByLabel('View Simple Fried Rice').getByRole('link', { name: 'Edit' }).click();
+  await johnPage.waitForURL('**/recipes/edit/**');
+  await johnPage.waitForLoadState('networkidle');
   await expect(johnPage.getByRole('heading', { name: 'Edit recipe' })).toBeVisible({ timeout: HEADING_TIMEOUT });
 });
 
@@ -36,7 +38,7 @@ test('john can view vendor store', async ({ getUserPage }) => {
   // Check Vendor Store page
   await johnPage.getByRole('button', { name: 'Vendors' }).click();
   await clickAndNavigate(johnPage, 'Vendors', '**/vendors');
-  await johnPage.getByRole('link', { name: "Bobby's Farm Bobby's Farm" }).click();
+  await clickAndNavigate(johnPage, "Bobby's Farm Bobby's Farm", '**/vendors/**');
   await expect(johnPage.getByRole('heading', { name: "Bobby's Farm" }))
     .toBeVisible({ timeout: HEADING_TIMEOUT });
 });
