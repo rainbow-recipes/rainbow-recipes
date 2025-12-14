@@ -61,7 +61,7 @@ export default async function MyStorePage() {
                     <Image
                       src={image}
                       alt={`${storeName} logo`}
-                      className="img-fluid rounded-circle"
+                      className="img-fluid"
                       style={{ maxWidth: '100px', maxHeight: '75px', objectFit: 'fill' }}
                     />
                   ) : null}
