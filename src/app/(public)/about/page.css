@@ -16,3 +16,27 @@
 .deep-link:hover {
   text-decoration: underline !important;
 }
+
+/* Buttons hover styles for About page */
+.btn {
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+/* Darken primary green on hover */
+.btn.btn-success:hover {
+  background-color: #007a55 !important;
+  border-color: #007a55 !important;
+}
+/* Outline buttons (white background) fill on hover to green */
+.btn-outline:hover, .btn-outline.bg-white:hover {
+  background-color: #00a889ff !important;
+  color: #fff !important;
+  border-color: #00a889ff !important;
+}
+
+/* Slightly lighter CTA on dark background */
+.py-5.text-center.fade-in .btn:hover {
+  filter: brightness(0.95);
+}

@@ -1,5 +1,8 @@
+'use client';
+
 /* eslint-disable react/require-default-props */
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { Container, Row, Col } from 'react-bootstrap';
 import './LandingPage.css';
@@ -14,11 +17,31 @@ interface UserLandingProps {
 }
 
 function GuestLanding() {
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      },
+      { threshold: 0.2 },
+    );
+
+    const elements = document.querySelectorAll('.fade-in');
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      elements.forEach((el) => observer.unobserve(el));
+    };
+  }, []);
+
   return (
     <div className="w-100">
       {/* HERO SECTION */}
-      <div className="rr-hero">
-        <Container className="text-center py-5 rr-hero-content" style={{ maxWidth: '800px' }}>
+      <div className="rr-hero py-5 fade-in">
+        <Container className="text-center py-5 rr-hero-content" style={{ maxWidth: '850px' }}>
           <h1 className="display-4 fw-bold text-white mb-4">
             Rainbow Recipes
           </h1>
@@ -32,23 +55,27 @@ function GuestLanding() {
             and discover where to buy ingredients nearby. Start exploring and
             cook up something delicious today!
           </p>
-
-          <Link
-            href="/recipes"
-            className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
-          >
-            Browse Recipes
-          </Link>
-          <a
-            href="/lucky"
-            className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
-          >
-            I&apos;m feeling lucky!
-          </a>
+          <div className="d-flex justify-content-center gap-3">
+            <Link
+              href="/recipes"
+              className="btn btn-lg rounded-pill px-4 text-decoration-none fw-semibold text-white"
+              style={{ backgroundColor: '#00a889ff', borderColor: '#00a889ff' }}
+            >
+              Browse Recipes
+            </Link>
+            <Link
+              href="/lucky"
+              className="btn btn-outline btn-lg rounded-pill px-4 text-decoration-none fw-semibold bg-white"
+              style={{ borderColor: '#00a889ff', color: '#00a889ff' }}
+            >
+              I&apos;m feeling lucky!
+            </Link>
+          </div>
         </Container>
       </div>
+
       {/* FEATURE SECTION */}
-      <Container className="py-5">
+      <Container className="py-5 fade-in">
         <h3 className="display-6 fw-bold text-center mt-4 mb-5">
           What you can do with Rainbow Recipes
         </h3>
@@ -122,29 +149,34 @@ function GuestLanding() {
       <hr className="my-5" />
 
       {/* CALL TO ACTION SECTION */}
-      <Container className="text-center py-5" style={{ maxWidth: '800px' }}>
-        <h3 className="display-6 fw-bold mb-4">Ready to Start Cooking?</h3>
-        <p className="text-muted fs-5 mb-4">
+      <Container className="text-center py-5 fade-in" style={{ maxWidth: '800px' }}>
+        <h2 className="fw-bold mb-4">
+          Ready to Start Cooking?
+        </h2>
+        <p className="fs-5 mb-4 opacity-75">
           Check out our full list of recipes or explore local vendors to begin
           your cooking journey with fresh, reliable ingredients.
         </p>
 
-        <div className="d-flex justify-content-center gap-3">
+        <div className="d-flex justify-content-center gap-3 flex-wrap mt-4">
           <Link
             href="/recipes"
-            className="btn btn-success btn-lg rounded-pill px-4 py-2"
+            className="btn btn-lg rounded-pill px-4 text-decoration-none fw-semibold text-white"
+            style={{ backgroundColor: '#00a889ff', borderColor: '#00a889ff' }}
           >
             Browse Recipes
           </Link>
 
           <Link
             href="/vendors"
-            className="btn btn-outline-success rounded-pill px-4 justify-content-center d-flex align-items-center"
+            className="btn btn-outline btn-lg rounded-pill px-4 text-decoration-none fw-semibold bg-white"
+            style={{ borderColor: '#00a889ff', color: '#00a889ff' }}
           >
             Find Vendors
           </Link>
         </div>
       </Container>
+
       <div className="py-5" />
     </div>
   );
@@ -154,13 +186,11 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
   return (
     <div className="w-100">
       {/* HERO SECTION */}
-      <div className="rr-hero">
-        <Container
-          className="d-flex flex-column justify-content-center text-center py-5 rr-hero-content"
-          style={{ maxWidth: '800px', height: '70vh' }}
-        >
+      <div className="rr-hero rr-hero-large">
+        <Container className="text-center py-5 rr-hero-content" style={{ maxWidth: '850px' }}>
           <h1 className="display-4 fw-bold text-white mb-4">
             Welcome back,
+            {' '}
             {userName}
             !
           </h1>
@@ -169,27 +199,21 @@ function UserLanding({ userName = 'User' }: UserLandingProps) {
             Ready to discover your next favorite recipe?
           </h2>
 
-          <div className="d-flex justify-content-center gap-3 mt-4">
-            <Link
-              href="/recipes"
-              className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
-            >
-              Browse Recipes
-            </Link>
-
+          <div className="d-flex justify-content-center gap-3">
             <Link
               href="/favorites"
-              className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
+              className="btn btn-lg rounded-pill px-4 text-decoration-none fw-semibold text-white"
+              style={{ backgroundColor: '#00a889ff', borderColor: '#00a889ff' }}
             >
-              Favorite Recipes
+              My Favorites
             </Link>
-
-            <a
+            <Link
               href="/lucky"
-              className="btn btn-success btn-lg rounded-pill px-4 py-2 text-decoration-none"
+              className="btn btn-outline btn-lg rounded-pill px-4 text-decoration-none fw-semibold bg-white"
+              style={{ borderColor: '#00a889ff', color: '#00a889ff' }}
             >
               I&apos;m feeling lucky!
-            </a>
+            </Link>
           </div>
         </Container>
       </div>

@@ -8,7 +8,7 @@
   background-position: center;
   background-repeat: no-repeat;
   padding: 3.5rem 0; /* matches .py-5 spacing roughly */
-  min-height: 40vh; /* ensure enough area to show the image */
+  min-height: 70vh; /* ensure enough area to show the image */
 }
 
 /* Ensure the hero content sits above the overlay and is readable */
@@ -23,4 +23,65 @@
     background-position: center top;
     min-height: 30vh;
   }
+}
+
+/* Larger hero variant for logged-in users */
+.rr-hero.rr-hero-large {
+  /* Fill the full viewport for a dramatic hero on desktop */
+  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .rr-hero.rr-hero-large {
+    /* Slightly shorter on smaller screens to avoid excessive vertical space */
+    min-height: 70vh;
+    height: 70vh;
+  }
+}
+
+/* Fade-in helper (matching about page) */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.deep-link {
+  text-decoration: none !important;
+}
+
+.deep-link:hover {
+  text-decoration: underline !important;
+}
+
+/* Buttons hover styles (match About page) */
+.btn {
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+/* Darken primary green on hover */
+.btn.btn-success:hover {
+  background-color: #007a55 !important;
+  border-color: #007a55 !important;
+}
+/* Outline buttons (white background) fill on hover to green */
+.btn-outline:hover, .btn-outline.bg-white:hover {
+  background-color: #00a889ff !important;
+  color: #fff !important;
+  border-color: #00a889ff !important;
+}
+
+/* CTA subtle hover tweak */
+.rr-hero .btn:hover {
+  filter: brightness(0.95);
 }

@@ -386,7 +386,7 @@ export default function AboutPage() {
             <Link
               href="/recipes"
               className="btn btn-lg rounded-pill px-4 text-decoration-none fw-semibold text-white"
-              style={{ backgroundColor: '#00A86B', borderColor: '#00A86B' }}
+              style={{ backgroundColor: '#00a889ff', borderColor: '#00a889ff' }}
             >
               Browse Recipes
             </Link>
@@ -394,7 +394,7 @@ export default function AboutPage() {
             <Link
               href="/vendors"
               className="btn btn-outline btn-lg rounded-pill px-4 text-decoration-none fw-semibold bg-white"
-              style={{ borderColor: '#00A86B', color: '#00A86B' }}
+              style={{ borderColor: '#00a889ff', color: '#00a889ff' }}
             >
               Find Vendors
             </Link>
