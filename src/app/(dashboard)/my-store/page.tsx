@@ -113,17 +113,13 @@ export default async function MyStorePage() {
                 <Col>
                   <StoreItemList items={items} mode="myStore" showSearch />
                   <div className="text-end mt-3">
-                    <Link href="/my-store/add-item" className="btn btn-outline-dark btn-lg rounded-pill">
+                    <Link href="/my-store/add-item" className="btn btn-outline-dark btn-md rounded-pill me-2">
                       Add Item
                     </Link>
+                    <Link href={`/my-store/edit/${id}`} className="btn btn-outline-dark btn-md rounded-pill">
+                      Edit My Store
+                    </Link>
                   </div>
-                </Col>
-              </Row>
-              <Row>
-                <Col className="text-end">
-                  <Link href={`/my-store/edit/${id}`} className="btn btn-outline-dark btn-lg rounded-pill">
-                    Edit My Store
-                  </Link>
                 </Col>
               </Row>
             </Container>
